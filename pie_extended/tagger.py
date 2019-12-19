@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-from pie.tagger import Tagger, lines_from_file
+from pie.tagger import Tagger
 from pie import utils
 from .prototypes import Disambiguator, DataIterator, Formatter
 
@@ -15,26 +15,6 @@ class ExtensibleTagger(Tagger):
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 
-    def tag_file(self, fpath, sep='\t', **kwargs):
-        _, ext = os.path.splitext(fpath)
-        header = False
-
-        with open(utils.ensure_ext(fpath, ext, 'pie'), 'w+') as f:
-
-            for chunk in utils.chunks(
-                    lines_from_file(fpath, self.lower), self.batch_size):
-                sents, lengths = zip(*chunk)
-                tagged, tasks = self.tag(sents, lengths, **kwargs)
-
-                for sent in tagged:
-                    if not header:
-                        f.write(sep.join(['token'] + tasks) + '\n')
-                        header = True
-                    for token, tags in sent:
-                        f.write(sep.join([token] + list(tags)) + '\n')
-
-                    f.write('\n')
-
     def reinsert_full(self, formatter, sent_reinsertion, tasks):
         yield formatter.write_sentence_beginning()
         # If a sentence is empty, it's most likely because everything is in sent_reinsertions
@@ -47,14 +27,12 @@ class ExtensibleTagger(Tagger):
             )
         yield formatter.write_sentence_end()
 
-    def build_response(self, fpath: str, iterator: DataIterator, formatter_class: type):
+    def tag_file(self, fpath: str, iterator: DataIterator, formatter_class: type):
         # Read content of the file
         with open(fpath) as f:
             data = f.read()
 
-        header = False
         _, ext = os.path.splitext(fpath)
-        formatter = None
 
         with open(utils.ensure_ext(fpath, ext, 'pie'), 'w+') as f:
             for line in self.iter_tag(data, iterator, formatter_class):

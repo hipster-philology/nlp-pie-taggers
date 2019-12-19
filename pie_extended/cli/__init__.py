@@ -42,9 +42,19 @@ def download(model):
 @pie_ext.command("tag")
 @click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
 @click.argument("filepath", nargs=-1, type=click.Path(exists=True, dir_okay=False))
-def download(model, filepath):
+def tag(model, filepath):
     """ Download a [model] for future availability. Check list for available models"""
+    from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
     tagger = sub.get_tagger(model)
-    for file in filepath:
-        tagger.tag_file(file)
+    for file in tqdm(filepath):
+        sub.tag_file(model, tagger, file)
+
+
+@pie_ext.command("install-addons")
+@click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
+def install(model):
+    """ Download a [model] for future availability. Check list for available models"""
+    click.echo(click.style("Installing add-ons", bold=True))
+    sub.get_addons(model)
+    click.echo(click.style("Done", bold=True))

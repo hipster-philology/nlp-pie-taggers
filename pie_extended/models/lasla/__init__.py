@@ -31,4 +31,16 @@ def _get_disambiguator():
         get_path("lasla", "latin-needs.json"), lemma_key="lemma")
     return GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, impossible))
 
+
 Disambiguator: ObjectCreator = ObjectCreator(_get_disambiguator)
+
+
+def addons():
+    from cltk.corpus.utils.importer import CorpusImporter
+
+    corpus_importer = CorpusImporter('latin')
+    corpus_importer.import_corpus('latin_models_cltk')
+
+
+from .classes import get_iterator_and_formatter
+

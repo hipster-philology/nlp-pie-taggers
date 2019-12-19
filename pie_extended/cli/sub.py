@@ -1,17 +1,12 @@
-from typing import Tuple, Iterable
-from .. import models
-from ..utils import Metadata
-import requests
 import os
+from typing import Tuple, Iterable
 
+import requests
 
-PATH = os.path.normpath(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "downloads"
-    )
-)
+from .. import models
+from ..utils import Metadata, PATH, get_path
+from ..tagger import ExtensibleTagger
+from pie.utils import model_spec
 
 
 def download(module):
@@ -19,10 +14,10 @@ def download(module):
     os.makedirs(os.path.join(PATH, module), exist_ok=True)
     yield len(lemmatizer.DOWNLOADS)
     for file in lemmatizer.DOWNLOADS:
+
         data = requests.get(file.url)
-        new_path = os.path.join(
-            PATH, module, file.name
-        )
+        new_path = get_path(module, file.name)
+
         with open(new_path, "wb") as f:
             f.write(data.content)
         yield file.name
@@ -33,3 +28,18 @@ def get_list() -> Iterable[Tuple[str, Metadata]]:
         desc = getattr(getattr(models, module), "DESC", None)
         if desc:
             yield module, desc
+
+
+def get_tagger(model: str) -> ExtensibleTagger:
+    module = getattr(models, model)
+    disambiguator = getattr(module, "Disambiguator", None)
+    tagger = ExtensibleTagger(disambiguation=disambiguator)
+    for model, tasks in model_spec(getattr(module, "Models")):
+        tagger.add_model(model, *tasks)
+    return tagger
+
+
+def tag_file(model: str, tagger: ExtensibleTagger, fpath):
+    module = getattr(models, model)
+    iterator = getattr(module, "Iterator", None)
+    formatter = getattr(module, "Formatter", None)

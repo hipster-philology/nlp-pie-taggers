@@ -1,4 +1,5 @@
 .idea
+/*.txt
 pie_extended/downloads/*
 # Byte-compiled / optimized / DLL files
 __pycache__/

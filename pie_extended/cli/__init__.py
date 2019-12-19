@@ -37,3 +37,14 @@ def download(model):
         else:
             click.echo("- {} downloaded".format(file))
     click.echo(click.style("Finished !", bold=True))
+
+
+@pie_ext.command("tag")
+@click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
+@click.argument("filepath", nargs=-1, type=click.Path(exists=True, dir_okay=False))
+def download(model, filepath):
+    """ Download a [model] for future availability. Check list for available models"""
+    click.echo(click.style("Getting the tagger", bold=True))
+    tagger = sub.get_tagger(model)
+    for file in filepath:
+        tagger.tag_file(file)

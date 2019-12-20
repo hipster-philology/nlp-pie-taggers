@@ -1,6 +1,6 @@
 from ...utils import Metadata, File, get_path, ObjectCreator
 from autocat import NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
-
+from ...pipeline.disambiguators.autocat import Autocat
 
 __all__ = ["DESC", "DOWNLOADS", "Disambiguator"]
 DESC = Metadata(
@@ -28,7 +28,7 @@ def _get_disambiguator():
         get_path("lasla", "latin-straight.json"), lemma_key="lemma")
     impossible = NeedsDisambiguation.from_file(
         get_path("lasla", "latin-needs.json"), lemma_key="lemma")
-    return GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, impossible))
+    return Autocat(GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, impossible)))
 
 
 Disambiguator: ObjectCreator = ObjectCreator(_get_disambiguator)

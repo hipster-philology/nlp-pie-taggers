@@ -5,7 +5,7 @@ from pie.tagger import Tagger
 from pie import utils
 
 from .pipeline.formatters.proto import Formatter
-from .pipeline.disambiguators.typing import Disambiguator
+from .pipeline.disambiguators.proto import Disambiguator
 from .pipeline.iterators.proto import DataIterator
 
 

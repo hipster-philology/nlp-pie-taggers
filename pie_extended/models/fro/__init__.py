@@ -1,5 +1,6 @@
-from ...utils import Metadata, File
-
+from ...utils import Metadata, File ,get_path
+from .classes import GlueFormatter
+from ...pipeline.iterators.proto import DataIterator
 
 DESC = Metadata(
     "Ancien Francais (ENC)",
@@ -10,9 +11,20 @@ DESC = Metadata(
 )
 
 DOWNLOADS = [
-    File("https://github.com/chartes/deucalion-model-lasla/raw/master/latin-straight.json", "latin-straight.json"),
-    File("https://github.com/chartes/deucalion-model-lasla/raw/master/latin-pos.json", "latin-pos.json"),
-    File("https://github.com/chartes/deucalion-model-lasla/raw/master/latin-needs.json", "latin-needs.json"),
-    File("https://github.com/chartes/deucalion-model-lasla/raw/master/model.tar", "model.tar")
+    File("https://github.com/chartes/deucalion-model-af/raw/master/morph.tar", "morph.tar"),
+    File("https://github.com/chartes/deucalion-model-af/raw/master/lemma-pos.tar", "lemma-pos.tar")
 ]
 
+
+Models = "<{},MODE,TEMPS,PERS,NOMB,GENRE,CAS,DEGRE><{},lemma,pos>".format(
+    get_path("fro", "morph.tar"),
+    get_path("fro", "lemma-pos.tar")
+)
+
+
+def get_iterator_and_formatter():
+    formatter = GlueFormatter
+    iterator = DataIterator(
+        remove_from_input=DataIterator.remove_punctuation
+    )
+    return iterator, formatter

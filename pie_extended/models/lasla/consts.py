@@ -2,7 +2,7 @@ from ...utils import Metadata, File, get_path, ObjectCreator
 from autocat import NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
 from ...pipeline.disambiguators.autocat import Autocat
 
-__all__ = ["DESC", "DOWNLOADS", "Disambiguator"]
+
 DESC = Metadata(
     "LASLA-ENC",
     "lat",

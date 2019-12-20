@@ -1,5 +1,5 @@
-from flask_pie.testing import FakeTagger
 from pie_extended.models.lasla.classes import get_iterator_and_formatter
+from pie_extended.testing_utils import FakeTagger
 from typing import List, Tuple
 
 from unittest import TestCase
@@ -21,7 +21,7 @@ def make_controller(sentences: List[str]):
         make_fake_data(sentences),
         tasks="lemma,Voice,Mood,Deg,Numb,Person,Tense,Case,Gend,pos".split(",")
     )
-    iterator, formatter = get_iterator_and_formatter,
+    iterator, formatter = get_iterator_and_formatter()
     return tagger, iterator, formatter
 
 
@@ -32,22 +32,23 @@ class TestPonctuation(TestCase):
         Found out the hard way it would break things
         """
 
-        client = make_controller([
+        tagger, data_iterator, formatter = make_controller([
             "id enim ait turbabuntur a facie eius patris or phanorum et iudicis uiduarum",
             "causam turbationis hanc docuit quod pater"
         ])
-        req = client.post(
-            "/api/",
-            data={"data": "id enim ait turbabuntur a facie eius patris or phanorum et iudicis uiduarum ."
-                          "  .  causam turbationis hanc docuit quod pater"}
+
+        result = tagger.tag_str(
+            data="id enim ait turbabuntur a facie eius patris or phanorum et iudicis uiduarum ."
+                          "  .  causam turbationis hanc docuit quod pater",
+            formatter_class=formatter,
+            iterator=data_iterator
         )
-        resp = req.data.decode()
         self.assertIn(
             "uiduarum	uiduarum	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person=fake"
             "	uiduarum\r\n"
             ".	.	PUNC	MORPH=empty	.\r\n"
             ".	.	PUNC	MORPH=empty	.",
-            resp,
+            result,
             "Punctuation should be reinserted and mostly should not break anything"
         )
 
@@ -56,11 +57,14 @@ class TestPonctuation(TestCase):
 
         Special case of consecutive dots, where sentences starts with it
         """
-        client = make_controller([
+        tagger, data_iterator, formatter = make_controller([
             "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
         ])
-        req = client.post("/api/", data={"data": "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  ."})
-        resp = req.data.decode()
+        result = tagger.tag_str(
+            "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
+            formatter_class=formatter,
+            iterator=data_iterator
+        )
         self.assertIn(
             "form	lemma	POS	morph	treated_token\r\n"
             "(	(	PUNC	MORPH=empty	(\r\n"
@@ -70,8 +74,42 @@ class TestPonctuation(TestCase):
             ")	)	PUNC	MORPH=empty	)\r\n"
             "turbabuntur	turbabuntur	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person"
             "=fake	turbabuntur\r\n",
-            resp,
+            result,
             "Leading punctuation should not break anything"
         )
 
+    def test_punctuation_is_not_seen(self):
+        """Check that punctuation is not seen by the tagger
 
+        """
+        tagger, data_iterator, formatter = make_controller([
+            "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
+        ])
+        tagger.tag_str(
+            "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
+            formatter_class=formatter,
+            iterator=data_iterator
+        )
+        self.assertNotIn(
+            "(",
+            [tok for sent in tagger.seen for tok in sent],
+            "Punctuation should not be seen by the Tagger"
+        )
+
+    def test_j_are_temporarly_replaced(self):
+        """Check that characters are replaced for the tagger, thus avoiding out of domain, and reinserted
+
+        """
+        tagger, data_iterator, formatter = make_controller([
+            "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
+        ])
+        result = tagger.tag_str(
+            "( id enim ait ) turbabuntur a facie eius patris or phanorum et judicis uiduarum .  .",
+            formatter_class=formatter,
+            iterator=data_iterator
+        )
+        flatten_seen = list([tok for sent in tagger.seen for tok in sent])
+
+        self.assertNotIn("judicis", flatten_seen, "'j' should be removed from tagging")
+        self.assertIn("iudicis", flatten_seen, "And 'i' should replace it")
+        self.assertIn("\njudicis\t", result, "But, in the end, the original form is given to the user")

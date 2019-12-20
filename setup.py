@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Package meta-data.
-NAME = 'pie-extended'
+NAME = 'pie_extended'
 DESCRIPTION = "Extension for nlp-pie package"
 URL = 'https://github.com/ponteineptique/nlp-pie-taggers'
 AUTHOR = 'Thibault Clérice'

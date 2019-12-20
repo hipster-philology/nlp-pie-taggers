@@ -41,6 +41,9 @@ class ExtensibleTagger(Tagger):
             for line in self.iter_tag(data, iterator, formatter_class):
                 f.write(line)
 
+    def tag_str(self, data: str, iterator: DataIterator, formatter_class: type) -> str:
+        return "".join(list(self.iter_tag(data, iterator, formatter_class)))
+
     def iter_tag(self, data: str, iterator: DataIterator, formatter_class: type):
         header = False
         formatter = None

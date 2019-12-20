@@ -12,7 +12,6 @@ from pie.utils import model_spec
 
 
 def get_model(model):
-    print(models.__name__)
     return import_module("{}.{}".format(models.__name__, model))
 
 

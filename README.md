@@ -1,5 +1,9 @@
 # Pie Extended
 
+[![Build Status](https://travis-ci.org/hipster-philology/nlp-pie-taggers.svg?branch=master)](https://travis-ci.org/hipster-philology/nlp-pie-taggers)
+[![Coverage Status](https://coveralls.io/repos/github/hipster-philology/nlp-pie-taggers/badge.svg?branch=master)](https://coveralls.io/github/hipster-philology/nlp-pie-taggers?branch=master)
+![PyPI](https://img.shields.io/pypi/v/pie-extended?style=flat-square)
+
 Extension for [`pie`](https://github.com/emanjavacas/pie) to include taggers with their models and pre/postprocessors.
 
 Pie is a wonderful tool to train models. And most of the time, it will be enough. What `pie_extended` is proposing here 

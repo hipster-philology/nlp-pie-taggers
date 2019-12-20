@@ -5,6 +5,7 @@ from . import sub
 
 MODELS = [name for name, *_ in sub.get_list()]
 
+
 @click.group("pie-ext")
 def pie_ext():
     """ Extended commands """

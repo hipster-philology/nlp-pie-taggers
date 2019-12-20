@@ -1,5 +1,5 @@
 import regex as re
-from .. import Formatter
+from .proto import Formatter
 
 
 class GlueFormatter(Formatter):
@@ -13,7 +13,7 @@ class GlueFormatter(Formatter):
 
     def __init__(self, tokenizer_memory):
         super(GlueFormatter, self).__init__([])
-        self.tokenizer_memory = tokenizer_memory
+        self.tokenizer_memorytokenizer_memory = tokenizer_memory
 
     def __call__(self, tasks):
         super(GlueFormatter, self).__init__(tasks)

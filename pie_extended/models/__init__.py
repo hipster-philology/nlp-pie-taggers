@@ -1,1 +1,4 @@
-from . import lasla, fro
+modules = [
+    "lasla",
+    "fro"
+]

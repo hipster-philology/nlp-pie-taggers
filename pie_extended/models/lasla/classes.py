@@ -5,37 +5,45 @@ import click
 try:
     import cltk
     from cltk.tokenize.word import WordTokenizer
-except:
+except ImportError as E:
     click.echo(click.style("You need to install cltk and its Latin Data to runs this package", fg="red"))
     click.echo("pip install cltk")
     click.echo("pie-ext install-addons lasla")
     sys.exit(0)
 
-from pie_extended.prototypes import DataIterator
-from pie_extended.prototypes.formatters.glue import GlueFormatter as GenericGlueFormatter
+
+from pie_extended.pipeline.iterators.proto import DataIterator
+from pie_extended.pipeline.formatters.glue import GlueFormatter as SourceGlueFormatter
+from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer as SourceMemorizingTokenizer
+
 
 # Uppercase regexp
 uppercase = re.compile(r"^[A-Z]$")
-add_space_around_punct = re.compile(r"(\s*)([^\w\s\.])(\s*)")
-normalize_space = re.compile(r"(\s+)")
-sentence_tokenizer = re.compile(r"([^\w\s](?:[\s\W]+)?)")
 
 
-class MemoryzingTokenizer(object):
+class MemorizingTokenizer(SourceMemorizingTokenizer):
+
+    re_add_space_around_punct = re.compile(r"(\s*)([^\w\s\.])(\s*)")
+    re_normalize_space = re.compile(r"(\s+)")
+    re_sentence_tokenizer = re.compile(r"([^\w\s](?:[\s\W]+)?)")
+
     def __init__(self):
         self.tokens = [
         ]
 
-        self.word_tokenizer = WordTokenizer("latin")
+        self._word_tokenizer = WordTokenizer("latin")
+
+    def word_tokenizer(self, data):
+        return self._word_tokenizer.tokenize(data)
 
     def sentence_tokenizer(self, data):
         sentences = list()
         first_is_dot = False
         started_writting = False  # Allows for avoiding to compute length
-        for sent in sentence_tokenizer.split(data):
+        for sent in MemorizingTokenizer.re_sentence_tokenizer.split(data):
             sent = sent.strip()
             if sent:
-                if sentence_tokenizer.match(sent):
+                if MemorizingTokenizer.re_sentence_tokenizer.match(sent):
                     if not started_writting:
                         sentences.append(sent)
                         first_is_dot = True
@@ -57,30 +65,16 @@ class MemoryzingTokenizer(object):
         inp = inp.replace("U", "V").replace("v", "u").replace("J", "I").replace("j", "i").lower()
         return inp
 
-    def __call__(self, data, lower=True):
-        if lower:
-            data = data.lower()
-
+    def normalizer(self, data: str):
         # Fix regarding the current issue of apostrophe
         # https://github.com/cltk/cltk/issues/925#issuecomment-522065530
         # On the other hand, it creates empty tokens...
-        data = add_space_around_punct.sub(" \g<2> ", data)
-        data = normalize_space.sub(" ", data)
-
-        for sentence in self.sentence_tokenizer(data):
-            toks = self.word_tokenizer.tokenize(sentence)
-            new_sentence = []
-
-            for tok in toks:
-                if tok:
-                    out = self.replacer(tok)
-                    self.tokens.append((len(self.tokens), tok, out))
-                    new_sentence.append(out)
-            if new_sentence:
-                yield new_sentence
+        data = MemorizingTokenizer.re_add_space_around_punct.sub(" \g<2> ", data)
+        data = MemorizingTokenizer.re_normalize_space.sub(" ", data)
+        return data
 
 
-class GlueFormatter(GenericGlueFormatter):
+class GlueFormatter(SourceGlueFormatter):
     HEADERS = ["form", "lemma", "POS", "morph", "treated_token"]
     MORPH_PART = ["Case", "Numb", "Deg", "Mood", "Tense", "Voice", "Person"]
     PONCTU = re.compile(r"^\W+$")
@@ -103,7 +97,7 @@ class GlueFormatter(GenericGlueFormatter):
 
 
 def get_iterator_and_formatter():
-    tokenizer = MemoryzingTokenizer()
+    tokenizer = MemorizingTokenizer()
     formatter = GlueFormatter(tokenizer)
     iterator = DataIterator(
         tokenizer=tokenizer,

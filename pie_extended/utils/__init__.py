@@ -23,3 +23,15 @@ PATH = os.path.normpath(
 
 def get_path(module, file):
     return os.path.join(PATH, module, file)
+
+
+class ObjectCreator:
+    """ Some objects should be reset everytime a new tagging is done. To make this easier
+    we provide this class that keeps in memory the initialization parameters."""
+    def __init__(self, cls, *args, **kwargs):
+        self.cls = cls
+        self.args = args
+        self.kwargs = kwargs
+
+    def create(self):
+        return self.cls(*self.args, **self.kwargs)

@@ -3,7 +3,10 @@ from typing import Optional
 
 from pie.tagger import Tagger
 from pie import utils
-from .prototypes import Disambiguator, DataIterator, Formatter
+
+from .pipeline.formatters.proto import Formatter
+from .pipeline.disambiguators.typing import Disambiguator
+from .pipeline.iterators.proto import DataIterator
 
 
 class ExtensibleTagger(Tagger):

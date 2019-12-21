@@ -113,3 +113,21 @@ class TestPonctuation(TestCase):
         self.assertNotIn("judicis", flatten_seen, "'j' should be removed from tagging")
         self.assertIn("iudicis", flatten_seen, "And 'i' should replace it")
         self.assertIn("\njudicis\t", result, "But, in the end, the original form is given to the user")
+
+    def test_underscores(self):
+        string = "una operatio in ecclesiae fundamento.._... _ . laetatur autem pater quia filius perierat"
+        tagger, data_iterator, formatter = make_controller([
+            "una operatio in ecclesiae fundamento", "laetatur autem pater quia filius perierat"
+        ])
+        tagger.tag_str(
+            string,
+            formatter_class=formatter,
+            iterator=data_iterator
+        )
+        flatten_seen = list([tok for sent in tagger.seen for tok in sent])
+        self.assertEqual(
+            ['una', 'operatio', 'in', 'ecclesiae', 'fundamento', 'laetatur', 'autem', 'pater', 'quia', 'filius',
+             'perierat'],
+            flatten_seen,
+            "Seen element should not count the underscord"
+        )

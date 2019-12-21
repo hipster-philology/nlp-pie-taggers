@@ -25,7 +25,7 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
 
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s\.])(\s*)")
     re_normalize_space = re.compile(r"(\s+)")
-    re_sentence_tokenizer = re.compile(r"([^\w\s](?:[\s\W]+)?)")
+    re_sentence_tokenizer = re.compile(r"([_||[^\s\w]]+(?:[\s_||[\W]]+)?)", re.VERSION1)
 
     def __init__(self):
         self.tokens = [

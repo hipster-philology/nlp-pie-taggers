@@ -44,13 +44,28 @@ def download(model):
 @pie_ext.command("tag")
 @click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
 @click.argument("filepath", nargs=-1, type=click.Path(exists=True, dir_okay=False))
-def tag(model, filepath):
+@click.option("--allow-n-failures", "allowed_failure", type=int, default=5)
+@click.option("--batch_size", type=int, default=16)
+@click.option("--device", type=str, default="cpu")
+def tag(model, filepath, allowed_failure, batch_size, device):
     """ Tag as many [filepath] as you want with [model]"""
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
-    tagger = sub.get_tagger(model)
+    tagger = sub.get_tagger(model, batch_size=batch_size, device=device)
+    failures = []
     for file in tqdm(filepath):
-        sub.tag_file(model, tagger, file)
+        try:
+            sub.tag_file(model, tagger, file)
+        except Exception as E:
+            failures.append(E)
+            click.echo("{} could not be lemmatized".format(file))
+            if len(failures) > allowed_failure:
+                click.echo(
+                    click.style("Too many errors, stopping the process", fg="red")
+                )
+                for failure in failures:
+                    print(failure)
+                break
 
 
 @pie_ext.command("install-addons")

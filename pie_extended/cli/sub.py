@@ -36,12 +36,12 @@ def get_list() -> Iterable[Tuple[str, Metadata]]:
             yield module, desc
 
 
-def get_tagger(model: str) -> ExtensibleTagger:
+def get_tagger(model: str, batch_size: int = 16, device="cpu") -> ExtensibleTagger:
     module = get_model(model)
     disambiguator = getattr(module, "Disambiguator", None)
     if isinstance(disambiguator, ObjectCreator):
         disambiguator = disambiguator.create()
-    tagger = ExtensibleTagger(disambiguation=disambiguator)
+    tagger = ExtensibleTagger(disambiguation=disambiguator, batch_size=batch_size, device=device)
     for model, tasks in model_spec(getattr(module, "Models")):
         tagger.add_model(model, *tasks)
     return tagger

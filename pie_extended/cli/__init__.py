@@ -47,7 +47,8 @@ def download(model):
 @click.option("--allow-n-failures", "allowed_failure", type=int, default=5)
 @click.option("--batch_size", type=int, default=16)
 @click.option("--device", type=str, default="cpu")
-def tag(model, filepath, allowed_failure, batch_size, device):
+@click.option("--debug", is_flag=True)
+def tag(model, filepath, allowed_failure, batch_size, device, debug):
     """ Tag as many [filepath] as you want with [model]"""
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
@@ -59,6 +60,8 @@ def tag(model, filepath, allowed_failure, batch_size, device):
         except Exception as E:
             failures.append(E)
             click.echo("{} could not be lemmatized".format(file))
+            if debug:
+                raise E
             if len(failures) > allowed_failure:
                 click.echo(
                     click.style("Too many errors, stopping the process", fg="red")

@@ -24,17 +24,21 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
     re_sentence_tokenizer = re.compile(r"([_||[^\s\w]]+(?:[\s_||[\W]]+)?)", re.VERSION1)
     re_word_tokenizer = re.compile(r"[\s]+")
     _sentence_boundaries = re.compile(
-        r"(([" + _Dots_except_apostrophe + r"]+)\s*)?+"
+        r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
 
     def __init__(self):
         self.tokens = []
 
+    @staticmethod
+    def _better_replacer(match):
+        start, end = match.span()
+        return match.string[start:end] + "<SPLIT>"
+
     @classmethod
     def _sentence_tokenizer(cls, string: str) -> List[str]:
-        string = cls._sentence_boundaries.sub(r"\g<><SPLIT>", string)
+        string = cls._sentence_boundaries.sub(cls._better_replacer, string)
         string = string.replace("_DOT_", ".")
-        print(string)
         return string.split("<SPLIT>")
 
     def word_tokenizer(self, data):
@@ -48,7 +52,6 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
             sent = sent.strip()
             if sent:
                 sentences.append(sent)
-            print(sentences)
         yield from sentences
 
     def replacer(self, inp: str):

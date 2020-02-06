@@ -24,7 +24,7 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
     re_sentence_tokenizer = re.compile(r"([_||[^\s\w]]+(?:[\s_||[\W]]+)?)", re.VERSION1)
     re_word_tokenizer = re.compile(r"[\s]+")
     _sentence_boundaries = re.compile(
-        r"(?<!" + _RomanNumber + r"\.)(?<=" + _Dots_except_apostrophe + r"+)(\B)(?!\." + _RomanNumber + ")"
+        r"(([" + _Dots_except_apostrophe + r"]+)\s*)?+"
     )
 
     def __init__(self):
@@ -32,7 +32,8 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
 
     @classmethod
     def _sentence_tokenizer(cls, string: str) -> List[str]:
-        string = cls._sentence_boundaries.sub(r"\g<1><SPLIT>", string)
+        string = cls._sentence_boundaries.sub(r"\g<><SPLIT>", string)
+        string = string.replace("_DOT_", ".")
         print(string)
         return string.split("<SPLIT>")
 
@@ -42,9 +43,11 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
 
     def sentence_tokenizer(self, data):
         sentences = list()
-        for sent in MemorizingTokenizer.re_sentence_tokenizer.split(data):
+        data = self.normalizer(data)
+        for sent in self._sentence_tokenizer(data):
             sent = sent.strip()
-            sentences.append(sent)
+            if sent:
+                sentences.append(sent)
             print(sentences)
         yield from sentences
 
@@ -52,10 +55,18 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         inp = self.re_add_space_after_apostrophe.sub("", inp)
         return inp
 
+    roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
+
     def normalizer(self, data: str):
         data = self.re_add_space_after_apostrophe.sub(
-            "\g<2> ",
-            self.re_add_space_around_punct.sub(" \g<2> ", data)
+            r"\g<2> ",
+            self.re_add_space_around_punct.sub(
+                r" \g<2> ",
+                self.roman_number_dot.sub(
+                    r"_DOT_\g<1>_DOT_",
+                    data
+                )
+            )
         )
         return data
 

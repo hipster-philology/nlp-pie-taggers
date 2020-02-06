@@ -24,7 +24,7 @@ class MemorizingTokenizer(object):
         self.tokens = [
         ]
 
-        self.re_sentence_tokenizer = sentence_tokenizer or self._sentence_tokenizer
+        self.sentence_tokenizer = sentence_tokenizer or self._sentence_tokenizer
         self.word_tokenizer = word_tokenizer or self._word_tokenizer
         self.replacer = replacer or self._replacer
         self.normalizer = normalizer or self._replacer
@@ -32,7 +32,6 @@ class MemorizingTokenizer(object):
     def __call__(self, data, lower=True):
         if lower:
             data = data.lower()
-
         for sentence in self.sentence_tokenizer(data):
             toks = self.word_tokenizer(sentence)
             new_sentence = []

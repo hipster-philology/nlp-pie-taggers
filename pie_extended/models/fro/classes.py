@@ -26,6 +26,11 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
     roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
 
     def __init__(self):
+        super(MemorizingTokenizer, self).__init__(
+            sentence_tokenizer=self._sentence_tokenizer,
+            word_tokenizer=self._word_tokenizer,
+            normalizer=self._normalizer
+        )
         self.tokens = []
 
     @staticmethod
@@ -35,29 +40,30 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         return match.string[start:end] + "<SPLIT>"
 
     @classmethod
-    def _sentence_tokenizer(cls, string: str) -> List[str]:
-        string = cls._sentence_boundaries.sub(cls._better_replacer, string)
+    def _real_sentence_tokenizer(cls, string: str) -> List[str]:
+        string = cls._sentence_boundaries.sub(cls._sentence_tokenizer_merge_matches, string)
         string = string.replace("_DOT_", ".")
         return string.split("<SPLIT>")
 
-    def word_tokenizer(self, data):
+    @staticmethod
+    def _word_tokenizer(data):
         # ICI, il faut que tu tokenizes toi-meme avec une fonction à toi
         return data.split()
 
-    def sentence_tokenizer(self, data):
+    def _sentence_tokenizer(self, data):
         sentences = list()
         data = self.normalizer(data)
-        for sent in self._sentence_tokenizer(data):
+        for sent in self._real_sentence_tokenizer(data):
             sent = sent.strip()
             if sent:
                 sentences.append(sent)
         yield from sentences
 
-    def replacer(self, inp: str):
-        inp = self.re_add_space_after_apostrophe.sub("", inp)
-        return inp
+    def _replacer(self, inp: str):
+        out = self.re_add_space_after_apostrophe.sub("", inp)
+        return out
 
-    def normalizer(self, data: str):
+    def _normalizer(self, data: str):
         data = self.re_add_space_after_apostrophe.sub(
             r"\g<2> ",
             self.re_add_space_around_punct.sub(
@@ -98,7 +104,8 @@ class GlueFormatter(SourceGlueFormatter):
         if token != out_token:
             raise Exception("The output token does not match our inputs %s : %s" % (token, out_token))
 
-        overwriten = self.rule_based(token)
+        overwriten = self.rule_based(out_token)
+
         if overwriten:
             return overwriten
 
@@ -108,7 +115,7 @@ class GlueFormatter(SourceGlueFormatter):
             tags[self.tasks.index(self.pos_tag)] = "ADJcar"
 
         return [
-            token,
+            input_token,
             lemma,
             tags[self.tasks.index(self.pos_tag)],
             "|".join(

@@ -18,7 +18,7 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
 
 
 class MemorizingTokenizer(SourceMemorizingTokenizer):
-    re_add_space_around_punct = re.compile(r"(\s*)([^\w\s\'’ʼ]+)(\s*)")
+    re_add_space_around_punct = re.compile(r"(\s*)(\.+|[^\w\s\'’ʼ])(\s*)")
     re_add_space_after_apostrophe = re.compile(r"(\s*)([\'’ʼ])(\s*)")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
@@ -95,7 +95,7 @@ class GlueFormatter(SourceGlueFormatter):
                 pos = "PONfrt"
             else:
                 pos = "PONfbl"
-            return [token, lemma, pos, "MORPH=empty"]
+            return [token, lemma, pos, "MORPH=empty", token]
 
     def format_line(self, token, tags, ignored=False):
         tags = list(tags)

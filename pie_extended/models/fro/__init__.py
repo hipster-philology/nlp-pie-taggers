@@ -1,5 +1,5 @@
 from ...utils import Metadata, File ,get_path
-from .classes import GlueFormatter
+from .classes import get_iterator_and_formatter
 from ...pipeline.iterators.proto import DataIterator
 
 DESC = Metadata(
@@ -20,11 +20,3 @@ Models = "<{},MODE,TEMPS,PERS,NOMB,GENRE,CAS,DEGRE><{},lemma,pos>".format(
     get_path("fro", "morph.tar"),
     get_path("fro", "lemma-pos.tar")
 )
-
-
-def get_iterator_and_formatter():
-    formatter = GlueFormatter
-    iterator = DataIterator(
-        remove_from_input=DataIterator.remove_punctuation
-    )
-    return iterator, formatter

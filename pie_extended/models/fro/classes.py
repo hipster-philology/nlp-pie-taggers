@@ -20,18 +20,17 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
 class MemorizingTokenizer(SourceMemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s\'’ʼ]+)(\s*)")
     re_add_space_after_apostrophe = re.compile(r"(\s*)([\'’ʼ])(\s*)")
-    re_normalize_space = re.compile(r"(\s+)")
-    re_sentence_tokenizer = re.compile(r"([_||[^\s\w]]+(?:[\s_||[\W]]+)?)", re.VERSION1)
-    re_word_tokenizer = re.compile(r"[\s]+")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
+    roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
 
     def __init__(self):
         self.tokens = []
 
     @staticmethod
-    def _better_replacer(match):
+    def _sentence_tokenizer_merge_matches(match):
+        """ Best way we found to deal with repeating groups"""
         start, end = match.span()
         return match.string[start:end] + "<SPLIT>"
 
@@ -57,8 +56,6 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
     def replacer(self, inp: str):
         inp = self.re_add_space_after_apostrophe.sub("", inp)
         return inp
-
-    roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
 
     def normalizer(self, data: str):
         data = self.re_add_space_after_apostrophe.sub(

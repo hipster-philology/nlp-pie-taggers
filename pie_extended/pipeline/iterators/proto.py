@@ -8,7 +8,7 @@ from ...pipeline.tokenizers.classes import Tokenizer
 from ...utils import ObjectCreator
 
 Remover = Callable[[List[str]], Tuple[List[str], Dict[int, str]]]
-PUNKT = re.compile(r"^\W+$")
+PUNKT = re.compile(r"^[_||[^\s\w]]+$", re.VERSION1)
 
 
 class DataIterator:

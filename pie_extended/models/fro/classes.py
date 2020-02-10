@@ -70,16 +70,6 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         return out
 
     def _normalizer(self, data: str):
-        print(self.re_add_space_around_apostrophe_that_are_quotes.sub(
-                r" \g<2> ",
-                self.re_add_space_around_punct.sub(
-                    r" \g<2> ",
-                    self.roman_number_dot.sub(
-                        r"_DOT_\g<1>_DOT_",
-                        data
-                    )
-                )
-            ))
         data = self.re_remove_ending_apostrophe.sub(
             r"\g<1> ",
             self.re_add_space_around_apostrophe_that_are_quotes.sub(
@@ -93,7 +83,6 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
                 )
             )
         )
-        print(data)
         return data
 
 

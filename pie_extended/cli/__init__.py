@@ -44,15 +44,21 @@ def download(model):
 @pie_ext.command("tag")
 @click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
 @click.argument("filepath", nargs=-1, type=click.Path(exists=True, dir_okay=False))
-@click.option("--allow-n-failures", "allowed_failure", type=int, default=5)
-@click.option("--batch_size", type=int, default=16)
-@click.option("--device", type=str, default="cpu")
-@click.option("--debug", is_flag=True)
-def tag(model, filepath, allowed_failure, batch_size, device, debug):
-    """ Tag as many [filepath] as you want with [model]"""
+@click.option("--allow-n-failures", "allowed_failure", type=int, default=5,
+              help="Number of failures before things crash")
+@click.option("--batch_size", type=int, default=16,
+              help="Group of sentences tagged together")
+@click.option("--device", type=str, default="cpu",
+              help="Use cpu or gpu for prediction")
+@click.option("--debug", is_flag=True,
+              help="Raise error when a file is not tagged correctly")
+@click.option("--model_path", type=str, default=None,
+              help="Provide this with your own model path if you want to test it")
+def tag(model, filepath, allowed_failure, batch_size, device, debug, model_path):
+    """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
-    tagger = sub.get_tagger(model, batch_size=batch_size, device=device)
+    tagger = sub.get_tagger(model, batch_size=batch_size, device=device, model_path=model_path)
     failures = []
     for file in tqdm(filepath):
         try:

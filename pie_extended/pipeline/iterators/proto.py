@@ -1,4 +1,4 @@
-import re
+import regex as re
 import string
 
 from pie.tagger import simple_tokenizer
@@ -8,7 +8,7 @@ from ...pipeline.tokenizers.classes import Tokenizer
 from ...utils import ObjectCreator
 
 Remover = Callable[[List[str]], Tuple[List[str], Dict[int, str]]]
-PUNKT = re.compile("^["+string.punctuation+"]+$")
+PUNKT = re.compile(r"^[_||[^\s\w]]+$", re.VERSION1)
 
 
 class DataIterator:

@@ -18,8 +18,14 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
 
 
 class MemorizingTokenizer(SourceMemorizingTokenizer):
-    re_add_space_around_punct = re.compile(r"(\s*)(\.+|[^\w\s\'’ʼ])(\s*)")
+    re_add_space_around_punct = re.compile(r"(\s*)(\.+[^\w\s\'’ʼ])(\s*)")
+    re_add_space_around_apostrophe_that_are_quotes = re.compile(
+        r"((((?<=[\W])[\'’ʼ]+(?=[\W]))|((?<=[\w])[\'’ʼ]+(?=[\W]))|((?<=[\W])[\'’ʼ]+(?=[\w]))))"
+        # NotLetter+Apo+NotLetter or Letter+Apo+NotLetter or NotLetter+Apo+Letter
+        # ?'. or manger'_ or _'Bonjour
+    )
     re_add_space_after_apostrophe = re.compile(r"(\s*)([\'’ʼ])(\s*)")
+    re_remove_ending_apostrophe = re.compile(r"(?<=\w)([\'’ʼ])")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
@@ -60,17 +66,20 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         yield from sentences
 
     def _replacer(self, inp: str):
-        out = self.re_add_space_after_apostrophe.sub("", inp)
+        out = self.re_remove_ending_apostrophe.sub("", inp)
         return out
 
     def _normalizer(self, data: str):
-        data = self.re_add_space_after_apostrophe.sub(
-            r"\g<2> ",
-            self.re_add_space_around_punct.sub(
+        data = self.re_remove_ending_apostrophe.sub(
+            r"\g<1> ",
+            self.re_add_space_around_apostrophe_that_are_quotes.sub(
                 r" \g<2> ",
-                self.roman_number_dot.sub(
-                    r"_DOT_\g<1>_DOT_",
-                    data
+                self.re_add_space_around_punct.sub(
+                    r" \g<2> ",
+                    self.roman_number_dot.sub(
+                        r"_DOT_\g<1>_DOT_",
+                        data
+                    )
                 )
             )
         )
@@ -101,6 +110,7 @@ class GlueFormatter(SourceGlueFormatter):
         tags = list(tags)
         lemma = tags[self.tasks.index("lemma")]
         index, input_token, out_token = self.tokenizer_memory.tokens.pop(0)
+
         if token != out_token:
             raise Exception("The output token does not match our inputs %s : %s" % (token, out_token))
 

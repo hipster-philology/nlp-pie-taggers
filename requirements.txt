@@ -2,5 +2,5 @@ colorama
 click
 requests
 regex
-nlp-pie==0.2.5
+nlp-pie==0.2.6
 autodisambiguator>=0.0.1,<1.0.0

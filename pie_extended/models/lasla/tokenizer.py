@@ -1,13 +1,10 @@
-from typing import Dict, List, Generator
-import sys
 import regex as re
 import click
-from pie_extended.pipeline.iterators.proto import DataIterator
-from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
-from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
-from pie_extended.pipeline.postprocessor.glue import GlueProcessor
+import sys
+from typing import List, Generator
+
+from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
-from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _Dots_collections, _RomanNumber
 
 try:
     import cltk
@@ -17,44 +14,6 @@ except ImportError as E:
     click.echo("pip install cltk")
     click.echo("pie-ext install-addons lasla")
     sys.exit(0)
-
-
-class LatinRulesProcessor(RuleBasedProcessor):
-    """ Lasla data has no punctuation, we tag it automatically.
-
-    "ne" token can be two different lemma, but I don't remember why I wrote this part. (ne/nec ?)
-
-    """
-    PONCTU = re.compile(r"^\W+$")
-
-    def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
-        # If Else condition
-        token = annotation["form"]
-        if self.PONCTU.match(token):
-            return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty"}
-        elif token.startswith("-"):
-            if token == "-ne":
-                annotation["lemma"] = "ne2"
-            else:
-                annotation["lemma"] = "ne"
-        return annotation
-
-    def __init__(self, *args, **kwargs):
-        super(LatinRulesProcessor, self).__init__(*args, **kwargs)
-
-
-class LatinGlueProcessor(GlueProcessor):
-    OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
-    GLUE = {"morph": ["Case", "Numb", "Deg", "Mood", "Tense", "Voice", "Person"]}
-    WHEN_EMPTY = {"morph": "MORPH=empty"}
-    MAP = {"pos": "POS"}
-
-    def __init__(self, *args, **kwargs):
-        super(LatinGlueProcessor, self).__init__(*args, **kwargs)
-
-
-# Uppercase regexp
-uppercase = re.compile(r"^[A-Z]$")
 
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
@@ -130,18 +89,3 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     #    data = MemorizingTokenizer.re_add_space_around_punct.sub(" \g<2> ", data)
     #    data = MemorizingTokenizer.re_normalize_space.sub(" ", data)
     #    return data
-
-
-def get_iterator_and_processor():
-    tokenizer = LatMemorizingTokenizer()
-    processor = LatinRulesProcessor(
-        MemoryzingProcessor(
-            tokenizer_memory=tokenizer,
-            head_processor=LatinGlueProcessor()
-        )
-    )
-    iterator = DataIterator(
-        tokenizer=tokenizer,
-        remove_from_input=DataIterator.remove_punctuation
-    )
-    return iterator, processor

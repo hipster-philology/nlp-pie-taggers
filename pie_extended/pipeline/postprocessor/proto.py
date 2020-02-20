@@ -13,7 +13,6 @@ class ProcessorPrototype:
 
     def set_tasks(self, tasks):
         self.tasks = tasks
-        print(tasks, self.tasks)
 
     def postprocess(self, line):
         pass
@@ -33,9 +32,7 @@ class ProcessorPrototype:
         :param tags:
         :return:
         """
-        print("Do I have task ?", self.tasks)
-        print({"form":token, **{k: val for k, val in zip(self.tasks, tags)}})
-        return {"form":token, **{k: val for k, val in zip(self.tasks, tags)}}
+        return {"form": token, **{k: val for k, val in zip(self.tasks, tags)}}
 
     def reset(self):
         """ Functions that should be run in between documents """
@@ -43,14 +40,14 @@ class ProcessorPrototype:
 
 
 class RenamedTaskProcessor(ProcessorPrototype):
-    MAP: Dict[str, str]
+    MAP: Dict[str, str] = {}
 
     def __init__(self, **kwargs):
         super(RenamedTaskProcessor, self).__init__(**kwargs)
         self._map: Dict[str, str] = type(self).MAP
 
     def set_tasks(self, tasks):
-        return [self._map.get(task, task) for task in tasks]
+        self.tasks = [self._map.get(task, task) for task in tasks]
 
 
 class ChainedProcessor(ProcessorPrototype):

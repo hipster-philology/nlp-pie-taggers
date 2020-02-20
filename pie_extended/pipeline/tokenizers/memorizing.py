@@ -1,45 +1,32 @@
-class MemorizingTokenizer(object):
+from .simple_tokenizer import SimpleTokenizer
+from typing import List, Tuple, Dict
+
+
+class MemorizingTokenizer(SimpleTokenizer):
     """ Tokenizer that memoryze what it tokenized.
 
     Mostly used to normalized input as input time and then reinserting normalized input
 
     """
-    @staticmethod
-    def _sentence_tokenizer(string):
-        for s in string.split("."):
-            if s.strip():
-                yield s.strip() + " " + "."
 
-    @staticmethod
-    def _word_tokenizer(string):
-        for s in string.split():
-            if s.strip:
-                yield s.strip()
+    def replacer(self, token: str) -> str:
+        """ This function allows for changing input and keeping it in memory """
+        return token
 
-    @staticmethod
-    def _replacer(inp: str):
-        return inp
+    def __init__(self):
+        self.tokens: List[Tuple[int, int, str]] = []
 
-    def __init__(self, sentence_tokenizer=None, word_tokenizer=None, replacer=None, normalizer=None):
-        self.tokens = [
-        ]
+    def _real_word_tokenizer(self, data: str, lower: bool = False) -> List[str]:
+        return super(MemorizingTokenizer, self).word_tokenizer(data, lower=lower)
 
-        self.sentence_tokenizer = sentence_tokenizer or self._sentence_tokenizer
-        self.word_tokenizer = word_tokenizer or self._word_tokenizer
-        self.replacer = replacer or self._replacer
-        self.normalizer = normalizer or self._replacer
+    def word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
+        sentence = []
+        for token in self._real_word_tokenizer(text, lower):
+            out = self.replacer(token)
+            self.tokens.append((len(self.tokens), token, out))
+            sentence.append(out)
+        return sentence
 
-    def __call__(self, data, lower=True):
-        if lower:
-            data = data.lower()
-        for sentence in self.sentence_tokenizer(data):
-            toks = self.word_tokenizer(sentence)
-            new_sentence = []
+    def reset(self):  # Empty
+        self.tokens = []
 
-            for tok in toks:
-                if tok:
-                    out = self.replacer(tok)
-                    self.tokens.append((len(self.tokens), tok, out))
-                    new_sentence.append(out)
-            if new_sentence:
-                yield new_sentence

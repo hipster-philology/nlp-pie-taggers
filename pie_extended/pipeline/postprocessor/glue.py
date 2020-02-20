@@ -16,8 +16,8 @@ class GlueProcessor(RenamedTaskProcessor):
     # Glue Empty are value to take when all things glued together are empty
     GLUE_EMPTY: Dict[str, str] = {"morph": "MORPH=empty"}
 
-    def __init__(self):
-        super(GlueProcessor, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(GlueProcessor, self).__init__(*args, **kwargs)
 
         # Sets-up some copy of the values
         self._out = type(self).OUTPUT_KEYS
@@ -33,7 +33,6 @@ class GlueProcessor(RenamedTaskProcessor):
             token_dict: Dict[str, str]
         ) -> Generator[str, None, None]:
         # For each key we should return
-        print(self.tasks)
         for head in self._out:
             if head not in self._glue:
                 yield head, token_dict[head]

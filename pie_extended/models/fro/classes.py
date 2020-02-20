@@ -1,14 +1,11 @@
 import regex as re
-from typing import List, Dict
-from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer as SourceMemorizingTokenizer
+from typing import List, Dict, Generator
+from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator
-from pie_extended.pipeline.postprocessor.disambiguator import DisambiguatorProcessor
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 
-# Uppercase regexp
-_uppercase = re.compile("^[A-ZÉÈÀÂÊÎÔÛŶÄËÏÖÜŸ]$")
 
 _Dots_except_apostrophe = r".?!\"“”\"«»…\[\]\(\)„“"
 _Dots_collections = r"[" + _Dots_except_apostrophe + "‘’]"
@@ -20,7 +17,7 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
                r"(?:XC|XL|L?X{0,3})(?:IX|I?V|V?I{1,3}))"
 
 
-class MemorizingTokenizer(SourceMemorizingTokenizer):
+class FroMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)(\.+[^\w\s\'’ʼ])(\s*)")
     re_add_space_around_apostrophe_that_are_quotes = re.compile(
         r"((((?<=[\W])[\'’ʼ]+(?=[\W]))|((?<=[\w])[\'’ʼ]+(?=[\W]))|((?<=[\W])[\'’ʼ]+(?=[\w]))))"
@@ -35,11 +32,7 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
     roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
 
     def __init__(self):
-        super(MemorizingTokenizer, self).__init__(
-            sentence_tokenizer=self._sentence_tokenizer,
-            word_tokenizer=self._word_tokenizer,
-            normalizer=self._normalizer
-        )
+        super(FroMemorizingTokenizer, self).__init__()
         self.tokens = []
 
     @staticmethod
@@ -54,25 +47,22 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         string = string.replace("_DOT_", ".")
         return string.split("<SPLIT>")
 
-    @staticmethod
-    def _word_tokenizer(data):
-        # ICI, il faut que tu tokenizes toi-meme avec une fonction à toi
-        return data.split()
+    def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
+        if lower:
+            text = text.lower()
+        text = text.split()
+        return text
 
-    def _sentence_tokenizer(self, data):
+    def sentence_tokenizer(self, text: str, lower: bool = False) -> Generator[List[str], None, None]:
         sentences = list()
-        data = self.normalizer(data)
+        data = self.normalizer(text)
         for sent in self._real_sentence_tokenizer(data):
             sent = sent.strip()
             if sent:
-                sentences.append(sent)
+                sentences.append(self.word_tokenizer(sent))
         yield from sentences
 
-    def _replacer(self, inp: str):
-        out = self.re_remove_ending_apostrophe.sub("", inp)
-        return out
-
-    def _normalizer(self, data: str):
+    def normalizer(self, data: str) -> str:
         data = self.re_remove_ending_apostrophe.sub(
             r"\g<1> ",
             self.re_add_space_around_apostrophe_that_are_quotes.sub(
@@ -90,6 +80,9 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
 
 
 class FroRulesProcessor(RuleBasedProcessor):
+    """ Fro Dataset has not all punctuation signs in it, we remove it and posttag it automatically
+
+    """
     PONCTU = re.compile(r"^\W+$")
     NUMBER = re.compile(r"\d+")
     PONFORT = [".", "...", "!", "?"]
@@ -106,15 +99,24 @@ class FroRulesProcessor(RuleBasedProcessor):
             annotation["pos"] = "ADJcar"
         return annotation
 
+    def __init__(self, *args, **kwargs):
+        super(FroRulesProcessor, self).__init__(*args, **kwargs)
+
 
 class FroGlueProcessor(GlueProcessor):
+    """ We glue morphological features into one column
+
+    """
     OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
     GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]}
     MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
 
+    def __init__(self, *args, **kwargs):
+        super(FroGlueProcessor, self).__init__(*args, **kwargs)
+
 
 def get_iterator_and_processor():
-    tokenizer = MemorizingTokenizer()
+    tokenizer = FroMemorizingTokenizer()
     processor = FroRulesProcessor(
         MemoryzingProcessor(
             tokenizer_memory=tokenizer,

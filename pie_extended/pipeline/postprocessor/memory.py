@@ -27,3 +27,7 @@ class MemoryzingProcessor(ChainedProcessor):
         token_dict[self._key] = out_token
         token_dict["form"] = input_token
         return token_dict
+
+    def reinsert(self, form: str) -> Dict[str, str]:
+        self.memory.tokens.pop(0)
+        return super(MemoryzingProcessor, self).reinsert(form)

@@ -1,4 +1,4 @@
-from pie_extended.models.lasla.classes import get_iterator_and_formatter
+from pie_extended.models.lasla.classes import get_iterator_and_processor
 from pie_extended.testing_utils import FakeTagger
 from typing import List, Tuple
 
@@ -21,8 +21,8 @@ def make_controller(sentences: List[str]):
         make_fake_data(sentences),
         tasks="lemma,Voice,Mood,Deg,Numb,Person,Tense,Case,Gend,pos".split(",")
     )
-    iterator, formatter = get_iterator_and_formatter()
-    return tagger, iterator, formatter
+    iterator, processor = get_iterator_and_processor()
+    return tagger, iterator, processor
 
 
 class TestPonctuation(TestCase):
@@ -32,7 +32,7 @@ class TestPonctuation(TestCase):
         Found out the hard way it would break things
         """
 
-        tagger, data_iterator, formatter = make_controller([
+        tagger, data_iterator, processor = make_controller([
             "id enim ait turbabuntur a facie eius patris or phanorum et iudicis uiduarum",
             "causam turbationis hanc docuit quod pater"
         ])
@@ -40,7 +40,7 @@ class TestPonctuation(TestCase):
         result = tagger.tag_str(
             data="id enim ait turbabuntur a facie eius patris or phanorum et iudicis uiduarum ."
                           "  .  causam turbationis hanc docuit quod pater",
-            postprocessing_class=formatter,
+            processor=processor,
             iterator=data_iterator
         )
         self.assertIn(
@@ -57,12 +57,12 @@ class TestPonctuation(TestCase):
 
         Special case of consecutive dots, where sentences starts with it
         """
-        tagger, data_iterator, formatter = make_controller([
+        tagger, data_iterator, processor = make_controller([
             "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
         ])
         result = tagger.tag_str(
             "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
-            postprocessing_class=formatter,
+            processor=processor,
             iterator=data_iterator
         )
         self.assertIn(
@@ -82,12 +82,12 @@ class TestPonctuation(TestCase):
         """Check that punctuation is not seen by the tagger
 
         """
-        tagger, data_iterator, formatter = make_controller([
+        tagger, data_iterator, processor = make_controller([
             "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
         ])
         tagger.tag_str(
             "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
-            postprocessing_class=formatter,
+            processor=processor,
             iterator=data_iterator
         )
         self.assertNotIn(
@@ -100,12 +100,12 @@ class TestPonctuation(TestCase):
         """Check that characters are replaced for the tagger, thus avoiding out of domain, and reinserted
 
         """
-        tagger, data_iterator, formatter = make_controller([
+        tagger, data_iterator, processor = make_controller([
             "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
         ])
         result = tagger.tag_str(
             "( id enim ait ) turbabuntur a facie eius patris or phanorum et judicis uiduarum .  .",
-            postprocessing_class=formatter,
+            processor=processor,
             iterator=data_iterator
         )
         flatten_seen = list([tok for sent in tagger.seen for tok in sent])
@@ -116,12 +116,12 @@ class TestPonctuation(TestCase):
 
     def test_underscores(self):
         string = "una operatio in ecclesiae fundamento.._... _ . laetatur autem pater quia filius perierat"
-        tagger, data_iterator, formatter = make_controller([
+        tagger, data_iterator, processor = make_controller([
             "una operatio in ecclesiae fundamento", "laetatur autem pater quia filius perierat"
         ])
         tagger.tag_str(
             string,
-            postprocessing_class=formatter,
+            processor=processor,
             iterator=data_iterator
         )
         flatten_seen = list([tok for sent in tagger.seen for tok in sent])

@@ -47,7 +47,10 @@ class ExtensibleTagger(Tagger):
 
     def iter_tag_token(self, data: str, iterator: DataIterator, processor: ProcessorPrototype) \
             -> Generator[Dict[str, str], None, None]:
+        # Reset at each document
         processor.reset()
+        iterator.tokenizer.reset()
+        # Iterate !
         for chunk in utils.chunks(
                 iterator(data, lower=self.lower),
                 size=self.batch_size):
@@ -61,7 +64,8 @@ class ExtensibleTagger(Tagger):
                 sents=[sent for sent in sents if sent],
                 lengths=lengths
             )
-            processor.set_tasks(tasks)
+            if not processor.tasks:
+                processor.set_tasks(tasks)
 
             # We keep a real sentence index
             for sents_index, sent_is_empty in enumerate(is_empty):
@@ -84,7 +88,6 @@ class ExtensibleTagger(Tagger):
                         yield processor.reinsert(sent_reinsertion[reinsertion_index+index])
                         del sent_reinsertion[reinsertion_index + index]
                         reinsertion_index += 1
-
                     yield processor.get_dict(token, tags)
 
                 for reinsertion in sorted(list(sent_reinsertion.keys())):
@@ -97,7 +100,7 @@ class ExtensibleTagger(Tagger):
             if not formatter:
                 formatter = Formatter(list(annotation.keys()))
                 yield formatter.write_headers()
-            yield formatter.write_line(formatter)
+            yield formatter.write_line(annotation)
 
         if formatter:
             yield formatter.write_footer()

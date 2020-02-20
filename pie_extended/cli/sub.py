@@ -50,8 +50,8 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None) 
 
 def tag_file(model: str, tagger: ExtensibleTagger, fpath):
     module = get_model(model)
-    iterator, formatter = getattr(module, "get_iterator_and_formatter")()
-    tagger.tag_file(fpath, iterator=iterator, formatter_class=formatter)
+    iterator, processor = getattr(module, "get_iterator_and_processor")()
+    tagger.tag_file(fpath, iterator=iterator, processor=processor)
     return True
 
 

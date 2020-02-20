@@ -1,8 +1,11 @@
 import regex as re
-from typing import List
-from ...pipeline.formatters.glue import GlueFormatter as SourceGlueFormatter
+from typing import List, Dict
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer as SourceMemorizingTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator
+from pie_extended.pipeline.postprocessor.disambiguator import DisambiguatorProcessor
+from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
+from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
+from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 
 # Uppercase regexp
 _uppercase = re.compile("^[A-ZÉÈÀÂÊÎÔÛŶÄËÏÖÜŸ]$")
@@ -86,67 +89,41 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         return data
 
 
-class GlueFormatter(SourceGlueFormatter):
-    HEADERS = ["form", "lemma", "POS", "morph", "treated_token"]
-    MORPH_PART = ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]
-
+class FroRulesProcessor(RuleBasedProcessor):
     PONCTU = re.compile(r"^\W+$")
     NUMBER = re.compile(r"\d+")
     PONFORT = [".", "...", "!", "?"]
 
-    def __init__(self, tokenizer_memory: MemorizingTokenizer):
-        super(GlueFormatter, self).__init__(tokenizer_memory=tokenizer_memory)
-
-    def rule_based(cls, token):
-        if cls.PONCTU.match(token):
-            lemma = token
-            if token in GlueFormatter.PONFORT:
+    def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
+        token = annotation["form"]
+        if self.PONCTU.match(token):
+            if token in self.PONFORT:
                 pos = "PONfrt"
             else:
                 pos = "PONfbl"
-            return [token, lemma, pos, "MORPH=empty", token]
-
-    def format_line(self, token, tags, ignored=False):
-        tags = list(tags)
-        lemma = tags[self.tasks.index("lemma")]
-        index, input_token, out_token = self.tokenizer_memory.tokens.pop(0)
-
-        if token != out_token:
-            raise Exception("The output token does not match our inputs %s : %s" % (token, out_token))
-
-        overwriten = self.rule_based(out_token)
-
-        if overwriten:
-            return overwriten
-
-        if type(self).NUMBER.match(token):  # This would push for sending the whole elements to rule_based and
-                                            #   not the token only
-            lemma = token
-            tags[self.tasks.index(self.pos_tag)] = "ADJcar"
-
-        return [
-            input_token,
-            lemma,
-            tags[self.tasks.index(self.pos_tag)],
-            "|".join(
-                "{cat}={tag}".format(
-                    cat=morph_part,
-                    tag=tags[self.tasks.index(morph_part.replace(".", ""))]
-                )
-                for morph_part in GlueFormatter.MORPH_PART
-                if morph_part.replace(".", "") in self.tasks and
-                tags[self.tasks.index(morph_part.replace(".", ""))] != "_"
-            ) or "MORPH=empty",
-            out_token
-        ]
+            return {"form": token, "lemma": token, "POS": pos, "morph": "MORPH=empty"}
+        elif self.NUMBER.match(token):
+            annotation["pos"] = "ADJcar"
+        return annotation
 
 
-def get_iterator_and_formatter():
+class FroGlueProcessor(GlueProcessor):
+    OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
+    GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]}
+    MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
+
+
+def get_iterator_and_processor():
     tokenizer = MemorizingTokenizer()
-    formatter = GlueFormatter(tokenizer)
+    processor = FroRulesProcessor(
+        MemoryzingProcessor(
+            tokenizer_memory=tokenizer,
+            head_processor=FroGlueProcessor()
+        )
+    )
     iterator = DataIterator(
         tokenizer=tokenizer,
         remove_from_input=DataIterator.remove_punctuation
     )
-    return iterator, formatter
+    return iterator, processor
 

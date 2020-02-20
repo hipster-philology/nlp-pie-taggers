@@ -13,9 +13,34 @@ except ImportError as E:
 
 
 from pie_extended.pipeline.iterators.proto import DataIterator
-from pie_extended.pipeline.formatters.glue import GlueFormatter as SourceGlueFormatter
+from pie_extended.pipeline.postprocessor.disambiguator import DisambiguatorProcessor
+from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
+from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
+from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer as SourceMemorizingTokenizer
+from typing import Dict
 
+
+class LatinRulesProcessor(RuleBasedProcessor):
+    PONCTU = re.compile(r"^\W+$")
+
+    def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
+        # If Else condition
+        token = annotation["form"]
+        if self.PONCTU.match(token):
+            return {"form": token, "lemma": token, "POS": "PUNC", "morph": "MORPH=empty"}
+        elif token.startswith("-"):
+            if token == "-ne":
+                annotation["lemma"] = "ne2"
+            else:
+                annotation["lemma"] = "ne"
+        return annotation
+
+
+class LatinGlueProcessor(GlueProcessor):
+    OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
+    GLUE = {"morph": ["Case", "Numb", "Deg", "Mood", "Tense", "Voice", "Person"]}
+    WHEN_EMPTY = {"morph": "MORPH=empty"}
 
 # Uppercase regexp
 uppercase = re.compile(r"^[A-Z]$")
@@ -74,33 +99,16 @@ class MemorizingTokenizer(SourceMemorizingTokenizer):
         return data
 
 
-class GlueFormatter(SourceGlueFormatter):
-    HEADERS = ["form", "lemma", "POS", "morph", "treated_token"]
-    MORPH_PART = ["Case", "Numb", "Deg", "Mood", "Tense", "Voice", "Person"]
-    PONCTU = re.compile(r"^\W+$")
-
-    def __init__(self, tokenizer_memory):
-        super(GlueFormatter, self).__init__([])
-        self.tokenizer_memory = tokenizer_memory
-
-    def rule_based(cls, token):
-        if cls.PONCTU.match(token):
-            return [token, token, "PUNC", "MORPH=empty", token]
-        elif token.startswith("-"):
-            if token == "-ne":
-                lemma = "ne2"
-            else:
-                lemma = token[1:]
-            return [token, lemma, "CONcoo", "MORPH=empty", token]
-
-        return None
-
-
-def get_iterator_and_formatter():
+def get_iterator_and_processor():
     tokenizer = MemorizingTokenizer()
-    formatter = GlueFormatter(tokenizer)
+    processor = LatinRulesProcessor(
+        MemoryzingProcessor(
+            tokenizer_memory=tokenizer,
+            head_processor=LatinGlueProcessor()
+        )
+    )
     iterator = DataIterator(
         tokenizer=tokenizer,
         remove_from_input=DataIterator.remove_punctuation
     )
-    return iterator, formatter
+    return iterator, processor

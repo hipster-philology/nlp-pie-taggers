@@ -40,7 +40,7 @@ class TestPonctuation(TestCase):
         result = tagger.tag_str(
             data="id enim ait turbabuntur a facie eius patris or phanorum et iudicis uiduarum ."
                           "  .  causam turbationis hanc docuit quod pater",
-            formatter_class=formatter,
+            postprocessing_class=formatter,
             iterator=data_iterator
         )
         self.assertIn(
@@ -62,7 +62,7 @@ class TestPonctuation(TestCase):
         ])
         result = tagger.tag_str(
             "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
-            formatter_class=formatter,
+            postprocessing_class=formatter,
             iterator=data_iterator
         )
         self.assertIn(
@@ -87,7 +87,7 @@ class TestPonctuation(TestCase):
         ])
         tagger.tag_str(
             "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
-            formatter_class=formatter,
+            postprocessing_class=formatter,
             iterator=data_iterator
         )
         self.assertNotIn(
@@ -105,7 +105,7 @@ class TestPonctuation(TestCase):
         ])
         result = tagger.tag_str(
             "( id enim ait ) turbabuntur a facie eius patris or phanorum et judicis uiduarum .  .",
-            formatter_class=formatter,
+            postprocessing_class=formatter,
             iterator=data_iterator
         )
         flatten_seen = list([tok for sent in tagger.seen for tok in sent])
@@ -121,7 +121,7 @@ class TestPonctuation(TestCase):
         ])
         tagger.tag_str(
             string,
-            formatter_class=formatter,
+            postprocessing_class=formatter,
             iterator=data_iterator
         )
         flatten_seen = list([tok for sent in tagger.seen for tok in sent])

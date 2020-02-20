@@ -1,11 +1,7 @@
 import regex as re
-from typing import List, Dict, Generator
-from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
-from pie_extended.pipeline.iterators.proto import DataIterator
-from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
-from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
-from pie_extended.pipeline.postprocessor.glue import GlueProcessor
+from typing import List, Generator
 
+from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 
 _Dots_except_apostrophe = r".?!\"“”\"«»…\[\]\(\)„“"
 _Dots_collections = r"[" + _Dots_except_apostrophe + "‘’]"
@@ -77,55 +73,3 @@ class FroMemorizingTokenizer(MemorizingTokenizer):
             )
         )
         return data
-
-
-class FroRulesProcessor(RuleBasedProcessor):
-    """ Fro Dataset has not all punctuation signs in it, we remove it and posttag it automatically
-
-    """
-    PONCTU = re.compile(r"^\W+$")
-    NUMBER = re.compile(r"\d+")
-    PONFORT = [".", "...", "!", "?"]
-
-    def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
-        token = annotation["form"]
-        if self.PONCTU.match(token):
-            if token in self.PONFORT:
-                pos = "PONfrt"
-            else:
-                pos = "PONfbl"
-            return {"form": token, "lemma": token, "POS": pos, "morph": "MORPH=empty"}
-        elif self.NUMBER.match(token):
-            annotation["pos"] = "ADJcar"
-        return annotation
-
-    def __init__(self, *args, **kwargs):
-        super(FroRulesProcessor, self).__init__(*args, **kwargs)
-
-
-class FroGlueProcessor(GlueProcessor):
-    """ We glue morphological features into one column
-
-    """
-    OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
-    GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]}
-    MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
-
-    def __init__(self, *args, **kwargs):
-        super(FroGlueProcessor, self).__init__(*args, **kwargs)
-
-
-def get_iterator_and_processor():
-    tokenizer = FroMemorizingTokenizer()
-    processor = FroRulesProcessor(
-        MemoryzingProcessor(
-            tokenizer_memory=tokenizer,
-            head_processor=FroGlueProcessor()
-        )
-    )
-    iterator = DataIterator(
-        tokenizer=tokenizer,
-        remove_from_input=DataIterator.remove_punctuation
-    )
-    return iterator, processor
-

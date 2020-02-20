@@ -7,7 +7,7 @@ from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
-from pie_extended.models.fro.classes import _RomanNumber, _Dots_except_apostrophe, _Dots_collections
+from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _Dots_collections, _RomanNumber
 
 try:
     import cltk

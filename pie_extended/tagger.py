@@ -61,8 +61,7 @@ class ExtensibleTagger(Tagger):
                 sents=[sent for sent in sents if sent],
                 lengths=lengths
             )
-            if not processor.tasks:
-                processor.set_tasks(tasks)
+            processor.set_tasks(tasks)
 
             # We keep a real sentence index
             for sents_index, sent_is_empty in enumerate(is_empty):

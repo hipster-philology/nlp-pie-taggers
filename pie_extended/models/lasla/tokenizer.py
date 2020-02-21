@@ -12,7 +12,7 @@ try:
 except ImportError as E:
     click.echo(click.style("You need to install cltk and its Latin Data to runs this package", fg="red"))
     click.echo("pip install cltk")
-    click.echo("pie-ext install-addons lasla")
+    click.echo("pie-extended install-addons lasla")
     sys.exit(0)
 
 

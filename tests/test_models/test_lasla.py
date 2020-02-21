@@ -43,12 +43,11 @@ class TestPonctuation(TestCase):
             processor=processor,
             iterator=data_iterator
         )
-        self.assertIn(
-            "uiduarum	uiduarum	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person=fake"
-            "	uiduarum\r\n"
-            ".	.	PUNC	MORPH=empty	.\r\n"
-            ".	.	PUNC	MORPH=empty	.",
-            result,
+        self.assertEqual(
+            result[12],
+            {"form": "uiduarum", "lemma": "uiduarum", "POS": "fake", "morph": "Case=fake|Numb=fake|Deg=fake|Mood=fake|"
+                                                                            "Tense=fake|Voice=fake|Person=fake",
+             "treated": "uiduarum"},
             "Punctuation should be reinserted and mostly should not break anything"
         )
 
@@ -58,23 +57,19 @@ class TestPonctuation(TestCase):
         Special case of consecutive dots, where sentences starts with it
         """
         tagger, data_iterator, processor = make_controller([
+            # Need an empty sentence because ( was treated as such
             "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
         ])
         result = tagger.tag_str(
-            "( id enim ait ) turbabuntur a facie eius patris or phanorum et iudicis uiduarum .  .",
+            "( id enim ait) turbabuntur a facie eius patris or phanorum et iudicis uiduarum ..",
             processor=processor,
             iterator=data_iterator
         )
-        self.assertIn(
-            "form	lemma	POS	morph	treated_token\r\n"
-            "(	(	PUNC	MORPH=empty	(\r\n"
-            "id	id	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person=fake	id\r\n"
-            "enim	enim	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person=fake	enim\r\n"
-            "ait	ait	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person=fake	ait\r\n"
-            ")	)	PUNC	MORPH=empty	)\r\n"
-            "turbabuntur	turbabuntur	fake	Case=fake|Numb=fake|Deg=fake|Mood=fake|Tense=fake|Voice=fake|Person"
-            "=fake	turbabuntur\r\n",
-            result,
+        tokens = [t["form"] for t in result]
+        self.assertEqual(
+            ["(", "id", "enim", "ait", ")", "turbabuntur", "a", "facie", "eius", "patris", "or", "phanorum",
+             "et", "iudicis", "uiduarum", ".", "."],
+            tokens,
             "Leading punctuation should not break anything"
         )
 

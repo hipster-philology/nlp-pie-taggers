@@ -46,8 +46,7 @@ class ExtensibleTagger(Tagger):
             #  to be reinserted
             sents, lengths, needs_reinsertion = zip(*chunk)
 
-            is_empty = [0 == len(sent) for sent in enumerate(sents)]
-
+            is_empty = [not bool(sent) for sent in sents]
             tagged, tasks = self.tag(
                 sents=[sent for sent in sents if sent],
                 lengths=lengths
@@ -72,10 +71,12 @@ class ExtensibleTagger(Tagger):
                 reinsertion_index = 0
 
                 for index, (token, tags) in enumerate(sent):
+                    # Before current index
                     while reinsertion_index + index in sent_reinsertion:
                         yield processor.reinsert(sent_reinsertion[reinsertion_index+index])
                         del sent_reinsertion[reinsertion_index + index]
                         reinsertion_index += 1
+
                     yield processor.get_dict(token, tags)
 
                 for reinsertion in sorted(list(sent_reinsertion.keys())):

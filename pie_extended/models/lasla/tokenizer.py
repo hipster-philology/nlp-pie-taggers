@@ -17,14 +17,7 @@ except ImportError as E:
 
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
-    re_add_space_around_punct = re.compile(r"(\s*)(\.+[^\w\s\'’ʼ])(\s*)")
-    re_add_space_around_apostrophe_that_are_quotes = re.compile(
-        r"((((?<=[\W])[\'’ʼ]+(?=[\W]))|((?<=[\w])[\'’ʼ]+(?=[\W]))|((?<=[\W])[\'’ʼ]+(?=[\w]))))"
-        # NotLetter+Apo+NotLetter or Letter+Apo+NotLetter or NotLetter+Apo+Letter
-        # ?'. or manger'_ or _'Bonjour
-    )
-    re_add_space_after_apostrophe = re.compile(r"(\s*)([\'’ʼ])(\s*)")
-    re_remove_ending_apostrophe = re.compile(r"(?<=\w)([\'’ʼ])")
+    re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
@@ -63,29 +56,15 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         yield from sentences
 
     def normalizer(self, data: str) -> str:
-        data = self.re_remove_ending_apostrophe.sub(
-            r"\g<1> ",
-            self.re_add_space_around_apostrophe_that_are_quotes.sub(
-                r" \g<2> ",
-                self.re_add_space_around_punct.sub(
+        data = self.re_add_space_around_punct.sub(
                     r" \g<2> ",
                     self.roman_number_dot.sub(
                         r"_DOT_\g<1>_DOT_",
                         data
                     )
                 )
-            )
-        )
         return data
 
     def replacer(self, inp: str):
         inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i")
         return inp
-
-    #def normalizer(self, data: str):
-    #    # Fix regarding the current issue of apostrophe
-    #    # https://github.com/cltk/cltk/issues/925#issuecomment-522065530
-    #    # On the other hand, it creates empty tokens...
-    #    data = MemorizingTokenizer.re_add_space_around_punct.sub(" \g<2> ", data)
-    #    data = MemorizingTokenizer.re_normalize_space.sub(" ", data)
-    #    return data

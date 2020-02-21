@@ -14,7 +14,7 @@ class MemorizingTokenizer(SimpleTokenizer):
         return token
 
     def __init__(self):
-        self.tokens: List[Tuple[int, int, str]] = []
+        self.tokens: List[Tuple[int, str, str]] = []
 
     def _real_word_tokenizer(self, data: str, lower: bool = False) -> List[str]:
         return super(MemorizingTokenizer, self).word_tokenizer(data, lower=lower)

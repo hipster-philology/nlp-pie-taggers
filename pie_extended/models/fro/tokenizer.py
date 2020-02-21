@@ -14,7 +14,9 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
 
 
 class FroMemorizingTokenizer(MemorizingTokenizer):
-    re_add_space_around_punct = re.compile(r"(\s*)([^\w\s\'’ʼ])(\s*)")
+    APOSTROPHES = "'’ʼ"
+    re_elision_apostrophe = re.compile(r"(\w+)([" + APOSTROPHES + r"])(\w+)")
+    re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
     re_add_space_around_apostrophe_that_are_quotes = re.compile(
         r"("
         r"(((?<=[\W])[\'’ʼ]+(?=[\W]))|"
@@ -42,10 +44,11 @@ class FroMemorizingTokenizer(MemorizingTokenizer):
         start, end = match.span()
         return match.string[start:end] + "<SPLIT>"
 
-    @classmethod
-    def _real_sentence_tokenizer(cls, string: str) -> List[str]:
-        string = cls._sentence_boundaries.sub(cls._sentence_tokenizer_merge_matches, string)
+    def _real_sentence_tokenizer(self, string: str) -> List[str]:
+        string = self._sentence_boundaries.sub(self._sentence_tokenizer_merge_matches, string)
         string = string.replace("_DOT_", ".")
+        for index_apo, apo in enumerate(self.APOSTROPHES):
+            string = string.replace("ApOsTrOpHe"+str(index_apo), apo+" ")
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
@@ -63,19 +66,19 @@ class FroMemorizingTokenizer(MemorizingTokenizer):
                 sentences.append(self.word_tokenizer(sent))
         yield from sentences
 
+    def apostrophe_replace(self, regex_match) -> str:
+        return regex_match.group(1) + "ApOsTrOpHe"+ str(self.APOSTROPHES.index(regex_match.group(2))) + regex_match.group(3)
+
     def normalizer(self, data: str) -> str:
-        data = self.re_remove_ending_apostrophe.sub(
-            r"\g<1> ",
-            self.re_add_space_around_apostrophe_that_are_quotes.sub(
-                r" \g<2> ",
-                self.re_add_space_around_punct.sub(
+        data = self.re_add_space_around_punct.sub(
                     r" \g<2> ",
-                    self.roman_number_dot.sub(
-                        r"_DOT_\g<1>_DOT_",
-                        data
+                    self.re_elision_apostrophe.sub(
+                        self.apostrophe_replace,
+                        self.roman_number_dot.sub(
+                            r"_DOT_\g<1>_DOT_",
+                            data
+                        )
                     )
-                )
-            )
         )
         return data
 

@@ -26,12 +26,13 @@ class TestFro(TestCase):
         self.assertEqual(out[0]["treated"], "q")
 
     def test_elision_apostrophe_and_quote(self):
-        string = "a q'il meurt 'dit il'"
-        treated = ["a q il meurt dit il"]
+        string = "'q'il meurt 'dit il'"
+        treated = ["q il meurt dit il"]
         tagger, it, pro = make_controller(treated)
         out = tagger.tag_str(string, it, pro)
-        self.assertEqual(out[0]["form"], "a")
-        self.assertEqual(out[0]["treated"], "a")
+        self.assertEqual(out[0]["form"], "'")
+        self.assertEqual(out[0]["treated"], "'")
         self.assertEqual(out[1]["form"], "q'")
         self.assertEqual(out[1]["treated"], "q")
+        self.assertEqual(out[-1]["form"], "'", "Last apostrophe is kept")
         # Ending and starting apostrophe are not reinserted for some reason.

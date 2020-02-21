@@ -1,9 +1,26 @@
-from .proto import ProcessorPrototype, RenamedTaskProcessor
+from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype, RenamedTaskProcessor
 from typing import Generator, Dict, List
 
 
 class GlueProcessor(RenamedTaskProcessor):
     """ Glues together specific tasks
+
+    >>> class SimpleGlue(GlueProcessor):
+    ...     OUTPUT_KEYS = ["form", "lemma", "task3"]
+    ...     GLUE = {"task3": ["1", "2"]} # Merges Task `1` output and task `2` output in `task3`
+    ...     EMPTY_TAG = {"1": "_", "2": "_"} # If _ is tagged in task `1`, it's the same as an empty tag
+    ...     GLUE_EMPTY = {"task3": "NO-DATA"}  # When all merged data are empty, default value
+    >>> x = SimpleGlue()
+    >>> x.set_tasks(["lemma", "1", "2"])
+    >>> # Merges b and c values from task 1 and 2 into a new task
+    >>> x.get_dict("a", ["a", "b", "c"]) == {"form": "a", "lemma": "a", "task3": "1=b|2=c"}
+    True
+    >>> # Keeps only one task because 2 is empty
+    >>> x.get_dict("a", ["a", "b", "_"]) == {"form": "a", "lemma": "a", "task3": "1=b"}
+    True
+    >>> # Fills with the default empty tag because both task 1 and 2 were empty
+    >>> x.get_dict("a", ["a", "_", "_"]) == {"form": "a", "lemma": "a", "task3": "NO-DATA"}
+    True
 
     """
 

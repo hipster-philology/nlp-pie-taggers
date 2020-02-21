@@ -58,7 +58,14 @@ def tag(model, filepath, allowed_failure, batch_size, device, debug, model_path)
     """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
-    tagger = sub.get_tagger(model, batch_size=batch_size, device=device, model_path=model_path)
+    try:
+        tagger = sub.get_tagger(model, batch_size=batch_size, device=device, model_path=model_path)
+    except FileNotFoundError as e:
+        click.echo("Model not found: please make sure you have downloaded the model files with "
+                   "pie-extended download " + model)
+        if debug:
+            raise e
+        return
     failures = []
     for file in tqdm(filepath):
         try:

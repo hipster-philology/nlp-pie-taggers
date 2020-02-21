@@ -15,15 +15,19 @@ class GlueProcessor(RenamedTaskProcessor):
     GLUE_CHAR: str = "|"
     # Glue Empty are value to take when all things glued together are empty
     GLUE_EMPTY: Dict[str, str] = {"morph": "MORPH=empty"}
+    # Value that means the current element is empty
+    EMPTY_TAG: Dict[str, str] = {"Case": "_", "Numb": "_", "Deg": "_", "Mood": "_", "Tense": "_", "Voice": "_",
+                                 "Person": "_"}
 
     def __init__(self, *args, **kwargs):
         super(GlueProcessor, self).__init__(*args, **kwargs)
 
         # Sets-up some copy of the values
-        self._out = type(self).OUTPUT_KEYS
-        self._glue = type(self).GLUE
-        self._glue_char = type(self).GLUE_CHAR
-        self._glue_empty = type(self).GLUE_EMPTY
+        self._out = self.OUTPUT_KEYS
+        self._glue = self.GLUE
+        self._glue_char = self.GLUE_CHAR
+        self._glue_empty = self.GLUE_EMPTY
+        self._empty_tags = self.EMPTY_TAG
 
     def set_tasks(self, tasks):
         super(GlueProcessor, self).set_tasks(tasks)
@@ -38,7 +42,11 @@ class GlueProcessor(RenamedTaskProcessor):
                 yield head, token_dict[head]
             else:
                 # Otherwise, we glue together things that should be glued together
-                joined = self._glue_char.join([token_dict[glued_task] for glued_task in self._glue[head]])
+                joined = self._glue_char.join([
+                    glued_task + "=" + token_dict[glued_task]
+                    for glued_task in self._glue[head]
+                    if token_dict[glued_task] != self._empty_tags.get(glued_task, -1)
+                ])
                 if not joined:
                     joined = self._glue_empty[head]
                 yield head, joined

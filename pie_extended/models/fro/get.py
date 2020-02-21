@@ -7,7 +7,8 @@ from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 def get_iterator_and_processor():
     tokenizer = FroMemorizingTokenizer()
     processor = FroRulesProcessor(
-        MemoryzingProcessor(
+        apply_on_reinsert=True,
+        head_processor=MemoryzingProcessor(
             tokenizer_memory=tokenizer,
             head_processor=FroGlueProcessor()
         )

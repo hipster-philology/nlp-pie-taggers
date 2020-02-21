@@ -20,7 +20,7 @@ class FroRulesProcessor(RuleBasedProcessor):
                 pos = "PONfrt"
             else:
                 pos = "PONfbl"
-            return {"form": token, "lemma": token, "POS": pos, "morph": "MORPH=empty"}
+            return {"form": token, "lemma": token, "POS": pos, "morph": "MORPH=empty", "treated": token}
         elif self.NUMBER.match(token):
             annotation["pos"] = "ADJcar"
         return annotation
@@ -36,6 +36,8 @@ class FroGlueProcessor(GlueProcessor):
     OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
     GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]}
     MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
+    EMPTY_TAG: Dict[str, str] = {"CAS": "_", "NOMB.": "_", "DEGRE": "_", "MODE": "_", "TEMPS": "_", "GENRE": "_",
+                                 "PERS.": "_"}
 
     def __init__(self, *args, **kwargs):
         super(FroGlueProcessor, self).__init__(*args, **kwargs)

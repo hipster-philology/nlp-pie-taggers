@@ -19,18 +19,6 @@ class ExtensibleTagger(Tagger):
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 
-    def reinsert_full(self, formatter, sent_reinsertion, tasks):
-        yield formatter.write_sentence_beginning()
-        # If a sentence is empty, it's most likely because everything is in sent_reinsertions
-        for reinsertion in sorted(list(sent_reinsertion.keys())):
-            yield formatter.write_line(
-                formatter.format_line(
-                    token=sent_reinsertion[reinsertion],
-                    tags=[""] * len(tasks)
-                )
-            )
-        yield formatter.write_sentence_end()
-
     def tag_file(self, fpath: str, iterator: DataIterator, processor: ProcessorPrototype):
         # Read content of the file
         with open(fpath) as f:
@@ -100,7 +88,7 @@ class ExtensibleTagger(Tagger):
             if not formatter:
                 formatter = Formatter(list(annotation.keys()))
                 yield formatter.write_headers()
-            yield formatter.write_line(annotation)
+            yield formatter.write_line(formatter.format_line(annotation))
 
         if formatter:
             yield formatter.write_footer()

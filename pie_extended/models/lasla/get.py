@@ -12,7 +12,8 @@ uppercase = re.compile(r"^[A-Z]$")
 def get_iterator_and_processor():
     tokenizer = LatMemorizingTokenizer()
     processor = LatinRulesProcessor(
-        MemoryzingProcessor(
+        apply_on_reinsert=True,
+        head_processor=MemoryzingProcessor(
             tokenizer_memory=tokenizer,
             head_processor=LatinGlueProcessor()
         )

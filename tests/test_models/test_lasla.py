@@ -96,18 +96,17 @@ class TestPonctuation(TestCase):
 
         """
         tagger, data_iterator, processor = make_controller([
-            "id enim ait", "turbabuntur a facie eius patris or phanorum et iudicis uiduarum"
+            "iudicis uiduarum"
         ])
         result = tagger.tag_str(
-            "( id enim ait ) turbabuntur a facie eius patris or phanorum et judicis uiduarum .  .",
+            "judicis uiduarum",
             processor=processor,
             iterator=data_iterator
         )
         flatten_seen = list([tok for sent in tagger.seen for tok in sent])
 
-        self.assertNotIn("judicis", flatten_seen, "'j' should be removed from tagging")
-        self.assertIn("iudicis", flatten_seen, "And 'i' should replace it")
-        self.assertIn("\njudicis\t", result, "But, in the end, the original form is given to the user")
+        self.assertEqual(result[0]["form"], "judicis", "'j' should be removed from tagging")
+        self.assertEqual(result[0]["treated"], "iudicis", "And 'i' should replace it")
 
     def test_underscores(self):
         string = "una operatio in ecclesiae fundamento.._... _ . laetatur autem pater quia filius perierat"

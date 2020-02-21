@@ -25,7 +25,7 @@ def make_controller(sentences: List[str]):
     return tagger, iterator, processor
 
 
-class TestPonctuation(TestCase):
+class TestLasla(TestCase):
     def test_consecutive_dots(self):
         """Check that consecutive punctation does not break anything
 

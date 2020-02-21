@@ -16,8 +16,13 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
 class FroMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s\'’ʼ])(\s*)")
     re_add_space_around_apostrophe_that_are_quotes = re.compile(
-        r"((((?<=[\W])[\'’ʼ]+(?=[\W]))|((?<=[\w])[\'’ʼ]+(?=[\W]))|((?<=[\W])[\'’ʼ]+(?=[\w]))))"
-        # NotLetter+Apo+NotLetter or Letter+Apo+NotLetter or NotLetter+Apo+Letter
+        r"("
+        r"(((?<=[\W])[\'’ʼ]+(?=[\W]))|"
+        r"((?<=[\w])[\'’ʼ]+(?=[\W]))|"
+        r"((?<=[\W])[\'’ʼ]+(?=[\w])))|"
+        r"(^[\'’ʼ]+)|"
+        r"([\'’ʼ]+$))"
+        # NotLetter+Apo+NotLetter or Letter+Apo+NotLetter or NotLetter+Apo+Letter + Starting or ending apostrophe
         # ?'. or manger'_ or _'Bonjour
     )
     re_add_space_after_apostrophe = re.compile(r"(\s*)([\'’ʼ])(\s*)")

@@ -12,7 +12,8 @@ install:
 # command to run tests
 script:
   - pie-extended install-addons lasla
-  - nosetests ./tests --with-coverage --cover-package=pie_extended --cover-xml --verbose --nologcapture
+  - pie-extended download lasla
+  - nosetests --with-coverage --cover-package=pie_extended --cover-xml --verbose --nologcapture --with-doctest
 after_success:
   - coverage combine
   - coveralls

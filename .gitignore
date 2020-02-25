@@ -1,6 +1,7 @@
 .idea
 /*.txt
 pie_extended/downloads/*
+tests/**/*.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

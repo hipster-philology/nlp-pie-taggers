@@ -1,5 +1,5 @@
-from ...utils import Metadata, File ,get_path
-from .classes import get_iterator_and_formatter
+from ...utils import Metadata, File, get_path
+from .get import get_iterator_and_processor
 from ...pipeline.iterators.proto import DataIterator
 
 DESC = Metadata(

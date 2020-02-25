@@ -1,56 +1,96 @@
 import regex as re
-import string
 
-from pie.tagger import simple_tokenizer
-from typing import Callable, List, Tuple, Dict, Union, Iterable
+from typing import List, Tuple, Dict, Iterable, Pattern, Union
 
-from ...pipeline.tokenizers.classes import Tokenizer
-from ...utils import ObjectCreator
+from pie_extended.pipeline.tokenizers.simple_tokenizer import SimpleTokenizer
+from enum import Enum
 
-Remover = Callable[[List[str]], Tuple[List[str], Dict[int, str]]]
-PUNKT = re.compile(r"^[_||[^\s\w]]+$", re.VERSION1)
+
+class GenericExcludePatterns(Enum):
+    """ Useful set of regular expresion that can be used for the exclude_patterns
+
+    """
+    Punctuation_and_Underscore: Pattern = re.compile(r"^[_||[^\s\w]]+$", re.VERSION1)
+    Punctuation: Pattern = re.compile(r"^[^\s\w]+$")
+    PassageMarker: Pattern = re.compile(r"_Passage_[\w\d_]+")  # Use `_` as a joining character
 
 
 class DataIterator:
-    def __init__(self, tokenizer: Union[ObjectCreator, Tokenizer] = None, remove_from_input: Callable = None):
+    def __init__(self, tokenizer: SimpleTokenizer = None, exclude_patterns: List[Union[str, Pattern]] = None):
         """ Iterator used to parse the text and returns bits to tag
 
         :param tokenizer: Tokenizer
         """
-        self.tokenizer = tokenizer or simple_tokenizer
-        self.remove_from_input = remove_from_input
-        if self.remove_from_input is None:
-            self.remove_from_input = lambda x: (x, {})
+        self.tokenizer: SimpleTokenizer = tokenizer or SimpleTokenizer()
+        self.exclude_patterns: List[Pattern] = []
+        if exclude_patterns:
+            for pattern in exclude_patterns:
+                self.add_pattern(pattern)
 
-    @staticmethod
-    def remove_punctuation(sentence: List[str]) -> Tuple[List[str], Dict[int, str]]:
+    def add_pattern(self, pattern: str):
+        """ Add a pattern for removal
+
+        :param pattern: Pattern for token removal
+        """
+        if isinstance(pattern, str):
+            self.exclude_patterns.append(re.compile(pattern))
+        elif hasattr(pattern, "value"):  # Deal with enum
+            self.exclude_patterns.append(pattern.value)
+        else:
+            self.exclude_patterns.append(pattern)
+
+    def reset_patterns(self) -> None:
+        """ Removes removal patterns
+
+        >>> x = DataIterator(exclude_patterns=[r'\W+'])
+        >>> x.exclude_tokens(["Je", "suis", "content", ",", "mais", "...", '"', "fatigué", '"', "."])
+        (['Je', 'suis', 'content', 'mais', 'fatigué'], {3: ',', 5: '...', 6: '"', 8: '"', 9: '.'})
+        >>> x.reset_patterns()
+        >>> x.exclude_tokens(["Je", "suis", "content", ",", "mais", "...", '"', "fatigué", '"', "."])
+        (['Je', 'suis', 'content', ',', 'mais', '...', '"', 'fatigué', '"', '.'], {})
+        """
+        self.exclude_patterns = []
+
+    def exclude_tokens(self, sentence: List[str]) -> Tuple[List[str], Dict[int, str]]:
         """ Removes punctuation from a list and keeps its index
 
         :param sentence:
         :return: First the sentence with things removed, then a dictionary whose keys are index of token to reinsert and
         associated values are punctuation to reinsert.
 
-        >>> x = DataIterator.remove_punctuation(["Je", "suis", "content",",", "mais", "...", '"', "fatigué", '"', "."])
-        >>> assert x == (['Je', 'suis', 'content', 'mais', 'fatigué'], {3: ',', 5: '...', 6: '"', 8: '"', 9: '.'})
+        You can use string when generating the exclude_pattern
+
+        >>> x = DataIterator(exclude_patterns=[r'\W+'])
+        >>> x.exclude_tokens(["Je", "suis", "content",",", "mais", "...", '"', "fatigué", '"', "."])
+        (['Je', 'suis', 'content', 'mais', 'fatigué'], {3: ',', 5: '...', 6: '"', 8: '"', 9: '.'})
+
+        Pre-built removers:
+
+        >>> x = DataIterator(exclude_patterns=[GenericExcludePatterns.PassageMarker])
+        >>> x.exclude_tokens(["_Passage_45_78", "Ici", "commence", "le", "passage"])
+        (['Ici', 'commence', 'le', 'passage'], {0: '_Passage_45_78'})
+
+        And of course you can ignore this option
+
+        >>> x = DataIterator()
+        >>> x.exclude_tokens(["_Passage_45_78", "Ici", "commence", "le", "passage"])
+        (['_Passage_45_78', 'Ici', 'commence', 'le', 'passage'], {})
+
         """
+        if len(self.exclude_patterns) == 0:
+            return sentence, {}
+
         clean, removed = [], {}
         for index, token in enumerate(sentence):
-            if PUNKT.match(token):
-                removed[index] = token
-            else:
+            match = False
+            for exclude_pattern in self.exclude_patterns:
+                if exclude_pattern.match(token):
+                    removed[index] = token
+                    match = True
+                    break
+            if not match:
                 clean.append(token)
         return clean, removed
-
-    def get_tokenizer(self) -> Tokenizer:
-        """ Get the tokenizer if it needs to be created"""
-        if isinstance(self.tokenizer, ObjectCreator):
-            return self.tokenizer.create()
-        return self.tokenizer
-
-    def get_remover(self) -> Remover:
-        if isinstance(self.remove_from_input, ObjectCreator):
-            return self.remove_from_input.create()
-        return self.remove_from_input
 
     def __call__(self, data: str, lower: bool = False) -> Iterable[Tuple[List[str], int, Dict[int, str]]]:
         """ Default iter data takes a text, an option to make lower
@@ -60,8 +100,6 @@ class DataIterator:
         :param lower: Whether or not to lower the text
         :yields: (Sentence as a list of word, Size of the sentence, Elements removed from the sentence)
         """
-        tokenizer = self.get_tokenizer()
-        remover = self.get_remover()
-        for sentence in tokenizer(data, lower=lower):
-            clean_sentence, removed_from_input = remover(sentence)
+        for sentence in self.tokenizer.sentence_tokenizer(data, lower=lower):
+            clean_sentence, removed_from_input = self.exclude_tokens(sentence)
             yield clean_sentence, len(clean_sentence), removed_from_input

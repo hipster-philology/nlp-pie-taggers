@@ -1,6 +1,7 @@
 import click
 
 from . import sub
+from typing import Iterable
 
 
 MODELS = [name for name, *_ in sub.get_list()]
@@ -54,15 +55,29 @@ def download(model):
               help="Raise error when a file is not tagged correctly")
 @click.option("--model_path", type=str, default=None,
               help="Provide this with your own model path if you want to test it")
-def tag(model, filepath, allowed_failure, batch_size, device, debug, model_path):
+@click.option("--reset-exclude-patterns", "reset_patterns", is_flag=True, default=False,
+              help="Reset exclude patterns")
+@click.option("--add-pattern", "add_pattern",
+              help="Add new exclude patterns  for token (Regular expression)", multiple=True)
+def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, device: str, debug: bool,
+        model_path: str,
+        reset_patterns: bool, add_pattern: Iterable[str]):
     """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
-    tagger = sub.get_tagger(model, batch_size=batch_size, device=device, model_path=model_path)
+    try:
+        tagger = sub.get_tagger(model, batch_size=batch_size, device=device, model_path=model_path)
+    except FileNotFoundError as e:
+        click.echo("Model not found: please make sure you have downloaded the model files with "
+                   "pie-extended download " + model)
+        if debug:
+            raise e
+        return
     failures = []
     for file in tqdm(filepath):
         try:
-            sub.tag_file(model, tagger, file)
+            sub.tag_file(model, tagger, file, reset_exclude_patterns=reset_patterns,
+                         exclude_patterns=add_pattern)
         except Exception as E:
             failures.append(E)
             click.echo("{} could not be lemmatized".format(file))

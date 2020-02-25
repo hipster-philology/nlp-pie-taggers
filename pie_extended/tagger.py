@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Dict, Generator, Type
 
 from pie.tagger import Tagger
 from pie import utils
@@ -7,6 +7,7 @@ from pie import utils
 from .pipeline.formatters.proto import Formatter
 from .pipeline.disambiguators.proto import Disambiguator
 from .pipeline.iterators.proto import DataIterator
+from .pipeline.postprocessor.proto import ProcessorPrototype
 
 
 class ExtensibleTagger(Tagger):
@@ -18,50 +19,47 @@ class ExtensibleTagger(Tagger):
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 
-    def reinsert_full(self, formatter, sent_reinsertion, tasks):
-        yield formatter.write_sentence_beginning()
-        # If a sentence is empty, it's most likely because everything is in sent_reinsertions
-        for reinsertion in sorted(list(sent_reinsertion.keys())):
-            yield formatter.write_line(
-                formatter.format_line(
-                    token=sent_reinsertion[reinsertion],
-                    tags=[""] * len(tasks)
-                )
-            )
-        yield formatter.write_sentence_end()
-
-    def tag_file(self, fpath: str, iterator: DataIterator, formatter_class: type):
+    def tag_file(self, fpath: str, iterator: DataIterator, processor: ProcessorPrototype):
         # Read content of the file
         with open(fpath) as f:
             data = f.read()
 
         _, ext = os.path.splitext(fpath)
 
-        with open(utils.ensure_ext(fpath, ext, 'pie'), 'w+') as f:
-            for line in self.iter_tag(data, iterator, formatter_class):
+        out_file = utils.ensure_ext(fpath, ext, 'pie')
+        with open(out_file, 'w+') as f:
+            for line in self.iter_tag(data, iterator, processor=processor):
                 f.write(line)
 
-    def tag_str(self, data: str, iterator: DataIterator, formatter_class: type) -> str:
-        return "".join(list(self.iter_tag(data, iterator, formatter_class)))
+        return out_file
 
-    def iter_tag(self, data: str, iterator: DataIterator, formatter_class: type):
-        header = False
-        formatter = None
+    def tag_str(self, data: str, iterator: DataIterator, processor: ProcessorPrototype) -> str:
+        return list(self.iter_tag_token(data, iterator, processor=processor))
 
+    def iter_tag_token(self, data: str, iterator: DataIterator, processor: ProcessorPrototype) \
+            -> Generator[Dict[str, str], None, None]:
+        # Reset at each document
+        processor.reset()
+        iterator.tokenizer.reset()
+        # Iterate !
         for chunk in utils.chunks(
                 iterator(data, lower=self.lower),
                 size=self.batch_size):
+
             # Unzip the batch into the sentences, their sizes and the dictionaries of things that needs
             #  to be reinserted
+
             sents, lengths, needs_reinsertion = zip(*chunk)
 
-            is_empty = [0 == len(sent) for sent in enumerate(sents)]
+            is_empty = [not bool(sent) for sent in sents]
 
             tagged, tasks = self.tag(
                 sents=[sent for sent in sents if sent],
-                lengths=lengths
+                lengths=[l for l in lengths if l != 0]
             )
-            formatter: Formatter = formatter_class(tasks)
+
+            if not processor.tasks:
+                processor.set_tasks(tasks)
 
             # We keep a real sentence index
             for sents_index, sent_is_empty in enumerate(is_empty):
@@ -73,44 +71,32 @@ class ExtensibleTagger(Tagger):
                 # Gets things that needs to be reinserted
                 sent_reinsertion = needs_reinsertion[sents_index]
 
-                # If the header has not yet be written, write it
-                if not header:
-                    yield formatter.write_headers()
-                    header = True
-
-                yield formatter.write_sentence_beginning()
-
                 # If we have a disambiguator, we run the results into it
-                if self.disambiguation:
+                if self.disambiguation and sent:
                     sent = self.disambiguation(sent, tasks)
 
                 reinsertion_index = 0
 
                 for index, (token, tags) in enumerate(sent):
+                    # Before current index
                     while reinsertion_index + index in sent_reinsertion:
-                        yield formatter.write_line(
-                            formatter.format_line(
-                                token=sent_reinsertion[reinsertion_index + index],
-                                tags=[""] * len(tasks)
-                            )
-                        )
+                        yield processor.reinsert(sent_reinsertion[reinsertion_index+index])
                         del sent_reinsertion[reinsertion_index + index]
                         reinsertion_index += 1
 
-                    yield formatter.write_line(
-                        formatter.format_line(token, tags)
-                    )
+                    yield processor.get_dict(token, tags)
 
                 for reinsertion in sorted(list(sent_reinsertion.keys())):
-                    yield formatter.write_line(
-                        formatter.format_line(
-                            token=sent_reinsertion[reinsertion],
-                            tags=[""] * len(tasks)
-                        )
-                    )
+                    yield processor.reinsert(sent_reinsertion[reinsertion])
 
-                yield formatter.write_sentence_end()
+    def iter_tag(self, data: str, iterator: DataIterator, processor: ProcessorPrototype):
+        formatter = None
 
+        for annotation in self.iter_tag_token(data, iterator, processor):
+            if not formatter:
+                formatter = Formatter(processor.tasks)
+                yield formatter.write_headers()
+            yield formatter.write_line(formatter.format_line(annotation))
 
         if formatter:
             yield formatter.write_footer()

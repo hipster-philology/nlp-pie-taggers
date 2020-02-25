@@ -1,5 +1,5 @@
-\\<1>[$@$](V)\\§
-\<1>[$@$]\§
+\\\<1>[$@$](V)\\\§
+\\<1>[$@$]\\§
 §
 \[I]\§
 En honor et en bien et en gran remembrançe §

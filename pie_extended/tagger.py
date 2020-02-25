@@ -50,7 +50,6 @@ class ExtensibleTagger(Tagger):
             #  to be reinserted
 
             sents, lengths, needs_reinsertion = zip(*chunk)
-
             is_empty = [not bool(sent) for sent in sents]
 
             tagged, tasks = self.tag(

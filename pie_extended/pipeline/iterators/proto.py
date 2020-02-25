@@ -90,6 +90,7 @@ class DataIterator:
                     break
             if not match:
                 clean.append(token)
+
         return clean, removed
 
     def __call__(self, data: str, lower: bool = False) -> Iterable[Tuple[List[str], int, Dict[int, str]]]:

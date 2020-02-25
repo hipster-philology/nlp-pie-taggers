@@ -59,5 +59,18 @@ class MemoryzingProcessor(ChainedProcessor):
         return self.head_processor.tasks + ["treated"]
 
     def reinsert(self, form: str) -> Dict[str, str]:
+        """ Reinsert the token, should add treated to the output
+
+        >>> from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
+        >>> tokenizer = MemorizingTokenizer()
+        >>> tokenizer.tokens = ["$"]
+        >>> x = MemoryzingProcessor(tokenizer, ProcessorPrototype())
+        >>> x.set_tasks(["task1", "task2"])
+        ['task1', 'task2', 'treated']
+        >>> x.reinsert("$")
+        {'form': '$', 'task1': '_', 'task2': '_', 'treated': '--IGN.--'}
+        """
         self.memory.tokens.pop(0)
-        return super(MemoryzingProcessor, self).reinsert(form)
+        annotations = super(MemoryzingProcessor, self).reinsert(form)
+        annotations['treated'] = '--IGN.--'
+        return annotations

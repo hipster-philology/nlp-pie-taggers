@@ -16,8 +16,10 @@ class LatinRulesProcessor(RuleBasedProcessor):
     def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
         # If Else condition
         token = annotation["form"]
+
         if self.PONCTU.match(token):
-            return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty", "treated": token}
+            return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty",
+                    "treated": annotation['treated']}
         elif token.startswith("-"):
             if token == "-ne":
                 annotation["lemma"] = "ne2"

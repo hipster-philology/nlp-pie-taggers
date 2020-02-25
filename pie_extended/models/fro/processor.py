@@ -1,16 +1,17 @@
 import regex as re
-from typing import Dict
+from typing import Dict, Pattern
 
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
+from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 
 
 class FroRulesProcessor(RuleBasedProcessor):
     """ Fro Dataset has not all punctuation signs in it, we remove it and posttag it automatically
 
     """
-    PONCTU = re.compile(r"^\W+$")
-    NUMBER = re.compile(r"\d+")
+    PONCTU: Pattern = re.compile(r"^\W+$")
+    NUMBER: Pattern = re.compile(r"\d+")
     PONFORT = [".", "...", "!", "?"]
 
     def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
@@ -35,9 +36,15 @@ class FroGlueProcessor(GlueProcessor):
     """
     OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
     GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]}
-    MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
     EMPTY_TAG: Dict[str, str] = {"CAS": "_", "NOMB.": "_", "DEGRE": "_", "MODE": "_", "TEMPS": "_", "GENRE": "_",
                                  "PERS.": "_"}
 
     def __init__(self, *args, **kwargs):
         super(FroGlueProcessor, self).__init__(*args, **kwargs)
+
+
+class FroMapProcessor(RenamedTaskProcessor):
+    MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
+
+    def __init__(self, *args, **kwargs):
+        super(FroMapProcessor, self).__init__(*args, **kwargs)

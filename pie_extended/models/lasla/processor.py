@@ -3,6 +3,7 @@ from typing import Dict
 
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
+from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 
 
 class LatinRulesProcessor(RuleBasedProcessor):
@@ -33,7 +34,13 @@ class LatinGlueProcessor(GlueProcessor):
     OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
     GLUE = {"morph": ["Case", "Numb", "Deg", "Mood", "Tense", "Voice", "Person"]}
     WHEN_EMPTY = {"morph": "MORPH=empty"}
-    MAP = {"pos": "POS"}
 
     def __init__(self, *args, **kwargs):
         super(LatinGlueProcessor, self).__init__(*args, **kwargs)
+
+
+class LatinMapProcessor(RenamedTaskProcessor):
+    MAP = {"pos": "POS"}
+
+    def __init__(self, *args, **kwargs):
+        super(LatinMapProcessor, self).__init__(*args, **kwargs)

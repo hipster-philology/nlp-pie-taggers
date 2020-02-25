@@ -4,7 +4,6 @@ DEFAULT_EMPTY = "_"
 
 
 class ProcessorPrototype:
-    tasks: List[str]
     empty_value: str
 
     def __init__(self, empty_value: Optional[str] = None):
@@ -15,16 +14,22 @@ class ProcessorPrototype:
 
         >>> x = ProcessorPrototype(empty_value="%")
         >>> x.set_tasks(["a", "b"])
+        ['a', 'b']
         >>> x.reinsert("x") == {"form": "x", "a": "%", "b": "%"}
         True
         >>> x.get_dict("y", ["1", "2"]) == {"form": "y", "a": "1", "b": "2"}
         True
         """
-        self.tasks = []
+        self._tasks = []
         self.empty_value = empty_value or DEFAULT_EMPTY
 
-    def set_tasks(self, tasks):
-        self.tasks = tasks
+    @property
+    def tasks(self) -> List[str]:
+        return self._tasks
+
+    def set_tasks(self, tasks) -> List[str]:
+        self._tasks = tasks
+        return tasks
 
     def postprocess(self, line):
         pass
@@ -38,10 +43,11 @@ class ProcessorPrototype:
 
         >>> x = ProcessorPrototype(empty_value="%")
         >>> x.set_tasks(["a", "b"])
+        ['a', 'b']
         >>> x.reinsert("x") == {"form": "x", "a": "%", "b": "%"}
         True
         """
-        return dict(form=form, **{task: self.empty_value for task in self.tasks})
+        return dict(form=form, **{task: self.empty_value for task in self._tasks})
 
     def get_dict(self, token: str, tags: List[str]) -> Dict[str, str]:
         """ Get the dictionary representation of a token annotation
@@ -52,16 +58,18 @@ class ProcessorPrototype:
 
         >>> x = ProcessorPrototype(empty_value="%")
         >>> x.set_tasks(["a", "b"])
+        ['a', 'b']
         >>> x.get_dict("y", ["1", "2"]) == {"form": "y", "a": "1", "b": "2"}
         True
         """
-        return {"form": token, **{k: val for k, val in zip(self.tasks, tags)}}
+        return {"form": token, **{k: val for k, val in zip(self._tasks, tags)}}
 
     def reset(self):
         """ Functions that should be run in between documents
 
         >>> x = ProcessorPrototype(empty_value="%")
         >>> x.set_tasks(["a", "b"])
+        ['a', 'b']
         >>> x.reset()
         """
         pass
@@ -77,6 +85,7 @@ class RenamedTaskProcessor(ProcessorPrototype):
         ...    MAP = {"task_name_1": "renamed"}
         >>> x = ExampleRemaped()
         >>> x.set_tasks(["task_name_1", "y"])
+        ['renamed', 'y']
         >>> x.get_dict("token", ["a", "b"]) == {"form": "token", "renamed": "a", "y": "b"}
         True
         """
@@ -84,7 +93,8 @@ class RenamedTaskProcessor(ProcessorPrototype):
         self._map: Dict[str, str] = type(self).MAP
 
     def set_tasks(self, tasks):
-        self.tasks = [self._map.get(task, task) for task in tasks]
+        self._tasks = [self._map.get(task, task) for task in tasks]
+        return self.tasks
 
 
 class ChainedProcessor(ProcessorPrototype):
@@ -97,8 +107,10 @@ class ChainedProcessor(ProcessorPrototype):
 
         >>> x = ProcessorPrototype(empty_value="%")
         >>> x.set_tasks(["a", "b"])
+        ['a', 'b']
         >>> y = ChainedProcessor(x)
         >>> y.set_tasks(["a", "b"])
+        ['a', 'b']
         >>> x.reinsert("x") == y.reinsert("x")
         True
         >>> x.get_dict("y", ["1", "2"]) == y.get_dict("y", ["1", "2"])
@@ -119,6 +131,7 @@ class ChainedProcessor(ProcessorPrototype):
     ...
     >>> x = ExampleChained(ProcessorPrototype(empty_value="EMPTY"))
     >>> x.set_tasks(["a", "b"])
+    ['a', 'b']
     >>> x.reinsert("x") == {"form": "x", "a": "EMPTY", "b": "EMPTY", "col3": "x"}
     True
     >>> x.get_dict("y", ["1", "2"]) == {"form": "y", "a": "1", "b": "2", "col3": "x"}
@@ -135,8 +148,8 @@ class ChainedProcessor(ProcessorPrototype):
             self.head_processor = ProcessorPrototype()
 
     def set_tasks(self, tasks):
-        super(ChainedProcessor, self).set_tasks(tasks)
-        self.head_processor.set_tasks(tasks)
+        self._tasks = self.head_processor.set_tasks(tasks)
+        return self.tasks
 
     def reinsert(self, form: str) -> Dict[str, str]:
         return self.head_processor.reinsert(form)

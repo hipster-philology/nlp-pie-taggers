@@ -22,6 +22,7 @@ class RuleBasedProcessor(ChainedProcessor):
         ...         return annotation
         >>> processor = ExampleRule()
         >>> processor.set_tasks(["1", "2"])
+        ['1', '2']
         >>> processor.get_dict("token", ["a", "b"]) == {"form": "token", "1": "a", "2": "b"}
         True
         >>> processor.get_dict("need", ["a", "b"]) == {"form": "need", "1": "REPLACED", "2": "b"}

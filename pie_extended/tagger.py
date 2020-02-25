@@ -26,9 +26,12 @@ class ExtensibleTagger(Tagger):
 
         _, ext = os.path.splitext(fpath)
 
-        with open(utils.ensure_ext(fpath, ext, 'pie'), 'w+') as f:
+        out_file = utils.ensure_ext(fpath, ext, 'pie')
+        with open(out_file, 'w+') as f:
             for line in self.iter_tag(data, iterator, processor=processor):
                 f.write(line)
+
+        return out_file
 
     def tag_str(self, data: str, iterator: DataIterator, processor: ProcessorPrototype) -> str:
         return list(self.iter_tag_token(data, iterator, processor=processor))
@@ -42,15 +45,19 @@ class ExtensibleTagger(Tagger):
         for chunk in utils.chunks(
                 iterator(data, lower=self.lower),
                 size=self.batch_size):
+
             # Unzip the batch into the sentences, their sizes and the dictionaries of things that needs
             #  to be reinserted
+
             sents, lengths, needs_reinsertion = zip(*chunk)
 
             is_empty = [not bool(sent) for sent in sents]
+
             tagged, tasks = self.tag(
                 sents=[sent for sent in sents if sent],
-                lengths=lengths
+                lengths=[l for l in lengths if l != 0]
             )
+
             if not processor.tasks:
                 processor.set_tasks(tasks)
 
@@ -65,7 +72,7 @@ class ExtensibleTagger(Tagger):
                 sent_reinsertion = needs_reinsertion[sents_index]
 
                 # If we have a disambiguator, we run the results into it
-                if self.disambiguation:
+                if self.disambiguation and sent:
                     sent = self.disambiguation(sent, tasks)
 
                 reinsertion_index = 0
@@ -86,11 +93,9 @@ class ExtensibleTagger(Tagger):
         formatter = None
 
         for annotation in self.iter_tag_token(data, iterator, processor):
-            print(processor, processor.tasks)
             if not formatter:
                 formatter = Formatter(processor.tasks)
                 yield formatter.write_headers()
-            print(annotation)
             yield formatter.write_line(formatter.format_line(annotation))
 
         if formatter:

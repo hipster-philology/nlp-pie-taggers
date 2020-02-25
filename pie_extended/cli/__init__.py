@@ -63,7 +63,6 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
         model_path: str,
         reset_patterns: bool, add_pattern: Iterable[str]):
     """ Tag as many [filepath] as you want with [model] """
-    print(reset_patterns, add_pattern)
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
     try:

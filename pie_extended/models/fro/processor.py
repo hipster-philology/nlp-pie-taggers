@@ -41,10 +41,3 @@ class FroGlueProcessor(GlueProcessor):
 
     def __init__(self, *args, **kwargs):
         super(FroGlueProcessor, self).__init__(*args, **kwargs)
-
-
-class FroMapProcessor(RenamedTaskProcessor):
-    MAP = {"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."}
-
-    def __init__(self, *args, **kwargs):
-        super(FroMapProcessor, self).__init__(*args, **kwargs)

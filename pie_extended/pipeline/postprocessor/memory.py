@@ -37,10 +37,11 @@ class MemoryzingProcessor(ChainedProcessor):
     """
     KEY: str = "treated"
 
-    def __init__(self, tokenizer_memory: "MemorizingTokenizer", head_processor: Optional[ProcessorPrototype], **kwargs):
+    def __init__(self, tokenizer_memory: "MemorizingTokenizer", head_processor: ProcessorPrototype,
+                 key: Optional[str] = None, **kwargs):
         super(MemoryzingProcessor, self).__init__(head_processor=head_processor, **kwargs)
         self.memory: "MemorizingTokenizer" = tokenizer_memory
-        self._key: str = type(self).KEY
+        self._key: str = key or type(self).KEY
 
     def get_dict(self, token: str, tags: List[str]) -> Dict[str, str]:
         # First we get the dictionary

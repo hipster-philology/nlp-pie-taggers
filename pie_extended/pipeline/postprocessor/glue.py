@@ -1,4 +1,4 @@
-from pie_extended.pipeline.postprocessor.proto import ChainedProcessor, ProcessorPrototype
+from pie_extended.pipeline.postprocessor.proto import ChainedProcessor, ProcessorPrototype, RenamedTaskProcessor
 from typing import Generator, Dict, List
 
 
@@ -22,6 +22,20 @@ class GlueProcessor(ChainedProcessor):
     >>> # Fills with the default empty tag because both task 1 and 2 were empty
     >>> x.get_dict("a", ["a", "_", "_"]) == {"form": "a", "lemma": "a", "task3": "NO-DATA"}
     True
+
+    You can also use remaped tasks:
+
+    >>> class AnotherGlue(GlueProcessor):
+    ...     OUTPUT_KEYS = ["form", "lemma", "POS", "task3"]
+    ...     GLUE = {"task3": ["1", "2"]} # Merges Task `1` output and task `2` output in `task3`
+    ...     EMPTY_TAG = {"1": "_", "2": "_"} # If _ is tagged in task `1`, it's the same as an empty tag
+    ...     GLUE_EMPTY = {"task3": "NO-DATA"}  # When all merged data are empty, default value
+    >>> x = AnotherGlue(head_processor=RenamedTaskProcessor({"pos": "POS"}))
+    >>> x.set_tasks(["lemma", "pos", "1", "2"]) # You can see things are remaped
+    ['lemma', 'POS', 'task3']
+    >>> # Merges b and c values from task 1 and 2 into a new task
+    >>> x.get_dict("a", ["a", "p", "b", "c"])
+    {'form': 'a', 'lemma': 'a', 'POS': 'p', 'task3': '1=b|2=c'}
 
     """
 

@@ -76,9 +76,7 @@ class ProcessorPrototype:
 
 
 class RenamedTaskProcessor(ProcessorPrototype):
-    MAP: Dict[str, str] = {}
-
-    def __init__(self, **kwargs):
+    def __init__(self, task_map: Dict[str, str], **kwargs):
         """ This Processor is used for renaming tasks (Pie for example refuses tasks containing dots)
 
         >>> class ExampleRemaped(RenamedTaskProcessor):
@@ -90,7 +88,7 @@ class RenamedTaskProcessor(ProcessorPrototype):
         True
         """
         super(RenamedTaskProcessor, self).__init__(**kwargs)
-        self._map: Dict[str, str] = type(self).MAP
+        self._map: Dict[str, str] = task_map
 
     def set_tasks(self, tasks):
         self._tasks = [self._map.get(task, task) for task in tasks]

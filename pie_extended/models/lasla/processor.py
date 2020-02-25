@@ -30,10 +30,9 @@ class LatinRulesProcessor(RuleBasedProcessor):
 
 
 class LatinGlueProcessor(GlueProcessor):
-    OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
+    OUTPUT_KEYS = ["form", "lemma", "pos", "morph"]
     GLUE = {"morph": ["Case", "Numb", "Deg", "Mood", "Tense", "Voice", "Person"]}
     WHEN_EMPTY = {"morph": "MORPH=empty"}
-    MAP = {"pos": "POS"}
 
     def __init__(self, *args, **kwargs):
         super(LatinGlueProcessor, self).__init__(*args, **kwargs)

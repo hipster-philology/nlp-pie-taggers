@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Iterable, Generator, Union
+from typing import Tuple, Iterable, List, Union
 from importlib import import_module
 
 import requests
@@ -11,11 +11,20 @@ from ..utils import ObjectCreator
 from pie.utils import model_spec
 
 
-def get_model(model):
+def get_model(model: str):
+    """ Retrieve a module given a string
+
+    :param model: Module Name
+    :return: Module
+    """
     return import_module("{}.{}".format(models.__name__, model))
 
 
-def download(module) -> Iterable[Union[str, int]]:
+def download(module: str) -> Iterable[Union[str, int]]:
+    """ Download dependencies for the given module
+
+    :param module: Module for which to download models and static files in general
+    """
     lemmatizer = get_model(module)
     os.makedirs(os.path.join(PATH, module), exist_ok=True)
     yield len(lemmatizer.DOWNLOADS)
@@ -30,6 +39,8 @@ def download(module) -> Iterable[Union[str, int]]:
 
 
 def get_list() -> Iterable[Tuple[str, Metadata]]:
+    """ Retrieve a list of available modules
+    """
     for module in models.modules:
         desc = getattr(get_model(module), "DESC", None)
         if desc:
@@ -37,6 +48,14 @@ def get_list() -> Iterable[Tuple[str, Metadata]]:
 
 
 def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None) -> ExtensibleTagger:
+    """ Retrieve the tagger
+
+    :param model: Module of the tagger
+    :param batch_size: Size of the batch
+    :param device: Device to use (cuda/cpu)
+    :param model_path: Path to the model if you want to override the package one
+    :return: Tagger
+    """
     module = get_model(model)
     disambiguator = getattr(module, "Disambiguator", None)
     if isinstance(disambiguator, ObjectCreator):
@@ -48,9 +67,30 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None) 
     return tagger
 
 
-def tag_file(model: str, tagger: ExtensibleTagger, fpath):
+def tag_file(
+        model: str, tagger: ExtensibleTagger,
+        fpath: str,
+        reset_exclude_patterns: bool = False,
+        exclude_patterns: List[str] = None):
+    """ Tag a file with a given model
+
+    :param model: Module name of the model
+    :param tagger: Tagger that should be used
+    :param fpath: Path to the file to edit
+    :param reset_exclude_patterns: Remove all pre-registered token exclusion regular expressions
+    :param exclude_patterns: New exclude patterns to add to the data iterator (Does not require reset)
+    """
     module = get_model(model)
     iterator, processor = getattr(module, "get_iterator_and_processor")()
+    # Remove first pattern
+    if reset_exclude_patterns:
+        iterator.reset_patterns()
+
+    # Add new
+    if exclude_patterns:
+        for pattern in exclude_patterns:
+            iterator.add_pattern(pattern)
+
     tagger.tag_file(fpath, iterator=iterator, processor=processor)
     return True
 

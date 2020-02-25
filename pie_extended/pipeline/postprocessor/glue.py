@@ -1,8 +1,8 @@
-from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype, RenamedTaskProcessor
+from pie_extended.pipeline.postprocessor.proto import ChainedProcessor, ProcessorPrototype, RenamedTaskProcessor
 from typing import Generator, Dict, List
 
 
-class GlueProcessor(RenamedTaskProcessor):
+class GlueProcessor(ChainedProcessor):
     """ Glues together specific tasks
 
     >>> class SimpleGlue(GlueProcessor):
@@ -10,8 +10,9 @@ class GlueProcessor(RenamedTaskProcessor):
     ...     GLUE = {"task3": ["1", "2"]} # Merges Task `1` output and task `2` output in `task3`
     ...     EMPTY_TAG = {"1": "_", "2": "_"} # If _ is tagged in task `1`, it's the same as an empty tag
     ...     GLUE_EMPTY = {"task3": "NO-DATA"}  # When all merged data are empty, default value
-    >>> x = SimpleGlue()
-    >>> x.set_tasks(["lemma", "1", "2"])
+    >>> x = SimpleGlue(head_processor=ProcessorPrototype())
+    >>> x.set_tasks(["lemma", "1", "2"]) # You can see things are remaped
+    ['lemma', 'task3']
     >>> # Merges b and c values from task 1 and 2 into a new task
     >>> x.get_dict("a", ["a", "b", "c"]) == {"form": "a", "lemma": "a", "task3": "1=b|2=c"}
     True
@@ -21,6 +22,20 @@ class GlueProcessor(RenamedTaskProcessor):
     >>> # Fills with the default empty tag because both task 1 and 2 were empty
     >>> x.get_dict("a", ["a", "_", "_"]) == {"form": "a", "lemma": "a", "task3": "NO-DATA"}
     True
+
+    You can also use remaped tasks:
+
+    >>> class AnotherGlue(GlueProcessor):
+    ...     OUTPUT_KEYS = ["form", "lemma", "POS", "task3"]
+    ...     GLUE = {"task3": ["1", "2"]} # Merges Task `1` output and task `2` output in `task3`
+    ...     EMPTY_TAG = {"1": "_", "2": "_"} # If _ is tagged in task `1`, it's the same as an empty tag
+    ...     GLUE_EMPTY = {"task3": "NO-DATA"}  # When all merged data are empty, default value
+    >>> x = AnotherGlue(head_processor=RenamedTaskProcessor({"pos": "POS"}))
+    >>> x.set_tasks(["lemma", "pos", "1", "2"]) # You can see things are remaped
+    ['lemma', 'POS', 'task3']
+    >>> # Merges b and c values from task 1 and 2 into a new task
+    >>> x.get_dict("a", ["a", "p", "b", "c"])
+    {'form': 'a', 'lemma': 'a', 'POS': 'p', 'task3': '1=b|2=c'}
 
     """
 
@@ -46,9 +61,6 @@ class GlueProcessor(RenamedTaskProcessor):
         self._glue_empty = self.GLUE_EMPTY
         self._empty_tags = self.EMPTY_TAG
 
-    def set_tasks(self, tasks):
-        super(GlueProcessor, self).set_tasks(tasks)
-
     def _yield_annotation(
             self, 
             token_dict: Dict[str, str]
@@ -62,7 +74,7 @@ class GlueProcessor(RenamedTaskProcessor):
                 joined = self._glue_char.join([
                     glued_task + "=" + token_dict[glued_task]
                     for glued_task in self._glue[head]
-                    if token_dict[glued_task] != self._empty_tags.get(glued_task, -1)
+                    if token_dict[glued_task] != self._empty_tags.get(glued_task, None)
                 ])
                 if not joined:
                     joined = self._glue_empty[head]
@@ -74,3 +86,7 @@ class GlueProcessor(RenamedTaskProcessor):
     def get_dict(self, token: str, tags: List[str]) -> Dict[str, str]:
         as_dict = super(GlueProcessor, self).get_dict(token, tags)
         return dict(self._yield_annotation(as_dict))
+
+    @property
+    def tasks(self) -> List[str]:
+        return [key for key in self._out if key != "form"]

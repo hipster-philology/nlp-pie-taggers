@@ -79,9 +79,7 @@ class RenamedTaskProcessor(ProcessorPrototype):
     def __init__(self, task_map: Dict[str, str], **kwargs):
         """ This Processor is used for renaming tasks (Pie for example refuses tasks containing dots)
 
-        >>> class ExampleRemaped(RenamedTaskProcessor):
-        ...    MAP = {"task_name_1": "renamed"}
-        >>> x = ExampleRemaped()
+        >>> x = RenamedTaskProcessor({"task_name_1": "renamed"})
         >>> x.set_tasks(["task_name_1", "y"])
         ['renamed', 'y']
         >>> x.get_dict("token", ["a", "b"]) == {"form": "token", "renamed": "a", "y": "b"}

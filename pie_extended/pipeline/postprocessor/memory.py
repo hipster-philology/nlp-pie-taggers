@@ -18,7 +18,7 @@ class MemoryzingProcessor(ChainedProcessor):
     >>> tokenizer.tokens = [(0, "A", "a"), (0, "b", "b"), (0, "q'", "q")]
     >>> processor = MemoryzingProcessor(tokenizer_memory=tokenizer, head_processor=ProcessorPrototype())
     >>> processor.set_tasks(["lem"])
-    ['lem']
+    ['lem', 'treated']
     >>> # Lowercase a was taken in the input but uppercase a is returned in form. For transparency, input seen
     >>> #   By the tagger is returned in a new column, treated (cf. MemorizingProcessor.KEY)
     >>> processor.get_dict("a", ["lemma"]) == {"form": "A", "treated": "a", "lem": "lemma"}
@@ -53,6 +53,10 @@ class MemoryzingProcessor(ChainedProcessor):
         token_dict[self._key] = out_token
         token_dict["form"] = input_token
         return token_dict
+
+    @property
+    def tasks(self) -> List[str]:
+        return self.head_processor.tasks + ["treated"]
 
     def reinsert(self, form: str) -> Dict[str, str]:
         self.memory.tokens.pop(0)

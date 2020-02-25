@@ -5,15 +5,23 @@ from typing import List, Generator
 
 from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
+from pie_extended.models.lasla._params import ne_and_n, latin_replacements
 
 try:
     import cltk
-    from cltk.tokenize.word import WordTokenizer
+    from cltk.tokenize.latin.word import WordTokenizer
 except ImportError as E:
     click.echo(click.style("You need to install cltk and its Latin Data to runs this package", fg="red"))
-    click.echo("pip install cltk")
+    click.echo("pip install https://github.com/PonteIneptique/cltk/archive/latin_clitics_exceptions.zip")
     click.echo("pie-extended install-addons lasla")
     sys.exit(0)
+
+
+ENCLITICS = ['que', 'n', 'ne', 'ue', 've', 'st']
+EXCEPTIONS = list([
+    token.replace("v", "u").replace("j", "i")
+    for token in set(ENCLITICS + cltk.tokenize.latin.params.latin_exceptions + ne_and_n)
+])
 
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
@@ -26,7 +34,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()
         self.tokens = []
-        self._word_tokenizer = WordTokenizer("latin")
+        self._word_tokenizer = WordTokenizer()
 
     @staticmethod
     def _sentence_tokenizer_merge_matches(match):
@@ -41,7 +49,11 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
-        tokenized = [tok for tok in self._word_tokenizer.tokenize(text) if tok]
+        tokenized = [tok for tok in self._word_tokenizer.tokenize(
+            text,
+            replacements=latin_replacements,
+            enclitics_exceptions=EXCEPTIONS
+        ) if tok]
         if tokenized:
             tokenized = [tok.lower() for tok in tokenized]
         return tokenized

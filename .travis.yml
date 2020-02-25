@@ -5,7 +5,7 @@ python:
 
 install:
   - python setup.py develop
-  - pip install cltk
+  - pip install https://github.com/PonteIneptique/cltk/archive/latin_clitics_exceptions.zip
   - pip install coveralls
   - pip install nose
 

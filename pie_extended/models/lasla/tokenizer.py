@@ -5,7 +5,7 @@ from typing import List, Generator
 
 from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
-from pie_extended.models.lasla._params import ne_and_n, latin_replacements
+from pie_extended.models.lasla._params import ne_and_n, latin_replacements, ve
 
 try:
     import cltk
@@ -18,10 +18,24 @@ except ImportError as E:
 
 
 ENCLITICS = ['que', 'n', 'ne', 'ue', 've', 'st']
-EXCEPTIONS = list([
-    token.replace("v", "u").replace("j", "i")
-    for token in set(ENCLITICS + cltk.tokenize.latin.params.latin_exceptions + ne_and_n)
+BASE_ENCLITICS_EXCEPTIONS = set(ENCLITICS + cltk.tokenize.latin.params.latin_exceptions + ne_and_n + ve)
+ENCLITIC_EXCEPTIONS = list([
+    token
+    for token in BASE_ENCLITICS_EXCEPTIONS
 ])
+ENCLITIC_EXCEPTIONS += [
+    token.lower().replace("v", "u").replace("j", "i")
+    for token in BASE_ENCLITICS_EXCEPTIONS
+]
+ENCLITIC_EXCEPTIONS += [
+    token.lower().replace("v", "u")
+    for token in BASE_ENCLITICS_EXCEPTIONS
+]
+ENCLITIC_EXCEPTIONS += [
+    token.lower().replace("j", "i")
+    for token in BASE_ENCLITICS_EXCEPTIONS
+]
+ENCLITIC_EXCEPTIONS = set(ENCLITIC_EXCEPTIONS)
 
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
@@ -52,13 +66,20 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         tokenized = [tok for tok in self._word_tokenizer.tokenize(
             text,
             replacements=latin_replacements,
-            enclitics_exceptions=EXCEPTIONS
+            enclitics_exceptions=ENCLITIC_EXCEPTIONS
         ) if tok]
         if tokenized:
             tokenized = [tok.lower() for tok in tokenized]
         return tokenized
 
     def sentence_tokenizer(self, text: str, lower: bool = False) -> Generator[List[str], None, None]:
+        """
+
+        >>> x = LatMemorizingTokenizer()
+        >>> list(x.sentence_tokenizer("Lasciva puella et lasciue Agamemnone whateverve."))
+        [['lasciua', 'puella', 'et', 'lasciue', 'agamemnone', 'whateuer', '-ue', '.']]
+
+        """
         sentences = list()
         data = self.normalizer(text)
         for sent in self._real_sentence_tokenizer(data):

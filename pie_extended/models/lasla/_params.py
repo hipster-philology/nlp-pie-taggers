@@ -152,6 +152,45 @@ ne_and_n: List[str] = ["abdomen", "abdomine", "abolitione", "absolutione", "abso
 # Manually added
 ne_and_n += ["fison", "fisone"]
 
+ve = ["Achive", "Aedue", "Argive", "Atticue", "Augustue", "Balbue", "Batave", "Britannicue", "Brutue", "Dominue",
+      "Germanue", "Holue", "Jove", "Latinue", "Marobodue", "Modestue", "Polue", "Priscue", "Quadratue", "Quintue",
+      "Regulue", "Superbue", "ablue", "abnue", "absolve", "absque", "acerve", "adflue", "adlue", "admove", "adnue",
+      "adoptive", "adsidue", "adtribue", "adusque", "advolve", "aeditue", "aeque", "aestive", "alve", "ambigue",
+      "amicue", "amove", "angue", "annue", "antique", "argue", "astrue", "atque", "avarue", "ave", "bove", "calve",
+      "captive", "cave", "cerve", "circumflue", "circumvolve", "cive", "clave", "clive", "clue", "coargue", "comminue",
+      "commove", "concave", "conclave", "conflue", "congrue", "conive", "conjunctive", "constitue", "construe",
+      "consue", "contorque", "coque", "corrue", "corve", "cuicumque", "cuicunque", "cuique", "cujuscumque",
+      "cujuscunque", "cujusque", "cultue", "curve", "decoque", "deflue", "delinque", "deminue", "demove", "denique",
+      "derelinque", "derue", "destitue", "destrue", "detorque", "devolve", "devove", "difflue", "dilue", "diminue",
+      "dimove", "dirue", "dissolve", "distingue", "distribue", "dive", "divue", "efflue", "elue", "emove", "eque",
+      "erue", "evolve", "exsolve", "exspue", "exstingue", "exstrue", "extingue", "extorque", "extrue", "exue",
+      "famulue", "fave", "ferue", "ferve", "festive", "fetue", "flave", "flue", "fove", "fugitive", "fulve", "furtive",
+      "genetive", "genitive", "grue", "historicue", "ignave", "imbue", "imminue", "implue", "incultue", "incurve",
+      "indue", "inerrative", "influe", "ingrue", "inimicue", "inique", "innue", "instingue", "institue", "instrue",
+      "insue", "intempestive", "interflue", "interlue", "internecive", "intorque", "involve", "irrue", "itaque",
+      "laeve", "langue", "lascive", "latue", "lave", "lectue", "linque", "lique", "litue", "longinque", "lue", "metue",
+      "milve", "minue", "move", "native", "nave", "neque", "nerve", "neve", "nive", "nove", "oblique", "obrue",
+      "obstrue", "obvolve", "octave", "ornatue", "ove", "parve", "patrue", "pave", "pediseque", "penue", "perantique",
+      "percoque", "perflue", "perinique", "perlue", "permove", "persolve", "pleraeque", "pleraque", "plerarumque",
+      "plerasque", "plerique", "plerisque", "plerorumque", "plerosque", "plerumque", "plue", "pollue", "populue",
+      "praecave", "praecipue", "praeflue", "praeparve", "praestrue", "praeterflue", "prave", "primitive", "proave",
+      "proflue", "promiscue", "promove", "propinque", "prorue", "prostitue", "proterve", "provolve", "pullue",
+      "quacumque", "quacunque", "quaecumque", "quaecunque", "quaeque", "quamcumque", "quamcunque", "quamque",
+      "quantulumcumque", "quantuluscumque", "quaque", "quarumcumque", "quarumcunque", "quarumque", "quascumque",
+      "quascunque", "quasque", "quemcumque", "quemcunque", "quemque", "quibuscumque", "quibuscunque", "quibusque",
+      "quicumque", "quicunque", "quidque", "quinque", "quique", "quisque", "quocumque", "quocunque", "quodcumque",
+      "quodcunque", "quodque", "quoicumque", "quoicunque", "quoique", "quojuscumque", "quojuscunque", "quojusque",
+      "quoque", "quorumcumque", "quorumcunque", "quorumque", "quoscumque", "quoscunque", "quosque", "quotienscumque",
+      "quousque", "recurve", "refove", "relinque", "relique", "remove", "renue", "resolve", "respue", "restitue",
+      "retorque", "retribue", "revolve", "rive", "rue", "rusticue", "saeve", "salve", "senectue", "serve", "sextue",
+      "sibilue", "simulatque", "sive", "sociue", "solve", "statue", "strenue", "strue", "suave", "subflave", "sublue",
+      "submove", "subrue", "substitue", "substrue", "sue", "superflue", "superstrue", "tingue", "torque", "torve",
+      "tribue", "truncue", "ubicumque", "ubique", "undecumque", "undique", "ungue", "urgue", "usque", "utcumque",
+      "uterque", "utique", "utraeque", "utramque", "utraque", "utrarumque", "utrasque", "utrimque", "utrique",
+      "utrisque", "utriusque", "utroque", "utrorumque", "utrosque", "utrumque", "vacive", "vicinue", "vive", "volve",
+      "votive", "vove"]
+
+
 # Do not reverse the tokens
 latin_replacements = [
     (r'\bmecum\b', 'me cum'),

@@ -20,6 +20,10 @@ def get_model(model: str):
     return import_module("{}.{}".format(models.__name__, model))
 
 
+def get_imports(module):
+    return import_module("{}.{}".format(module.__name__, "imports"))
+
+
 def download(module: str) -> Iterable[Union[str, int]]:
     """ Download dependencies for the given module
 
@@ -57,7 +61,8 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None) 
     :return: Tagger
     """
     module = get_model(model)
-    disambiguator = getattr(module, "Disambiguator", None)
+
+    disambiguator = getattr(get_imports(module), "Disambiguator", None)
     if isinstance(disambiguator, ObjectCreator):
         disambiguator = disambiguator.create()
     tagger = ExtensibleTagger(disambiguation=disambiguator, batch_size=batch_size, device=device)
@@ -81,7 +86,7 @@ def tag_file(
     :param exclude_patterns: New exclude patterns to add to the data iterator (Does not require reset)
     """
     module = get_model(model)
-    iterator, processor = getattr(module, "get_iterator_and_processor")()
+    iterator, processor = getattr(get_imports(module), "get_iterator_and_processor")()
     # Remove first pattern
     if reset_exclude_patterns:
         iterator.reset_patterns()
@@ -98,5 +103,5 @@ def tag_file(
 def get_addons(model: str):
     """ Runs the `addons` function from a module """
     module = get_model(model)
-    addons = getattr(module, "addons", lambda : True)
+    addons = getattr(get_imports(module), "addons", lambda: print("No add-ons needed for " + model))
     return addons()

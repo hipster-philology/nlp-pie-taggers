@@ -6,10 +6,6 @@ from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
 from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 
 
-class FrRulesProcessor(RuleBasedProcessor):
-
-    def __init__(self, *args, **kwargs):
-        super(FrRulesProcessor, self).__init__(*args, **kwargs)
 
 
 class FrGlueProcessor(GlueProcessor):

@@ -88,12 +88,13 @@ class ExtensibleTagger(Tagger):
                 for reinsertion in sorted(list(sent_reinsertion.keys())):
                     yield processor.reinsert(sent_reinsertion[reinsertion])
 
-    def iter_tag(self, data: str, iterator: DataIterator, processor: ProcessorPrototype):
+    def iter_tag(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
+                 formatter_class: Type[Formatter] = Formatter):
         formatter = None
 
         for annotation in self.iter_tag_token(data, iterator, processor):
             if not formatter:
-                formatter = Formatter(processor.tasks)
+                formatter = formatter_class(processor.tasks)
                 yield formatter.write_headers()
             yield formatter.write_line(formatter.format_line(annotation))
 

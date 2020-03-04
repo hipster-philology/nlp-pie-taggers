@@ -3,6 +3,7 @@ from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.tagger import ExtensibleTagger
 from pie.utils import model_spec
+from pie_extended.cli.sub import get_imports
 
 
 class FakeTagger(ExtensibleTagger):
@@ -25,6 +26,8 @@ class FakeAutoTag(ExtensibleTagger):
         self.tokens: List[str] = []
         self.lengths: List[int] = []
         self.tasks = tasks
+        self.lower = False
+        self.disambiguation = None
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
@@ -77,11 +80,11 @@ class FakeAutoTag(ExtensibleTagger):
 def create_auto_tagger(module, **kwargs) -> Tuple[FakeAutoTag, DataIterator, ProcessorPrototype]:
     """ Create a tagger as well as the iterator """
     tagger = FakeAutoTag.from_model_string(module.Models, batch_size=16, **kwargs)
-
-    disambiguator = getattr(module, "Disambiguator", None)
+    imports = get_imports(module)
+    disambiguator = getattr(imports, "Disambiguator", None)
     if hasattr(disambiguator, "create"):
         disambiguator = disambiguator.create()
     tagger.disambiguation = disambiguator
 
-    iterator, processor = module.get_iterator_and_processor()
+    iterator, processor = imports.get_iterator_and_processor()
     return tagger, iterator, processor

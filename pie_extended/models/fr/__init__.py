@@ -1,6 +1,5 @@
 from ...utils import Metadata, File, get_path
 from .imports import get_iterator_and_processor
-from ...pipeline.iterators.proto import DataIterator
 
 DESC = Metadata(
         "Français classique et moderne",

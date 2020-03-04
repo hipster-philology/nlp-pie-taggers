@@ -67,7 +67,8 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
         yield from sentences
 
     def apostrophe_replace(self, regex_match) -> str:
-        return regex_match.group(1) + "ApOsTrOpHe"+ str(self.APOSTROPHES.index(regex_match.group(2))) + regex_match.group(3)
+        return regex_match.group(1) + "ApOsTrOpHe" + str(self.APOSTROPHES.index(regex_match.group(2))) \
+               + regex_match.group(3)
 
     def normalizer(self, data: str) -> str:
         data = self.re_add_space_around_punct.sub(

@@ -1,16 +1,12 @@
-import regex as re
-from typing import Dict, Generator, Pattern
-
+from typing import Dict, Generator
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
-from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
-from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 
 
 class FrGlueProcessor(GlueProcessor):
     """ We glue morphological features into one column
     """
     OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
-    GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS"]} #, "DEGRE"]}
+    GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS"]}  # , "DEGRE"]}
     EMPTY_TAG: Dict[str, str] = {"CAS": "CAS=x", "NOMB.": "NOMB.=x", "MODE": "MODE=x", "TEMPS": "TEMPS=x",
                                  "GENRE": "GENRE=x", "PERS.": "PERS.=x"}
 
@@ -31,7 +27,7 @@ class FrGlueProcessor(GlueProcessor):
                 # Otherwise, we glue together things that should be glued together
                 joined = self._glue_char.join([
                     # HERE
-                    #glued_task + "=" +
+                    # glued_task + "=" +
                     token_dict[glued_task]
                     for glued_task in self._glue[head]
                     if token_dict[glued_task] != self._empty_tags.get(glued_task, None)

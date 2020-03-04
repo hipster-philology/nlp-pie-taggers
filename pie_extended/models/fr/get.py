@@ -9,7 +9,8 @@ def get_iterator_and_processor():
     tokenizer = FrMemorizingTokenizer()
     processor = FrRulesProcessor(
         apply_on_reinsert=True,
-        head_processor=MemoryzingProcessor(
+        head_processor=
+        MemoryzingProcessor(
             tokenizer_memory=tokenizer,
             head_processor=FrGlueProcessor(
                 head_processor=RenamedTaskProcessor({"pos": "POS", "NOMB": "NOMB.", "PERS": "PERS."})
@@ -17,8 +18,7 @@ def get_iterator_and_processor():
         )
     )
     iterator = DataIterator(
-        tokenizer=tokenizer,
-        exclude_patterns=[GenericExcludePatterns.Punctuation_and_Underscore]
+        tokenizer=tokenizer
     )
     return iterator, processor
 

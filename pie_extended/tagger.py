@@ -57,7 +57,7 @@ class ExtensibleTagger(Tagger):
                 lengths=[l for l in lengths if l != 0]
             )
 
-            if not processor.tasks:
+            if not processor.task_init:
                 processor.set_tasks(tasks)
 
             # We keep a real sentence index

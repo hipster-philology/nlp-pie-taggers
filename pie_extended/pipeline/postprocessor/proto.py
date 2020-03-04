@@ -21,6 +21,7 @@ class ProcessorPrototype:
         True
         """
         self._tasks = []
+        self.task_init: bool = False
         self.empty_value = empty_value or DEFAULT_EMPTY
 
     @property
@@ -28,6 +29,7 @@ class ProcessorPrototype:
         return self._tasks
 
     def set_tasks(self, tasks) -> List[str]:
+        self.task_init = True
         self._tasks = tasks
         return tasks
 

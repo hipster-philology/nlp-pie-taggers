@@ -1,7 +1,7 @@
 from .processor import FrGlueProcessor
 from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 from .tokenizer import FrMemorizingTokenizer
-from pie_extended.pipeline.iterators.proto import DataIterator, GenericExcludePatterns
+from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 
 

@@ -1,5 +1,4 @@
 from ...utils import Metadata, File, get_path
-from .imports import get_iterator_and_processor
 
 DESC = Metadata(
         "Français classique et moderne",

@@ -1,8 +1,11 @@
 import os
 from typing import Optional, Dict, Generator, Type
 
-from pie.tagger import Tagger
-from pie import utils
+from pie.utils import shutup
+
+with shutup():
+    from pie.tagger import Tagger
+    from pie import utils
 
 from .pipeline.formatters.proto import Formatter
 from .pipeline.disambiguators.proto import Disambiguator

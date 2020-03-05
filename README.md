@@ -52,7 +52,7 @@ tagger = get_tagger(model_name, batch_size=256, device="cpu", model_path=None)
 
 sentences: List[str] = ["Lorem ipsum dolor sit amet, consectetur adipiscing elit. "]
 # Get the main object from the model (: data iterator + postprocesor
-from pie_extended.models.lasla import get_iterator_and_processor
+from pie_extended.models.lasla.imports import get_iterator_and_processor
 for sentence_group in sentences:
     iterator, processor = get_iterator_and_processor()
     print(tagger.tag_str(sentence_group, iterator=iterator, processor=processor) )
@@ -77,7 +77,41 @@ will result in
 
 ## Add a model
 
-ToDo: Documentation
+- Create a package in `./pie_extended/models/`. Exemple: `foo`.
+- Add the name of the package in `./pie_extended/models/__init__.py` in the variable `modules`.
+- In the module `pie_extended.models.foo`, we should find the following variable:
+    - `Models` : a string with filenames and tasks for Pie.
+    - `DESC`: a METADATA object that bears information about the model
+    - `DOWNLOADS`: A list of file to download.
+    
+```python
+from pie_extended.utils import Metadata, File, get_path
+
+DESC = Metadata(
+    "Foo"
+    "language",
+    ["Author 1", "Author 2"],
+    "A readable description",
+    "A link to more information"
+)
+
+DOWNLOADS = [
+    File("/a/link/to/a/file", "local_name_of_the_file.tar")
+]
+
+
+Models = "<{},task1,task2><{},lemma,pos>".format(
+    get_path("foo", "local_name_of_the_file.tar")
+)
+
+```
+- In the module `pie_extended.models.foo.imports`, we should find the following content:
+    1. `get_iterator_and_processor`: a function that returns a `DataIterator` and a `Processor` 
+    2. (optionally) `addons`: a function that installs add-ons
+    3. (optionally) `Disambiguator`: a disambiguator instance (or an object creator that returns one)
+
+Check for a simple example in `pie_extended.models.fro.imports` and a more complex one 
+in `pie_extended.models.lasla.imports`
 
 ## Warning
 

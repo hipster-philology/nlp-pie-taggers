@@ -1,4 +1,4 @@
-from pie_extended.models.lasla.get import get_iterator_and_processor
+from pie_extended.models.lasla.imports import get_iterator_and_processor
 from pie_extended.models import lasla
 from pie_extended.testing_utils import FakeTagger, create_auto_tagger
 from typing import List, Tuple

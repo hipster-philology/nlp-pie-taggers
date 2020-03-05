@@ -1,8 +1,11 @@
 import os
 from typing import Optional, Dict, Generator, Type
 
-from pie.tagger import Tagger
-from pie import utils
+from pie.utils import shutup
+
+with shutup():
+    from pie.tagger import Tagger
+    from pie import utils
 
 from .pipeline.formatters.proto import Formatter
 from .pipeline.disambiguators.proto import Disambiguator
@@ -57,7 +60,7 @@ class ExtensibleTagger(Tagger):
                 lengths=[l for l in lengths if l != 0]
             )
 
-            if not processor.tasks:
+            if not processor.task_init:
                 processor.set_tasks(tasks)
 
             # We keep a real sentence index

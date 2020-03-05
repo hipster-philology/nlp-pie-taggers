@@ -84,4 +84,4 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
         return data
 
     def replacer(self, inp: str):
-        return self.re_remove_ending_apostrophe.sub("", inp)
+        return self.re_remove_ending_apostrophe.sub("'", inp)

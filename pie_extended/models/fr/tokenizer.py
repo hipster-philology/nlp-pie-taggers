@@ -33,6 +33,13 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
     roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
+    # Need to deal with (Case insensitive)
+    # - Aujourd'hui
+    # - ['-ce', '-ci', '-elle', '-elles', '-en', '-eux', '-il', '-ils', '-je', '-la', '-le', '-les', '-leur', '-leurs',
+    #       '-lui', '-là', '-m', '-me', '-moi', '-même', '-mêmes', '-nous', '-on', '-t', '-te', '-toi', '-tu', '-un',
+    #       '-une', '-unes', '-uns', '-vous', '-y']
+    # - peut-être, peut-estre, sur-tout, long-temps, par-tout, vis-à-vis
+    # a-t-il -> a / -t-il
 
     def __init__(self):
         super(FrMemorizingTokenizer, self).__init__()

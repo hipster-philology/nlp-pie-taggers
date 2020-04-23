@@ -21,13 +21,13 @@ class MemoryzingProcessor(ChainedProcessor):
     ['lem', 'treated']
     >>> # Lowercase a was taken in the input but uppercase a is returned in form. For transparency, input seen
     >>> #   By the tagger is returned in a new column, treated (cf. MemorizingProcessor.KEY)
-    >>> processor.get_dict("a", ["lemma"]) == {"form": "A", "treated": "a", "lem": "lemma"}
+    >>> processor.get_dict("a", ["lemma"]) == [{"form": "A", "treated": "a", "lem": "lemma"}]
     True
     >>> # Some would have the same treated and input
-    >>> processor.get_dict("b", ["lemma"]) == {"form": "b", "treated": "b", "lem": "lemma"}
+    >>> processor.get_dict("b", ["lemma"]) == [{"form": "b", "treated": "b", "lem": "lemma"}]
     True
     >>> # Some differ with more characters
-    >>> processor.get_dict("q", ["lemma"]) == {"form": "q'", "treated": "q", "lem": "lemma"}
+    >>> processor.get_dict("q", ["lemma"]) == [{"form": "q'", "treated": "q", "lem": "lemma"}]
     True
 
     This allows for easier output alignment as well as removing unknown characters to the model. If your lemmatizer
@@ -43,16 +43,19 @@ class MemoryzingProcessor(ChainedProcessor):
         self.memory: "MemorizingTokenizer" = tokenizer_memory
         self._key: str = key or type(self).KEY
 
-    def get_dict(self, token: str, tags: List[str]) -> Dict[str, str]:
+    def get_dict(self, token: str, tags: List[str]) -> List[Dict[str, str]]:
         # First we get the dictionary
-        token_dict = self.head_processor.get_dict(token, tags)
-        index, input_token, out_token = self.memory.tokens.pop(0)
-        if token != out_token:
-            raise Exception("The output token does not match our inputs %s : %s" % (token, out_token))
+        list_token_dict = super(MemoryzingProcessor, self).get_dict(token, tags)
+        out = []
+        for token_dict in list_token_dict:
+            index, input_token, out_token = self.memory.tokens.pop(0)
+            if token != out_token:
+                raise Exception("The output token does not match our inputs %s : %s" % (token, out_token))
 
-        token_dict[self._key] = out_token
-        token_dict["form"] = input_token
-        return token_dict
+            token_dict[self._key] = out_token
+            token_dict["form"] = input_token
+            out.append(token_dict)
+        return out
 
     @property
     def tasks(self) -> List[str]:

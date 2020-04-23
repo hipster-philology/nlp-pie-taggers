@@ -23,9 +23,9 @@ class RuleBasedProcessor(ChainedProcessor):
         >>> processor = ExampleRule()
         >>> processor.set_tasks(["1", "2"])
         ['1', '2']
-        >>> processor.get_dict("token", ["a", "b"]) == {"form": "token", "1": "a", "2": "b"}
+        >>> processor.get_dict("token", ["a", "b"]) == [{"form": "token", "1": "a", "2": "b"}]
         True
-        >>> processor.get_dict("need", ["a", "b"]) == {"form": "need", "1": "REPLACED", "2": "b"}
+        >>> processor.get_dict("need", ["a", "b"]) == [{"form": "need", "1": "REPLACED", "2": "b"}]
         True
         """
         super(RuleBasedProcessor, self).__init__(head_processor=head_processor, **kwargs)
@@ -40,5 +40,5 @@ class RuleBasedProcessor(ChainedProcessor):
             return self.rules(anno)
         return anno
 
-    def get_dict(self, token: str, tags: List[str]) -> Dict[str, str]:
-        return self.rules(self.head_processor.get_dict(token, tags))
+    def get_dict(self, token: str, tags: List[str]) -> List[Dict[str, str]]:
+        return [self.rules(anno) for anno in self.head_processor.get_dict(token, tags)]

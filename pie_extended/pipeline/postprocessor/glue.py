@@ -14,13 +14,13 @@ class GlueProcessor(ChainedProcessor):
     >>> x.set_tasks(["lemma", "1", "2"]) # You can see things are remaped
     ['lemma', 'task3']
     >>> # Merges b and c values from task 1 and 2 into a new task
-    >>> x.get_dict("a", ["a", "b", "c"]) == {"form": "a", "lemma": "a", "task3": "1=b|2=c"}
+    >>> x.get_dict("a", ["a", "b", "c"]) == [{"form": "a", "lemma": "a", "task3": "1=b|2=c"}]
     True
     >>> # Keeps only one task because 2 is empty
-    >>> x.get_dict("a", ["a", "b", "_"]) == {"form": "a", "lemma": "a", "task3": "1=b"}
+    >>> x.get_dict("a", ["a", "b", "_"]) == [{"form": "a", "lemma": "a", "task3": "1=b"}]
     True
     >>> # Fills with the default empty tag because both task 1 and 2 were empty
-    >>> x.get_dict("a", ["a", "_", "_"]) == {"form": "a", "lemma": "a", "task3": "NO-DATA"}
+    >>> x.get_dict("a", ["a", "_", "_"]) == [{"form": "a", "lemma": "a", "task3": "NO-DATA"}]
     True
 
     You can also use remaped tasks:
@@ -35,7 +35,7 @@ class GlueProcessor(ChainedProcessor):
     ['lemma', 'POS', 'task3']
     >>> # Merges b and c values from task 1 and 2 into a new task
     >>> x.get_dict("a", ["a", "p", "b", "c"])
-    {'form': 'a', 'lemma': 'a', 'POS': 'p', 'task3': '1=b|2=c'}
+    [{'form': 'a', 'lemma': 'a', 'POS': 'p', 'task3': '1=b|2=c'}]
 
     """
 
@@ -83,9 +83,8 @@ class GlueProcessor(ChainedProcessor):
     def reinsert(self, form: str) -> Dict[str, str]:
         return dict(form=form, **{key: self.empty_value for key in self._out if key != "form"})
 
-    def get_dict(self, token: str, tags: List[str]) -> Dict[str, str]:
-        as_dict = super(GlueProcessor, self).get_dict(token, tags)
-        return dict(self._yield_annotation(as_dict))
+    def get_dict(self, token: str, tags: List[str]) -> List[Dict[str, str]]:
+        return [dict(self._yield_annotation(as_dict)) for as_dict in super(GlueProcessor, self).get_dict(token, tags)]
 
     @property
     def tasks(self) -> List[str]:

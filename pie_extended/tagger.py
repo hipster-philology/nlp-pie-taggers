@@ -86,7 +86,7 @@ class ExtensibleTagger(Tagger):
                         del sent_reinsertion[reinsertion_index + index]
                         reinsertion_index += 1
 
-                    yield processor.get_dict(token, tags)
+                    yield from processor.get_dict(token, tags)
 
                 for reinsertion in sorted(list(sent_reinsertion.keys())):
                     yield processor.reinsert(sent_reinsertion[reinsertion])

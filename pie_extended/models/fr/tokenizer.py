@@ -16,6 +16,8 @@ _RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
 class FrMemorizingTokenizer(MemorizingTokenizer):
     APOSTROPHES = "'’ʼ"
     re_elision_apostrophe = re.compile(r"(\w+)([" + APOSTROPHES + r"])(\w+)")
+    re_aujourdhui = re.compile("(aujourd)(["+APOSTROPHES+"])(hui)", flags=re.IGNORECASE)
+    re_apostrophe = re.compile("(字1)")
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
     re_add_space_around_apostrophe_that_are_quotes = re.compile(
         r"("
@@ -41,6 +43,29 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
     # - peut-être, peut-estre, sur-tout, long-temps, par-tout, vis-à-vis
     # a-t-il -> a / -t-il
 
+    _data_re_keep_clitics_pronouns = [
+        '-ce', '-ci', '-elle', '-elles', '-en', '-eux', '-il', '-ils', '-je', '-la', '-le',
+        '-les', '-leur', '-leurs',
+        '-lui', '-là', '-m', '-me', '-moi', '-même', '-mêmes', '-nous', '-on', '-t', '-te', '-toi', '-tu', '-un',
+        '-une', '-unes', '-uns', '-vous', '-y'
+    ]
+
+    re_keep_clitics = re.compile(
+        r"(-)("+r"|".join(
+            [tok.replace("-", "") for tok in sorted(_data_re_keep_clitics_pronouns, key=len, reverse=True)]
+        )+r")(\b|$)",
+        flags=re.IGNORECASE
+    )
+
+    _data_re_keep_together = "peut-être, peut-estre, sur-tout, long-temps, par-tout, vis-à-vis".split(", ")
+    re_keep_together = re.compile(
+        r"("+"|".join([
+            token
+            for token in _data_re_keep_together
+        ])+r")(?:\b|$)",
+        flags=re.IGNORECASE
+    )
+
     def __init__(self):
         super(FrMemorizingTokenizer, self).__init__()
         self.tokens = []
@@ -53,9 +78,14 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
 
     def _real_sentence_tokenizer(self, string: str) -> List[str]:
         string = self._sentence_boundaries.sub(self._sentence_tokenizer_merge_matches, string)
-        string = string.replace("_DOT_", ".")
+
         for index_apo, apo in enumerate(self.APOSTROPHES):
-            string = string.replace("ApOsTrOpHe"+str(index_apo), apo+" ")
+            string = string.replace("字"+str(index_apo), apo)
+
+        string = string.replace("界t 界", "-t-")
+        string = string.replace("界", "-")
+        string = string.replace("分", "-")
+        print(string)
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
@@ -73,21 +103,33 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
                 sentences.append(self.word_tokenizer(sent))
         yield from sentences
 
-    def apostrophe_replace(self, regex_match) -> str:
-        return regex_match.group(1) + "ApOsTrOpHe" + str(self.APOSTROPHES.index(regex_match.group(2))) \
-               + regex_match.group(3)
+    def replace_apostrophe(self, regex_match) -> str:
+        return regex_match.group(1) + "字" + str(self.APOSTROPHES.index(regex_match.group(2))) \
+               + " " + regex_match.group(3)
+
+    def replace_keep_together(self, regex_match) -> str:
+        return regex_match.group(0).replace("-", "分")
+
+    def replace_aujourdhui(self, regex_match) -> str:
+        return regex_match.group(1) + "字" + str(self.APOSTROPHES.index(regex_match.group(2))) + regex_match.group(3)
 
     def normalizer(self, data: str) -> str:
         data = self.re_add_space_around_punct.sub(
                     r" \g<2> ",
-                    self.re_elision_apostrophe.sub(
-                        self.apostrophe_replace,
-                        self.roman_number_dot.sub(
-                            r"_DOT_\g<1>_DOT_",
-                            data
+                    self.re_keep_together.sub(
+                        self.replace_keep_together,
+                        self.re_keep_clitics.sub(
+                            r" 界\2",
+                            self.re_elision_apostrophe.sub(
+                                self.replace_apostrophe,
+                                self.re_aujourdhui.sub(
+                                    self.replace_aujourdhui,
+                                    data
+                                )
+                            )
                         )
                     )
-        )
+                )
         return data
 
     def replacer(self, inp: str):

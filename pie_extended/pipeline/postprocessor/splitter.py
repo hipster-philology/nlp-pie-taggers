@@ -14,6 +14,18 @@ class SplitterPostProcessor(ChainedProcessor):
     ...    {"form": "praedicatione", "lemma": "-ne", "POS": "NOMcom", "Case": "Nominatif"},
     ... ]
     True
+
+    `keep=True` can be used with something like a RuleBased tokenizer to detect beforehand clitics
+    and treat the tokens for example with RuleBased on top of it (len(get_dict()) > 1)
+
+    >>> proc = SplitterPostProcessor(keep=True)
+    >>> proc.set_tasks(["lemma", "POS", "Case"])
+    ['lemma', 'POS', 'Case']
+    >>> proc.get_dict("praedicatione", ["praedicatio界-ne", "NOMcom", "Nominatif"]) == [
+    ...    {"form": "praedicatione", "lemma": "praedicatio界-ne", "POS": "NOMcom", "Case": "Nominatif"},
+    ...    {"form": "praedicatione", "lemma": "praedicatio界-ne", "POS": "NOMcom", "Case": "Nominatif"}
+    ... ]
+    True
     """
 
     def __init__(self, split_char: str = "界", column: str = "lemma", keep: bool = False,

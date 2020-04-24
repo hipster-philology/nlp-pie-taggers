@@ -1,7 +1,6 @@
 from collections import namedtuple
 import os
 
-
 Metadata = namedtuple("Metadata", ["title", "lang", "authors", "description", "link"])
 
 _File = namedtuple("File", ["url", "name"])
@@ -12,11 +11,14 @@ class File(_File):
         return self.name
 
 
-PATH = os.path.normpath(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "downloads"
+PATH = os.getenv(
+    "PIE_EXTENDED_DOWNLOADS",
+    os.path.normpath(
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            "downloads"
+        )
     )
 )
 

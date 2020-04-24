@@ -46,8 +46,10 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
     _data_re_keep_clitics_pronouns = [
         '-ce', '-ci', '-elle', '-elles', '-en', '-eux', '-il', '-ils', '-je', '-la', '-le',
         '-les', '-leur', '-leurs',
-        '-lui', '-là', '-m', '-me', '-moi', '-même', '-mêmes', '-nous', '-on', '-t', '-te', '-toi', '-tu', '-un',
-        '-une', '-unes', '-uns', '-vous', '-y'
+        '-lui', '-là', '-m', '-me', '-moi', '-même', '-mêmes', '-nous', '-on', '-t',
+        '-te', '-toi', '-tu', '-un',
+        '-une', '-unes', '-uns', '-vous', '-y',
+        r'-m字\d', r'-t字\d'  # 字 replaces all kinds of apostrophe
     ]
 
     re_keep_clitics = re.compile(
@@ -57,6 +59,7 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
         flags=re.IGNORECASE
     )
 
+    # Not used currently
     _data_re_keep_together = "peut-être, peut-estre, sur-tout, long-temps, par-tout, vis-à-vis".split(", ")
     re_keep_together = re.compile(
         r"("+"|".join([
@@ -85,7 +88,6 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
         string = string.replace("界t 界", "-t-")
         string = string.replace("界", "-")
         string = string.replace("分", "-")
-        print(string)
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
@@ -116,8 +118,9 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
     def normalizer(self, data: str) -> str:
         data = self.re_add_space_around_punct.sub(
                     r" \g<2> ",
-                    self.re_keep_together.sub(
-                        self.replace_keep_together,
+                    # peut-etre, etc.
+                    #self.re_keep_together.sub(
+                    #    self.replace_keep_together,
                         self.re_keep_clitics.sub(
                             r" 界\2",
                             self.re_elision_apostrophe.sub(
@@ -128,9 +131,10 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
                                 )
                             )
                         )
-                    )
+                    #)
                 )
         return data
 
     def replacer(self, inp: str):
-        return self.re_remove_ending_apostrophe.sub("'", inp)
+        return self.re_remove_ending_apostrophe.sub("'", inp)\
+            .replace("-t-", "-")  # Temp feature until retrain has been done

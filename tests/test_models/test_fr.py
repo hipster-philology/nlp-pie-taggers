@@ -93,3 +93,19 @@ class TestFr(TestCase):
                 ["Va", "-t'", "en", "va", "-", "nu", "-", "pieds", "!"]
             ]
         )
+
+    def test_tokenization_abbreviations(self):
+        """ Check that abbreviation are recognized """
+        iterator, _ = get_iterator_and_processor()
+        self.assertEqual(
+            list(
+                iterator.tokenizer.sentence_tokenizer("La Zoo. montre des limites. cf. un truc. Et V. n.  est un neutre"
+                                                      ". Mais j'aime ma Lit. et mon lit.!")
+            ),
+            [
+                ['La', 'Zoo.', 'montre', 'des', 'limites', '.'],
+                ['cf.', 'un', 'truc', '.'],
+                ['Et', 'V.', 'n.', 'est', 'un', 'neutre', '.'],
+                ['Mais', "j'", 'aime', 'ma', 'Lit.', 'et', 'mon', 'lit', '.', '!']
+            ]
+        )

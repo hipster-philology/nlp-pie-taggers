@@ -69,6 +69,27 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
         flags=re.IGNORECASE
     )
 
+    # Abbreviations separated by `; ` (SEMICOLON+SPACE)
+    # You can use regexp inside this list, such as [Cc]f. but I would rather recommend to add both `cf.; Cf;`
+    #   for readability.
+    _data_re_abbr = sorted(list(set(
+        "Acad.; Adj.; Agricol.; Agricul.; Apocal.; anc.; Bot.; Botan.; Botaniq.; ca.; cap.; capi.; cf.; Cf.; " 
+        "Cha.; Chap.; Col.; Dic.; Diction.; Dictionn.; Eccl.; Écon.; Élem.; Fig.; Fr.; Geog.; Gram.; " 
+        "Gramm.; Hist.; Ibid.; Ibid.; Inst.; Jard.; Jurisprud.; Latit.; Li.; Lib.; Libr.; Lig.; Lit.; " 
+        "Littérat.; Liv.; Long.; Mar.; Mat.; Mathém.; Mech.; Med.; Med.; Mem.; Menuis.; Milit.; Mod.; " 
+        "Mor.; Mr.; Monsr.; nat.; natur.; N.b.; Orat.; Ornith.; Ornythol.; Ornitholog.; Part.; Pag.; " 
+        "Pharm.; Phil.; Philos.; Pl.; Pl.; Politiq.; P.S.; Phys.; Physiq.; Sr.; St.; Subst.; s.f.; " 
+        "S.M.; s.m.; Tab.; Théât.; Trév.; Tom.; Vol.; V. n.; V. a.; V. act.; Zoo.; " 
+        "Zoolog.".split("; ")
+    )), key=len, reverse=True)
+    re_abbr = re.compile(
+        r"\b("+"|".join([
+            token.replace(" ", r"\s+").replace(".", r"\.")
+            for token in _data_re_abbr
+            if token
+        ])+r")"
+    )
+
     def __init__(self):
         super(FrMemorizingTokenizer, self).__init__()
         self.tokens = []
@@ -86,8 +107,9 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
             string = string.replace("字"+str(index_apo), apo)
 
         string = string.replace("界t 界", "-t-")
-        string = string.replace("界", "-")
-        string = string.replace("分", "-")
+        string = string.replace("界", "-")  # Any dash separating pronouns
+        #string = string.replace("分", "-")  # Agglutinated words such as peut-être
+        string = string.replace("語", ".")  # Dots from abbreviations
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
@@ -115,23 +137,29 @@ class FrMemorizingTokenizer(MemorizingTokenizer):
     def replace_aujourdhui(self, regex_match) -> str:
         return regex_match.group(1) + "字" + str(self.APOSTROPHES.index(regex_match.group(2))) + regex_match.group(3)
 
+    def replace_abbr_dot(self, regex_match) -> str:
+        return regex_match.group(1).replace(".", "語")
+
     def normalizer(self, data: str) -> str:
         data = self.re_add_space_around_punct.sub(
                     r" \g<2> ",
-                    # peut-etre, etc.
-                    #self.re_keep_together.sub(
-                    #    self.replace_keep_together,
-                        self.re_keep_clitics.sub(
-                            r" 界\2",
-                            self.re_elision_apostrophe.sub(
-                                self.replace_apostrophe,
-                                self.re_aujourdhui.sub(
-                                    self.replace_aujourdhui,
-                                    data
+                    self.re_abbr.sub(
+                        self.replace_abbr_dot,
+                        # peut-etre, etc.
+                        #self.re_keep_together.sub(
+                        #    self.replace_keep_together,
+                            self.re_keep_clitics.sub(
+                                r" 界\2",
+                                self.re_elision_apostrophe.sub(
+                                    self.replace_apostrophe,
+                                    self.re_aujourdhui.sub(
+                                        self.replace_aujourdhui,
+                                        data
+                                    )
                                 )
                             )
-                        )
-                    #)
+                        #)
+                    )
                 )
         return data
 

@@ -137,7 +137,7 @@ class TestLasla(TestCase):
             ['una', 'operatio', 'in', 'ecclesiae', 'fundamento', 'laetatur', 'autem', 'pater', 'quia', 'filius',
              'perierat'],
             flatten_seen,
-            "Seen element should not count the underscord"
+            "Seen element should not count the underscore"
         )
 
     def test_with_fake_advanced_tagger(self):

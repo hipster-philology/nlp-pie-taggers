@@ -1,42 +1,24 @@
-from pie_extended.cli.sub import get_tagger
+from pie_extended.cli.sub import get_tagger, get_imports, get_model
 from pie_extended.tagger import ExtensibleTagger
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 from pie_extended.models.lasla.imports import get_iterator_and_processor
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Callable
 import re
 
 
 def read_test_file(
         test_file: str, tasks: List[str],
-        glue_char: str = "|", regexp: str = "({task}=)", glued_task: Optional[str] = "morph",
-        default_value="_", treated: Optional[str] = "treated",
-        ignore: str = "--IGN.--", remove_disambiguation=True,
-        task_map = {"pos": "POS"}
+        use_function: Callable[[Dict[str, str]], Dict[str, str]]
 ) -> List[Dict[str, str]]:
     """
 
     :param test_file:
     :param tasks:
-    :param glue_char:
-    :param regexp:
-    :param glued_task:
-    :param default_value:
-    :param treated:
-    :param ignore:
-    :param remove_disambiguation:
-    :param task_map:
+    :param use_function:
     :returns:
 
     """
-    res = {
-        task: re.compile(regexp.format(task=task))
-        for task in tasks
-    }
-    form_key = "form"
-    if treated:
-        form_key = treated
     out = []
-    remover_dis = re.compile(r"(\d+)$")
     with open(test_file) as f:
         for line_no, line in enumerate(f):
             data = line.strip().split()
@@ -44,48 +26,27 @@ def read_test_file(
                 continue
             if line_no == 0:
                 header = data
-                filtered_task = [task for task in tasks if task not in header]
                 continue
-            data = dict(zip(header, data))
-            if ignore and data[form_key] == ignore:
-                continue
-            if glued_task:
-                glued = data[glued_task].split(glue_char)
-                data.update({
-                    task: res[task].sub("", glue_value)
-                    for glue_value in glued
-                    for task in filtered_task
-                    if res[task].match(glue_value)
-                })
-            if remove_disambiguation:
-                data["lemma"] = remover_dis.sub("", data["lemma"])
-
-            out.append({task: data.get(task_map.get(task, task), default_value) for task in [form_key]+tasks})
+            data = use_function(dict(zip(header, data)))
+            out.append({task: data[task] for task in ["token"]+tasks})
 
     return out
 
 
-def process_test_file(
-        model_name: str, annotation_lists: List[Dict[str, str]],
-        sentence_marker_column: str = "form", sentence_marker_regex: str = r"^[.!?$]+$"
+def process_parsed_data(
+        annotation_lists: List[Dict[str, str]],
+        sentence_marker_column: str = "token", sentence_marker_regex: str = r"^[.!?$]+$"
 ) -> List[List[Dict[str, str]]]:
     """
 
-    Parameters
-    ----------
-    model_name
-    annotation_lists
-    sentence_marker_column
-    sentence_marker_regex
+    :param annotation_lists: List of annotations in the form of a list of dict {task: value}
+    :param sentence_marker_column: Column in which to look
+    :param sentence_marker_regex: When matched, indicates end of sentence
 
     Returns
     -------
 
     """
-
-    tagger: ExtensibleTagger = get_tagger(model_name)
-    tasks = [task for model, tasks in tagger.models for task in tasks]
-
     # Need to deal with sentences
     new_sentence_cat = sentence_marker_column
     new_sentence_match = re.compile(sentence_marker_regex)
@@ -95,7 +56,7 @@ def process_test_file(
     # Apply normalization
     if isinstance(data_iterator.tokenizer, MemorizingTokenizer):
         for anno in annotation_lists:
-            anno["form"] = data_iterator.tokenizer.replacer(anno["form"])
+            anno["token"] = data_iterator.tokenizer.replacer(anno["token"])
 
     # Transform sequence into group of sentences
     sentences = [[]]
@@ -112,7 +73,7 @@ def process_test_file(
         if not sentence:
             continue
 
-        nb_tokens = [data["form"] for data in sentence]
+        nb_tokens = [data["token"] for data in sentence]
         toks, excluded_ids = data_iterator.exclude_tokens(nb_tokens)
         new_sentences.append([
             anno
@@ -133,3 +94,13 @@ def write_eval_file(filename, sentences: List[List[Dict[str, str]]]):
             f.write("\n")
 
     return len(sentences)
+
+
+def retroconvert_corrected_file(filename: str, model_name: str, out_file: str) -> int:
+    tagger: ExtensibleTagger = get_tagger(model_name)
+    tasks = [task for model, tasks in tagger.models for task in tasks]
+    imports = get_imports(get_model(model_name))
+    annotations = read_test_file(filename, tasks, use_function=imports.reverse_output)
+    sentences = process_parsed_data(annotations)
+    nb_sentences = write_eval_file(out_file, sentences)
+    return nb_sentences

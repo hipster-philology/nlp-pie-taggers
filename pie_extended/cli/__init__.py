@@ -99,3 +99,16 @@ def install(model):
     click.echo(click.style("Installing add-ons", bold=True))
     sub.get_addons(model)
     click.echo(click.style("Done", bold=True))
+
+
+@pie_ext.command("retro-convert")
+@click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
+@click.argument("input_file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
+@click.option("--out", type=click.Path(file_okay=True, dir_okay=False), default="conversion.tsv")
+def retro(model, input_file, out):
+    from pie_extended.utils.eval import retroconvert_corrected_file
+    click.echo("%s sentences converted" % retroconvert_corrected_file(
+        model_name=model,
+        filename=input_file,
+        out_file=out
+    ))

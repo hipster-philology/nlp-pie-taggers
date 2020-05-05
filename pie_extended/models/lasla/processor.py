@@ -38,14 +38,11 @@ class LatinGlueProcessor(GlueProcessor):
         super(LatinGlueProcessor, self).__init__(*args, **kwargs)
 
 
-class Mood_Tense_Voice(ChainedProcessor):
+class MoodTenseVoice(ChainedProcessor):
     def __init__(self, head_processor: Optional[ProcessorPrototype],
                  empty_value: str = "_", **kwargs):
-        super(ChainedProcessor, self).__init__(**kwargs)
+        super(MoodTenseVoice, self).__init__(head_processor=head_processor)
 
-        self.head_processor: ProcessorPrototype = head_processor
-        if not self.head_processor:
-            self.head_processor = ProcessorPrototype()
         self._out_tasks = []
         self.empty_value = empty_value
 

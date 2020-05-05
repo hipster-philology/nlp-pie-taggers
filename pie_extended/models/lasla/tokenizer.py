@@ -42,8 +42,8 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         """
 
         >>> x = LatMemorizingTokenizer()
-        >>> list(x.sentence_tokenizer("Lasciva puella et lasciue Agamemnone whateverve."))
-        [['lasciua', 'puella', 'et', 'lasciue', 'agamemnone', 'whateuer', '-ue', '.']]
+        >>> list(x.sentence_tokenizer("XX Lasciva puella et lasciue C. Agamemnone whateverve."))
+        [['3', 'Lasciua', 'puella', 'et', 'lasciue', 'C', 'Agamemnone', 'whateuerue', '.']]
 
         """
         sentences = list()
@@ -77,5 +77,11 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     def replacer(self, inp: str):
         if self.re_roman_number.match(inp):
             return self.roman_to_number(inp)
+        elif inp.isnumeric():
+            if int(inp) > 3:
+                return "3"
+            return str(inp)
+        elif "." == inp:
+            return "."
         inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "")
         return inp

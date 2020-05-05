@@ -27,6 +27,8 @@ class FakeAutoTag(ExtensibleTagger):
         self.lengths: List[int] = []
         self.tasks = tasks
         self.lower = False
+        self.glue_task: str = kwargs.get("glue_task", "_")
+        self.glue_value: str = kwargs.get("glue_value", "|")
         self.disambiguation = None
         for key in kwargs:
             setattr(self, key, kwargs[key])
@@ -50,6 +52,8 @@ class FakeAutoTag(ExtensibleTagger):
         total = 0
 
         def get_task(task, i):
+            if "_" in task:
+                return self.glue_value.join([tsk+str(i) for tsk in task.split(self.glue_task)])
             return task+str(i)
 
         for sent in sents:

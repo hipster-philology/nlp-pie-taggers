@@ -20,4 +20,4 @@ DOWNLOADS = [
          "model.tar")
 ]
 
-Models = "<{},lemma,Voice,Mood,Deg,Numb,Person,Tense,Case,Gend,pos>".format(get_path("lasla", "model.tar"))
+Models = "<{},lemma,Deg,Numb,Person,Mood_Tense_Voice,Case,Gend,pos>".format(get_path("lasla", "model.tar"))

@@ -1,45 +1,16 @@
 import regex as re
-import click
-import sys
 from typing import List, Generator
 
 from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
-from pie_extended.models.lasla._params import ne_and_n, latin_replacements, ve
-
-try:
-    import cltk
-    from cltk.tokenize.latin.word import WordTokenizer
-except ImportError as E:
-    click.echo(click.style("You need to install cltk and its Latin Data to runs this package", fg="red"))
-    click.echo("pip install https://github.com/PonteIneptique/cltk/archive/latin_clitics_exceptions.zip")
-    click.echo("pie-extended install-addons lasla")
-    sys.exit(0)
-
-
-ENCLITICS = ['que', 'n', 'ne', 'ue', 've', 'st']
-BASE_ENCLITICS_EXCEPTIONS = set(ENCLITICS + cltk.tokenize.latin.params.latin_exceptions + ne_and_n + ve)
-ENCLITIC_EXCEPTIONS = list([
-    token
-    for token in BASE_ENCLITICS_EXCEPTIONS
-])
-ENCLITIC_EXCEPTIONS += [
-    token.lower().replace("v", "u").replace("j", "i")
-    for token in BASE_ENCLITICS_EXCEPTIONS
-]
-ENCLITIC_EXCEPTIONS += [
-    token.lower().replace("v", "u")
-    for token in BASE_ENCLITICS_EXCEPTIONS
-]
-ENCLITIC_EXCEPTIONS += [
-    token.lower().replace("j", "i")
-    for token in BASE_ENCLITICS_EXCEPTIONS
-]
-ENCLITIC_EXCEPTIONS = set(ENCLITIC_EXCEPTIONS)
+from pie_extended.models.lasla._params import abbrs
 
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
+    re_abbr_dot = re.compile(
+        r"("+r"|".join([abbr.replace(".", "") for abbr in abbrs])+r")(\.)"
+    )
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
@@ -48,7 +19,6 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()
         self.tokens = []
-        self._word_tokenizer = WordTokenizer()
 
     @staticmethod
     def _sentence_tokenizer_merge_matches(match):
@@ -59,18 +29,13 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     @classmethod
     def _real_sentence_tokenizer(cls, string: str) -> List[str]:
         string = cls._sentence_boundaries.sub(cls._sentence_tokenizer_merge_matches, string)
-        string = string.replace("_DOT_", ".")
+        string = string.replace("語", ".")
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
-        tokenized = [tok for tok in self._word_tokenizer.tokenize(
-            text,
-            replacements=latin_replacements,
-            enclitics_exceptions=ENCLITIC_EXCEPTIONS
-        ) if tok]
-        if tokenized:
-            tokenized = [tok.lower() for tok in tokenized]
-        return tokenized
+        if lower:
+            text = text.lower()
+        return text.split()
 
     def sentence_tokenizer(self, text: str, lower: bool = False) -> Generator[List[str], None, None]:
         """
@@ -88,16 +53,23 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
                 sentences.append(self.word_tokenizer(sent))
         yield from sentences
 
+    def _abbr_replace(self, match):
+        string, dot = (match.groups())
+        return string+'語'
+
     def normalizer(self, data: str) -> str:
         data = self.re_add_space_around_punct.sub(
-                    r" \g<2> ",
-                    self.roman_number_dot.sub(
-                        r"_DOT_\g<1>_DOT_",
-                        data
-                    )
+            r" \g<2> ",
+            self.re_abbr_dot.sub(
+                self._abbr_replace,
+                self.roman_number_dot.sub(
+                    r"語\g<1>語",
+                    data
                 )
+            )
+        )
         return data
 
     def replacer(self, inp: str):
-        inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i")
+        inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "")
         return inp

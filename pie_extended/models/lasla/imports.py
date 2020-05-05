@@ -3,7 +3,7 @@ from ...utils import get_path, ObjectCreator
 
 from autocat import NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
 from ...pipeline.disambiguators.autocat import Autocat
-from pie_extended.models.lasla.processor import LatinRulesProcessor, LatinGlueProcessor
+from pie_extended.models.lasla.processor import LatinRulesProcessor, LatinGlueProcessor, Mood_Tense_Voice
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.models.lasla.tokenizer import LatMemorizingTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator, GenericExcludePatterns
@@ -20,7 +20,9 @@ def get_iterator_and_processor():
         head_processor=MemoryzingProcessor(
             tokenizer_memory=tokenizer,
             head_processor=LatinGlueProcessor(
-                ProcessorPrototype()
+                head_processor=Mood_Tense_Voice(
+                    head_processor=ProcessorPrototype()
+                )
             )
         )
     )

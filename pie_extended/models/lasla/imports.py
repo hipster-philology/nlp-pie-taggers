@@ -8,6 +8,7 @@ from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.models.lasla.tokenizer import LatMemorizingTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator, GenericExcludePatterns
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
+from pie_extended.pipeline.postprocessor.splitter import SplitterPostProcessor
 
 # Uppercase regexp
 uppercase = re.compile(r"^[A-Z]$")
@@ -17,11 +18,13 @@ def get_iterator_and_processor():
     tokenizer = LatMemorizingTokenizer()
     processor = LatinRulesProcessor(
         apply_on_reinsert=True,
-        head_processor=MemoryzingProcessor(
-            tokenizer_memory=tokenizer,
-            head_processor=LatinGlueProcessor(
-                head_processor=Mood_Tense_Voice(
-                    head_processor=ProcessorPrototype()
+        head_processor=SplitterPostProcessor(
+            head_processor=MemoryzingProcessor(
+                tokenizer_memory=tokenizer,
+                head_processor=LatinGlueProcessor(
+                    head_processor=Mood_Tense_Voice(
+                        head_processor=ProcessorPrototype()
+                    )
                 )
             )
         )

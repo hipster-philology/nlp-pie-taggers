@@ -4,7 +4,7 @@ from typing import List, Generator
 from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 from pie_extended.models.lasla._params import abbrs
-
+from pie_extended.utils import roman_number
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
@@ -15,6 +15,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
     roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
+    re_roman_number = re.compile(r"^"+_RomanNumber+"$")
 
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()
@@ -62,14 +63,19 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
             r" \g<2> ",
             self.re_abbr_dot.sub(
                 self._abbr_replace,
-                self.roman_number_dot.sub(
-                    r"語\g<1>語",
-                    data
-                )
+                data
             )
         )
         return data
 
+    def roman_to_number(self, inp: str) -> str:
+        out = roman_number(inp)
+        if out > 3:
+            out = 3
+        return str(out)
+
     def replacer(self, inp: str):
+        if self.re_roman_number.match(inp):
+            return self.roman_to_number(inp)
         inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "")
         return inp

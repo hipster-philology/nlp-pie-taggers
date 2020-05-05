@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Generator, Tuple
 from pie_extended.pipeline.postprocessor.proto import ChainedProcessor, ProcessorPrototype
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
-
+from pie_extended.utils import roman_number
 
 class LatinRulesProcessor(RuleBasedProcessor):
     """ Lasla data has no punctuation, we tag it automatically.
@@ -21,11 +21,8 @@ class LatinRulesProcessor(RuleBasedProcessor):
         if self.PONCTU.match(token):
             return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty",
                     "treated": annotation['treated']}
-        elif token.startswith("-"):
-            if token == "-ne":
-                annotation["lemma"] = "ne2"
-            else:
-                annotation["lemma"] = "ne"
+        elif annotation["lemma"].isnumeric() and not token.isnumeric():
+            annotation["lemma"] = str(roman_number(token))
         return annotation
 
     def __init__(self, *args, **kwargs):

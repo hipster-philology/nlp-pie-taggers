@@ -6,13 +6,50 @@ from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
 from pie_extended.utils import roman_number
 
+
 class LatinRulesProcessor(RuleBasedProcessor):
     """ Lasla data has no punctuation, we tag it automatically.
 
     "ne" token can be two different lemma, but I don't remember why I wrote this part. (ne/nec ?)
 
+    >>> p = LatinRulesProcessor()
+    >>> p.set_tasks(["lemma", "pos", "morph", "treated"])
+    ['lemma', 'pos', 'morph', 'treated']
+    >>> p.get_dict("uinipollens", ['界pollens', '', '', 'uinipollens']) == [
+    ...    {'lemma': 'pollens', 'treated': 'uinipollens', 'morph': 'MORPH=empty', 'pos': 'ADJqua', 'form': 'uinipollens'}
+    ... ]
+    True
+    >>> p.get_dict("similist", ['界sum', '', '', 'similist'])
+    [{'lemma': 'sum1', 'treated': 'similist', 'morph': 'Numb=Sing|Mood=Ind|Tense=Pres|Voice=Act|Person=3', 'pos': 'VER', 'form': 'similist'}]
     """
     PONCTU = re.compile(r"^\W+$")
+    CLITICS_POS = {
+        'audeo': 'VER',
+        'consultum': 'NOM',
+        'cum': 'CON',
+        'ientaculum': 'NOM',
+        'ille': 'PROdem',
+        'ipse': 'PROdem',
+        'is': 'PROdem',
+        'iste': 'PROdem',
+        'ne': 'ADV',
+        'pollens': 'ADJqua',
+        'que': 'CON',
+        'scribo': 'VER',
+        'sum': 'VER',
+        'ue': 'CON',
+        'unus': '',
+        'uolo': ''
+    }
+
+    CLITICS_MORPH = {
+        'sum': 'Numb=Sing|Mood=Ind|Tense=Pres|Voice=Act|Person=3'
+    }
+    CLITICS_DIS = {
+        'cum': '3',
+        'ne': '2',
+        'sum': '1'
+    }
 
     def rules(self, annotation: Dict[str, str]) -> Dict[str, str]:
         # If Else condition
@@ -23,6 +60,16 @@ class LatinRulesProcessor(RuleBasedProcessor):
                     "treated": annotation['treated']}
         elif annotation["lemma"].isnumeric() and not token.isnumeric():
             annotation["lemma"] = str(roman_number(token))
+        elif annotation["lemma"].startswith("界"):
+            lem = annotation["lemma"][1:]
+            return {
+                "lemma": lem+self.CLITICS_DIS.get(lem, ""),
+                "treated": annotation["treated"],
+                "morph": self.CLITICS_MORPH.get(lem, "MORPH=empty"),
+                "pos": self.CLITICS_POS.get(lem, "UNK"),
+                "form": annotation["form"]
+            }
+
         return annotation
 
     def __init__(self, *args, **kwargs):

@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Tuple, Iterable, List, Union
 from importlib import import_module
 
@@ -9,7 +10,6 @@ from ..utils import Metadata, PATH, get_path
 from ..tagger import ExtensibleTagger
 from ..utils import ObjectCreator
 from pie.utils import model_spec
-
 
 def get_model(model: str):
     """ Retrieve a module given a string
@@ -24,6 +24,25 @@ def get_imports(module):
     return import_module("{}.{}".format(module.__name__, "imports"))
 
 
+def _download(url, filename):
+    with open(filename, 'wb') as f:
+        response = requests.get(url, stream=True)
+        total = response.headers.get('content-length')
+
+        if total is None:
+            f.write(response.content)
+        else:
+            downloaded = 0
+            total = int(total)
+            for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
+                downloaded += len(data)
+                f.write(data)
+                done = int(50*downloaded/total)
+                sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
+                sys.stdout.flush()
+    sys.stdout.write('\n')
+
+
 def download(module: str) -> Iterable[Union[str, int]]:
     """ Download dependencies for the given module
 
@@ -34,11 +53,8 @@ def download(module: str) -> Iterable[Union[str, int]]:
     yield len(lemmatizer.DOWNLOADS)
     for file in lemmatizer.DOWNLOADS:
 
-        data = requests.get(file.url)
         new_path = get_path(module, file.name)
-
-        with open(new_path, "wb") as f:
-            f.write(data.content)
+        _download(file.url, new_path)
         yield file.name
 
 

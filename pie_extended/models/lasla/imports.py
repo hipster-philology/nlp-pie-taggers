@@ -19,6 +19,8 @@ def get_iterator_and_processor():
     processor = LatinRulesProcessor(
         apply_on_reinsert=True,
         head_processor=SplitterPostProcessor(
+            prefix="界",
+            split_char="界",
             head_processor=MemoryzingProcessor(
                 tokenizer_memory=tokenizer,
                 head_processor=LatinGlueProcessor(
@@ -50,7 +52,4 @@ Disambiguator: ObjectCreator = ObjectCreator(_get_disambiguator)
 
 
 def addons():
-    from cltk.corpus.utils.importer import CorpusImporter
-
-    corpus_importer = CorpusImporter('latin')
-    corpus_importer.import_corpus('latin_models_cltk')
+    return True

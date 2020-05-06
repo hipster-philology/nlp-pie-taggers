@@ -34,7 +34,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
-        if lower:
+        if lower is True:
             text = text.lower()
         return text.split()
 
@@ -83,5 +83,5 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
             return str(inp)
         elif "." == inp:
             return "."
-        inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "")
+        inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "").lower()
         return inp

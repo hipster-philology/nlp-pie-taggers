@@ -18,7 +18,7 @@ class ExtensibleTagger(Tagger):
         super(ExtensibleTagger, self).__init__(
             device=device,
             batch_size=batch_size,
-            lower=lower
+            lower=True
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 
@@ -51,7 +51,6 @@ class ExtensibleTagger(Tagger):
 
             # Unzip the batch into the sentences, their sizes and the dictionaries of things that needs
             #  to be reinserted
-
             sents, lengths, needs_reinsertion = zip(*chunk)
             is_empty = [not bool(sent) for sent in sents]
 

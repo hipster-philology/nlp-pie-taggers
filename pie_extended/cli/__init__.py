@@ -99,3 +99,16 @@ def install(model):
     click.echo(click.style("Installing add-ons", bold=True))
     sub.get_addons(model)
     click.echo(click.style("Done", bold=True))
+
+
+@pie_ext.command("details")
+@click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
+@click.option("--model_path", type=str, default=None,
+              help="Provide this with your own model path if you want to test it")
+def details(model: str, model_path: str = None):
+    """ Get details about known characters by the [model] """
+    from tqdm import tqdm
+    click.echo(click.style("Getting the tagger", bold=True))
+    tagger = sub.get_tagger(model, model_path=model_path)
+    for model, tasks in tagger.models:
+        print(sorted(list(model.label_encoder.char.table.keys())))

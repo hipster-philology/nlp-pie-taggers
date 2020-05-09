@@ -11,12 +11,12 @@ class Formatter:  # Default is TSV
     def __init__(self, tasks: List[str]):
         self.tasks: List[str] = tasks
 
-        if sys.version_info.minor <= 6:
-            # Before 3.7, order of dictionary is not guaranteed
-            # Cf. https://mail.python.org/pipermail/python-dev/2017-December/151283.html
-            self.format_line = self.format_line_3_6
-        else:
-            self.format_line = self.format_line_3_7
+        # Before 3.7, order of dictionary is not guaranteed
+        # Cf. https://mail.python.org/pipermail/python-dev/2017-December/151283.html
+        self.format_line = self.format_line_3_6
+        # With post-processing, it's better to not trust order
+        #else:
+        #    self.format_line = self.format_line_3_7
 
     def format_line_3_6(self, annotation: Dict[str, str]) -> List[str]:
         """ Format the tags """

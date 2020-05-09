@@ -1,5 +1,21 @@
 # Releases
 
+### 0.0.14 (2020/04/24)
+
+- Hotfixed columns order in tsv output
+
+### 0.0.13 (2020/04/24)
+
+- Hotfixed lowercase for latin model
+
+### 0.0.12 (2020/04/24)
+
+*Unfilled* **TODO**
+
+### 0.0.11 (2020/04/24)
+
+*Unfilled* **TODO**
+
 ### 0.0.10 (2020/04/24)
 
 - `PIE_EXTENDED_DOWNLOADS` environment variable can be used to set up a non default directory for models and linked data.

@@ -16,7 +16,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Package meta-data.
 NAME = 'pie_extended'
 DESCRIPTION = "Extension for nlp-pie package"
-URL = 'https://github.com/ponteineptique/nlp-pie-taggers'
+URL = 'https://github.com/hipster-philology/nlp-pie-taggers'
 AUTHOR = 'Thibault Clérice'
 REQUIRES_PYTHON = '>=3.6.0'
 VERSION = "0.0.14"

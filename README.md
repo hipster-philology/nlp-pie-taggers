@@ -16,6 +16,20 @@ The current system provide an easier access to adding **customized**:
 - disambiguation,
 - output formatting
 
+## Cite as
+
+```
+@software{thibault_clerice_2020_3883590,
+  author       = {Clérice, Thibault},
+  title        = {Pie Extended, an extension for Pie with pre-processing and post-processing},
+  month        = jun,
+  year         = 2020,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.3883589},
+  url          = {https://doi.org/10.5281/zenodo.3883589}
+}
+```
+
 ## Install
 
 To install, simply do `pip install pie-extended`. Then, look at all available models.

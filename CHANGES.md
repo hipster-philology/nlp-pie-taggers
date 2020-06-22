@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.15 (2020/06/22)
+
+- Added Early Modern French Model (reusing processor and tokenizer of FR model)
+
 ### 0.0.14 (2020/04/24)
 
 - Hotfixed columns order in tsv output

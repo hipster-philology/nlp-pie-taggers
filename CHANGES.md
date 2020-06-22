@@ -1,5 +1,10 @@
 # Releases
 
+### 0.0.16 (2020/06/22)
+
+- Fixed Early Modern French Model (reusing processor and tokenizer of FR model)
+- Added Ancient Greek Model (Very basic addition, need more work probably ?)
+
 ### 0.0.15 (2020/06/22)
 
 - Added Early Modern French Model (reusing processor and tokenizer of FR model)

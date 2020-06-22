@@ -18,6 +18,6 @@ DOWNLOADS = [
 
 
 Models = "<{},lemma><{},pos>".format(
-        get_path("fr", "lemma.tar"),
-        get_path("fr", "pos.tar")
+        get_path("freem", "lemma.tar"),
+        get_path("freem", "pos.tar")
 )

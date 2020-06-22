@@ -1,5 +1,6 @@
 modules = [
     "lasla",
     "fro",
-    "fr"
+    "fr",
+    "freem"
 ]

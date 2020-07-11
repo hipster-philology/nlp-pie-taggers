@@ -47,6 +47,8 @@ def download(model):
 @pie_ext.command("tag")
 @click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
 @click.argument("filepath", nargs=-1, type=click.Path(exists=True, dir_okay=False))
+@click.option("--no-tokenizer", "no_tokenizer", is_flag=True,
+              help="Do not apply advanced tokenizer: new line = one word, two new lines = one sentence")
 @click.option("--allow-n-failures", "allowed_failure", type=int, default=5,
               help="Number of failures before things crash")
 @click.option("--batch_size", type=int, default=16,
@@ -63,7 +65,8 @@ def download(model):
               help="Add new exclude patterns  for token (Regular expression)", multiple=True)
 def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, device: str, debug: bool,
         model_path: str,
-        reset_patterns: bool, add_pattern: Iterable[str]):
+        reset_patterns: bool, add_pattern: Iterable[str],
+        no_tokenizer: bool = False):
     """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
@@ -79,7 +82,7 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
     for file in tqdm(filepath):
         try:
             utils.tag_file(model, tagger, file, reset_exclude_patterns=reset_patterns,
-                         exclude_patterns=add_pattern)
+                         exclude_patterns=add_pattern, no_tokenizer=no_tokenizer)
         except Exception as E:
             failures.append(E)
             click.echo("{} could not be lemmatized".format(file))

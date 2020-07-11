@@ -22,7 +22,7 @@ class ExtensibleTagger(Tagger):
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 
-    def tag_file(self, fpath: str, iterator: DataIterator, processor: ProcessorPrototype):
+    def tag_file(self, fpath: str, iterator: DataIterator, processor: ProcessorPrototype, no_tokenizer: bool = False):
         # Read content of the file
         with open(fpath) as f:
             data = f.read()
@@ -31,22 +31,23 @@ class ExtensibleTagger(Tagger):
 
         out_file = utils.ensure_ext(fpath, ext, 'pie')
         with open(out_file, 'w+') as f:
-            for line in self.iter_tag(data, iterator, processor=processor):
+            for line in self.iter_tag(data, iterator, processor=processor, no_tokenizer=no_tokenizer):
                 f.write(line)
 
         return out_file
 
-    def tag_str(self, data: str, iterator: DataIterator, processor: ProcessorPrototype) -> str:
-        return list(self.iter_tag_token(data, iterator, processor=processor))
+    def tag_str(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
+                no_tokenizer: bool = False) -> str:
+        return list(self.iter_tag_token(data, iterator, processor=processor, no_tokenizer=no_tokenizer))
 
-    def iter_tag_token(self, data: str, iterator: DataIterator, processor: ProcessorPrototype) \
-            -> Generator[Dict[str, str], None, None]:
+    def iter_tag_token(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
+                       no_tokenizer: bool = False) -> Generator[Dict[str, str], None, None]:
         # Reset at each document
         processor.reset()
         iterator.tokenizer.reset()
         # Iterate !
         for chunk in utils.chunks(
-                iterator(data, lower=self.lower),
+                iterator(data, lower=self.lower, no_tokenizer=no_tokenizer),
                 size=self.batch_size):
 
             # Unzip the batch into the sentences, their sizes and the dictionaries of things that needs
@@ -91,10 +92,10 @@ class ExtensibleTagger(Tagger):
                     yield processor.reinsert(sent_reinsertion[reinsertion])
 
     def iter_tag(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
-                 formatter_class: Type[Formatter] = Formatter):
+                 formatter_class: Type[Formatter] = Formatter, no_tokenizer: bool = False):
         formatter = None
 
-        for annotation in self.iter_tag_token(data, iterator, processor):
+        for annotation in self.iter_tag_token(data, iterator, processor, no_tokenizer = no_tokenizer):
             if not formatter:
                 formatter = formatter_class(processor.tasks)
                 yield formatter.write_headers()

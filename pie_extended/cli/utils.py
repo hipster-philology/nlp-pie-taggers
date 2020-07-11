@@ -92,7 +92,8 @@ def tag_file(
         model: str, tagger: ExtensibleTagger,
         fpath: str,
         reset_exclude_patterns: bool = False,
-        exclude_patterns: List[str] = None):
+        exclude_patterns: List[str] = None,
+        no_tokenizer: bool = False):
     """ Tag a file with a given model
 
     :param model: Module name of the model
@@ -100,6 +101,7 @@ def tag_file(
     :param fpath: Path to the file to edit
     :param reset_exclude_patterns: Remove all pre-registered token exclusion regular expressions
     :param exclude_patterns: New exclude patterns to add to the data iterator (Does not require reset)
+    :param no_tokenizer: Does not use usual tokenizers (new line = word separator, two new lines = sentence_
     """
     module = get_model(model)
     iterator, processor = getattr(get_imports(module), "get_iterator_and_processor")()
@@ -112,7 +114,7 @@ def tag_file(
         for pattern in exclude_patterns:
             iterator.add_pattern(pattern)
 
-    tagger.tag_file(fpath, iterator=iterator, processor=processor)
+    tagger.tag_file(fpath, iterator=iterator, processor=processor, no_tokenizer=no_tokenizer)
     return True
 
 

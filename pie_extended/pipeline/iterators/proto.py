@@ -93,7 +93,8 @@ class DataIterator:
 
         return clean, removed
 
-    def __call__(self, data: str, lower: bool = False) -> Iterable[Tuple[List[str], int, Dict[int, str]]]:
+    def __call__(self, data: str, lower: bool = False,
+                 no_tokenizer: bool = False) -> Iterable[Tuple[List[str], int, Dict[int, str]]]:
         """ Default iter data takes a text, an option to make lower
         and yield lists of words along with the length of the list
 
@@ -101,6 +102,11 @@ class DataIterator:
         :param lower: Whether or not to lower the text
         :yields: (Sentence as a list of word, Size of the sentence, Elements removed from the sentence)
         """
-        for sentence in self.tokenizer.sentence_tokenizer(data, lower=lower):
-            clean_sentence, removed_from_input = self.exclude_tokens(sentence)
-            yield clean_sentence, len(clean_sentence), removed_from_input
+        if no_tokenizer:
+            for sentence in self.tokenizer.bypass_tokenizer(data, lower=lower):
+                clean_sentence, removed_from_input = self.exclude_tokens(sentence)
+                yield clean_sentence, len(clean_sentence), removed_from_input
+        else:
+            for sentence in self.tokenizer.sentence_tokenizer(data, lower=lower):
+                clean_sentence, removed_from_input = self.exclude_tokens(sentence)
+                yield clean_sentence, len(clean_sentence), removed_from_input

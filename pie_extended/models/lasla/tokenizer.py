@@ -6,6 +6,7 @@ from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 from pie_extended.models.lasla._params import abbrs
 from pie_extended.utils import roman_number
 
+
 class LatMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
     re_abbr_dot = re.compile(
@@ -43,7 +44,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
 
         >>> x = LatMemorizingTokenizer()
         >>> list(x.sentence_tokenizer("XX Lasciva puella et lasciue C. Agamemnone whateverve."))
-        [['3', 'Lasciua', 'puella', 'et', 'lasciue', 'C', 'Agamemnone', 'whateuerue', '.']]
+        [['3', 'lasciua', 'puella', 'et', 'lasciue', 'c', 'agamemnone', 'whateuerue', '.']]
 
         """
         sentences = list()

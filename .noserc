@@ -1,0 +1,8 @@
+[nosetests]
+with-coverage=1
+cover-package=pie_extended
+cover-xml=1
+verbose=1
+nologcapture=1
+with-doctest=1
+ignore-files="cli/__init__\.py"

@@ -5,6 +5,9 @@ from pie.tagger import regexsplitter, SECTION, FULLSTOP
 
 WORD = r'([{}])'.format(string.punctuation)
 
+RE_BYPASS_SENTENCE = re.compile(r"(?:\r?\n){2,}")
+RE_BYPASS_WORD = re.compile(r"(?:\r?\n)")
+
 
 class SimpleTokenizer(object):
     """ Tokenizer that memoryze what it tokenized.
@@ -31,3 +34,19 @@ class SimpleTokenizer(object):
     def reset(self):
         """Can be used between documents for example """
         pass
+
+    def bypass_tokenizer(self, data: str, lower: bool = False) -> Generator[List[str], None, None]:
+        """ Function to enable pretokenized input while using replaces or the likes
+
+        :param data: The string (one new line = one word, two new lines = two words)
+        :param lower: Whether to lower the input
+
+
+        >>> tokenizer = SimpleTokenizer()
+        >>> list(tokenizer.bypass_tokenizer("one\\ntwo\\nthree\\n\\n.//.\\na\\nz"))
+        [['one', 'two', 'three'], ['.//.', 'a', 'z']]
+        """
+
+        for sentence in RE_BYPASS_SENTENCE.split(data):
+            if sentence:
+                yield [word for word in RE_BYPASS_WORD.split(sentence) if word]

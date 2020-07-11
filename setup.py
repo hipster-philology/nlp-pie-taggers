@@ -105,7 +105,7 @@ setup(
     # py_modules=['mypackage'],
 
     entry_points={
-        'console_scripts': ['pie-extended=pie_extended.cli:pie_ext'],
+        'console_scripts': ['pie-extended=pie_extended.cli.main:pie_ext'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,

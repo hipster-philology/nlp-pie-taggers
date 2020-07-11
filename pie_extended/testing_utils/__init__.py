@@ -3,7 +3,7 @@ from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.tagger import ExtensibleTagger
 from pie.utils import model_spec
-from pie_extended.cli.sub import get_imports
+from pie_extended.cli.utils import get_imports
 
 
 class FakeTagger(ExtensibleTagger):

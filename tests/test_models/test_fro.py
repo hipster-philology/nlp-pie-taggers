@@ -36,14 +36,3 @@ class TestFro(TestCase):
         self.assertEqual(out[1]["treated"], "q")
         self.assertEqual(out[-1]["form"], "'", "Last apostrophe is kept")
         # Ending and starting apostrophe are not reinserted for some reason.
-
-    def test_tokenization_roman_number(self):
-        iterator, _ = get_iterator_and_processor()
-        self.assertEqual(
-            list(iterator.tokenizer.sentence_tokenizer("Les .XIII. tables du Duc du XII.. C'est fantastique")),
-            [
-                ["Les", ".XIII.", "tables", "du", "Duc", "du", "XII", ".", "."],
-                ["C", 'est', "fantastique"]
-            ],
-            "Dots around roman number are not sentences markers"
-        )

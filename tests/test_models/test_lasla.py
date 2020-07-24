@@ -262,3 +262,26 @@ class TestLasla(TestCase):
               'morph': 'Case=Case21|Numb=Numb21|Deg=Deg21|Mood=Mood21|Tense=Tense21|Voice=Voice21|Person=Person21',
               'treated': 'puer'}]
         )
+
+    def test_normalizers(self):
+        "Check that references and abbreviations are correctly ignored"
+        iterator, _ = get_iterator_and_processor()
+
+        self.assertEqual(
+            list(iterator("[REF:1.a.b]Quis est M. Cicero ? [REF:1.a.c] Ego sum !")),
+            [
+                (['quis', 'est', 'm', 'cicero'], 4, {0: '[REF:1.a.b]', 5: '?'}),
+                (['ego', 'sum'], 2, {0: '[REF:1.a.c]', 3: '!'})
+            ],
+            "References and abbreviations are kept as tokens. Abbreviations are sent in without DOT,"
+            "References are untouched"
+        )
+
+        self.assertEqual(
+            iterator.tokenizer.tokens,
+            [(0, '[REF:1.a.b]', '[REF:1.a.b]'), (1, 'Quis', 'quis'), (2, 'est', 'est'), (3, 'M.', 'm'),
+             (4, 'Cicero', 'cicero'), (5, '?', '?'), (6, '[REF:1.a.c]', '[REF:1.a.c]'), (7, 'Ego', 'ego'),
+             (8, 'sum', 'sum'), (9, '!', '!')],
+            "Memory should be kept for abbreviations"
+        )
+

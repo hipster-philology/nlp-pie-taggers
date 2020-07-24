@@ -1,26 +1,33 @@
 import regex as re
-from typing import List, Generator
+from typing import List, Generator, Tuple
+
 
 from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 from pie_extended.models.lasla._params import abbrs
+from pie_extended.pipeline.tokenizers.utils.excluder import (
+    ReferenceExcluder,
+    ExcluderPrototype,
+    AbbreviationsExcluder
+)
 from pie_extended.utils import roman_number
 
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
-    re_abbr_dot = re.compile(
-        r"("+r"|".join([abbr.replace(".", "") for abbr in abbrs])+r")(\.)"
-    )
+
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
-    roman_number_dot = re.compile(r"\.(" + _RomanNumber + r")\.")
     re_roman_number = re.compile(r"^"+_RomanNumber+"$")
 
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()
         self.tokens = []
+        self.normalizers: Tuple[ExcluderPrototype, ...] = (
+            ReferenceExcluder(),
+            AbbreviationsExcluder(abbrs=abbrs)
+        )
 
     @staticmethod
     def _sentence_tokenizer_merge_matches(match):
@@ -28,10 +35,12 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         start, end = match.span()
         return match.string[start:end] + "<SPLIT>"
 
-    @classmethod
-    def _real_sentence_tokenizer(cls, string: str) -> List[str]:
-        string = cls._sentence_boundaries.sub(cls._sentence_tokenizer_merge_matches, string)
-        string = string.replace("語", ".")
+    def _real_sentence_tokenizer(self, string: str) -> List[str]:
+        string = self._sentence_boundaries.sub(self._sentence_tokenizer_merge_matches, string)
+
+        for normalizer in self.normalizers:
+            string = normalizer.after_sentence_tokenizer(string)
+
         return string.split("<SPLIT>")
 
     def _real_word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
@@ -55,17 +64,12 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
                 sentences.append(self.word_tokenizer(sent))
         yield from sentences
 
-    def _abbr_replace(self, match):
-        string, dot = (match.groups())
-        return string+'語'
-
     def normalizer(self, data: str) -> str:
+        for excluder in self.normalizers:
+            data = excluder.before_sentence_tokenizer(data)
         data = self.re_add_space_around_punct.sub(
             r" \g<2> ",
-            self.re_abbr_dot.sub(
-                self._abbr_replace,
-                data
-            )
+            data
         )
         return data
 
@@ -76,6 +80,9 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         return str(out)
 
     def replacer(self, inp: str):
+        for excluder in self.normalizers:
+            if not excluder.can_be_replaced and excluder.exclude_regexp.match(inp):
+                return inp
         if self.re_roman_number.match(inp):
             return self.roman_to_number(inp)
         elif inp.isnumeric():
@@ -84,5 +91,6 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
             return str(inp)
         elif "." == inp:
             return "."
+
         inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "").lower()
         return inp

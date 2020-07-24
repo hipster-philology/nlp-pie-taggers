@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.tagger import ExtensibleTagger
@@ -30,8 +30,16 @@ class FakeAutoTag(ExtensibleTagger):
         self.glue_task: str = kwargs.get("glue_task", "_")
         self.glue_value: str = kwargs.get("glue_value", "|")
         self.disambiguation = None
+        self.start_end: bool = False
         for key in kwargs:
             setattr(self, key, kwargs[key])
+
+    def toggle_start_end(self, status: Optional[bool] = None) -> bool:
+        if status is None:
+            self.start_end = not self.start_end
+        else:
+            self.start_end = status
+        return self.start_end
 
     def tag(self, sents: List[List[str]], lengths: List[int], *args, **kwargs):
         """ Fake tagging tokens by enumerating informations
@@ -58,9 +66,13 @@ class FakeAutoTag(ExtensibleTagger):
 
         for sent in sents:
             out.append([])
+            if self.start_end:
+                out[-1].append(("START", tuple(list(get_task(task, total) for task in self.tasks))))
             for tok in sent:
                 out[-1].append((tok, tuple(list(get_task(task, total) for task in self.tasks))))
                 total += 1
+            if self.start_end:
+                out[-1].append(("END", tuple(list(get_task(task, total) for task in self.tasks))))
         return out, self.tasks
 
     @staticmethod

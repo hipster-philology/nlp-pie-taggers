@@ -8,9 +8,9 @@ from pie_extended.models.lasla._params import abbrs
 from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     ExcluderPrototype,
-    AbbreviationsExcluder,
-    Re_RomanNumber
+    AbbreviationsExcluder
 )
+from pie_extended.pipeline.tokenizers.utils import regexps
 from pie_extended.utils import roman_number
 
 
@@ -20,7 +20,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
-    re_roman_number = re.compile(r"^"+Re_RomanNumber+"$")
+    re_roman_number = re.compile(r"^"+regexps.RomanNumbers+"$")
 
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()

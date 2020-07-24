@@ -2,24 +2,17 @@ from abc import ABC
 import regex as re
 from typing import Match, List, Optional
 
+
+import pie_extended.pipeline.tokenizers.utils.chars as chars
+import pie_extended.pipeline.tokenizers.utils.regexps as regexps
+
+
 # Common values so that there is not (too much) collision
 DOT = '語'
 COLON = '桁'
 BRACKET_L = '左'
 BRACKET_R = '右'
 APOSTROPHE = '風'
-
-# Regexp
-Re_RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
-               r"(?:IX|IV|V?I{0,3})|M{0,4}(?:CM|C?D|D?C{1,3})" \
-               r"(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})|M{0,4}" \
-               r"(?:CM|CD|D?C{0,3})(?:XC|X?L|L?X{1,3})" \
-               r"(?:IX|IV|V?I{0,3})|M{0,4}(?:CM|CD|D?C{0,3})" \
-               r"(?:XC|XL|L?X{0,3})(?:IX|I?V|V?I{1,3}))"
-
-
-# Characters that can be used and reused
-CHARS_APOSTROPHES = "'’ʼ"
 
 
 class ExcluderPrototype(ABC):
@@ -154,7 +147,7 @@ class AbbreviationsExcluder(ExcluderPrototype):
 
 
 class DottedNumberExcluder(ExcluderPrototype):
-    def __init__(self, number_regex: str = Re_RomanNumber, dot: str = DOT):
+    def __init__(self, number_regex: str = regexps.RomanNumbers, dot: str = DOT):
         self.re = re.compile(r"\.(" + number_regex + r")\.")
         self.dot = dot
 
@@ -175,7 +168,7 @@ class ApostropheExcluder(ExcluderPrototype):
     "l'abbé"
     """
     def __init__(self,
-                 match_apostrophes=CHARS_APOSTROPHES,
+                 match_apostrophes=chars.APOSTROPHE,
                  apostrophe_mask=APOSTROPHE,
                  add_space_after: bool = True,
                  add_space_before: bool = False):

@@ -7,6 +7,19 @@ DOT = '語'
 COLON = '桁'
 BRACKET_L = '左'
 BRACKET_R = '右'
+APOSTROPHE = '風'
+
+# Regexp
+Re_RomanNumber = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \
+               r"(?:IX|IV|V?I{0,3})|M{0,4}(?:CM|C?D|D?C{1,3})" \
+               r"(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})|M{0,4}" \
+               r"(?:CM|CD|D?C{0,3})(?:XC|X?L|L?X{1,3})" \
+               r"(?:IX|IV|V?I{0,3})|M{0,4}(?:CM|CD|D?C{0,3})" \
+               r"(?:XC|XL|L?X{0,3})(?:IX|I?V|V?I{1,3}))"
+
+
+# Characters that can be used and reused
+CHARS_APOSTROPHES = "'’ʼ"
 
 
 class ExcluderPrototype(ABC):
@@ -138,3 +151,83 @@ class AbbreviationsExcluder(ExcluderPrototype):
         return value.replace(
             self.dot, '.'
         )
+
+
+class DottedNumberExcluder(ExcluderPrototype):
+    def __init__(self, number_regex: str = Re_RomanNumber, dot: str = DOT):
+        self.re = re.compile(r"\.(" + number_regex + r")\.")
+        self.dot = dot
+
+    def before_sentence_tokenizer(self, value: str) -> str:
+        return self.re.sub(
+            r"{0}\g<1>{0}".format(self.dot),
+            value,
+        )
+
+    def after_sentence_tokenizer(self, value: str) -> str:
+        return value.replace(
+            self.dot, '.'
+        )
+
+
+class ApostropheExcluder(ExcluderPrototype):
+    """Allows for keeping apostrophes that are the mark of an elision, mostly in French such as
+    "l'abbé"
+    """
+    def __init__(self,
+                 match_apostrophes=CHARS_APOSTROPHES,
+                 apostrophe_mask=APOSTROPHE,
+                 add_space_after: bool = True,
+                 add_space_before: bool = False):
+        self.apostrophes = match_apostrophes
+        self.re: re.Regex = re.compile(r"(\w+)([" + self.apostrophes + r"])(\w+)")
+        self.apostrophe_mask: str = apostrophe_mask
+
+        # Space handling
+        self.space_before: str = ""
+        if add_space_before:
+            self.space_before = " "
+
+        self.space_after: str = ""
+        if add_space_after:
+            self.space_after = " "
+
+    def _before_sentence_tokenizer(self, regex_match: Match) -> str:
+        """ Given a match on `l'abbé` returns `l風0abbé` where
+            風 is the character mask and 0 the index of the apostroph in the match_apostrophes value
+        """
+        return regex_match.group(1) + \
+            self.apostrophe_mask + \
+            str(self.apostrophes.index(regex_match.group(2))) + \
+            regex_match.group(3)
+
+    def before_sentence_tokenizer(self, value: str) -> str:
+        """ Normalization run before sentence tokenization
+
+        :param value: String to normalize before sentence is toknized
+
+        >>> excl = ApostropheExcluder(add_space_after=True)
+        >>> excl.before_sentence_tokenizer("l'abbé lorsqu’il")
+        'l風0abbé lorsqu風1il'
+
+        """
+        return self.re.sub(
+            self._before_sentence_tokenizer,
+            value
+        )
+
+    def after_sentence_tokenizer(self, value: str) -> str:
+        """ Normalization run after sentence tokenization
+
+        :param value: String to normalize before sentence is toknized
+
+        >>> excl = ApostropheExcluder(add_space_after=True)
+        >>> excl.after_sentence_tokenizer('l風0abbé lorsqu風1il')
+        "l' abbé lorsqu’ il"
+
+        """
+        for index_apo, apostrophe in enumerate(self.apostrophes):
+            value = value.replace(
+                self.apostrophe_mask+str(index_apo),
+                self.space_before + apostrophe + self.space_after)
+        return value

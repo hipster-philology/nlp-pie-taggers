@@ -2,13 +2,14 @@ import regex as re
 from typing import List, Generator, Tuple
 
 
-from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe, _RomanNumber
+from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
 from pie_extended.models.lasla._params import abbrs
 from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     ExcluderPrototype,
-    AbbreviationsExcluder
+    AbbreviationsExcluder,
+    Re_RomanNumber
 )
 from pie_extended.utils import roman_number
 
@@ -19,7 +20,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
-    re_roman_number = re.compile(r"^"+_RomanNumber+"$")
+    re_roman_number = re.compile(r"^"+Re_RomanNumber+"$")
 
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()

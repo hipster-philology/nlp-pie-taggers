@@ -11,6 +11,7 @@ from ..tagger import ExtensibleTagger
 from ..utils import ObjectCreator
 from pie.utils import model_spec
 
+
 def get_model(model: str):
     """ Retrieve a module given a string
 

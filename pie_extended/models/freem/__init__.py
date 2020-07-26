@@ -17,7 +17,7 @@ DOWNLOADS = [
 ]
 
 
-Models = "<{},lemma><{},pos>".format(
+Models = "<{},lemma><{},POS>".format(
         get_path("freem", "lemma.tar"),
         get_path("freem", "pos.tar")
 )

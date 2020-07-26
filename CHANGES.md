@@ -1,5 +1,14 @@
 # Releases
 
+### 0.0.17 (2020/07/26)
+
+- Added a way to tag texts where word are already tokenized: new lines are word separator, 
+double new lines are sentence separator
+- Reworked the way preprocessing of special chars is done prior to sentence tokenization and after it. 
+Creation of the class Excluder (pie_extended.pipeline.tokenizers.utils.excluder)
+    - Allows for more code sharing across models.
+- Fixed a typo that would prevent to tag with FREEM (and nobody saw that ! ;) )
+
 ### 0.0.16 (2020/06/22)
 
 - Fixed Early Modern French Model (reusing processor and tokenizer of FR model)

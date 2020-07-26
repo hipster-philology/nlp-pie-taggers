@@ -1,5 +1,3 @@
-__test__ = False
-
 import click
 
 

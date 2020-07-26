@@ -71,7 +71,7 @@ class ReferenceExcluder(ExcluderPrototype):
 
         >>> excl = ReferenceExcluder()
         >>> excl.before_sentence_tokenizer("Choubidou [REF:1.a.Z] choubida [REF:1.b.Z]")
-        'Choubidou 左REF桁1語a語Z右 choubida 左REF桁1語b語Z右'
+        'Choubidou  左REF桁1語a語Z右  choubida  左REF桁1語b語Z右 '
 
         """
         return self.re.sub(self._replace_in, value)

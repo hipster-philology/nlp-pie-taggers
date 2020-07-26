@@ -13,6 +13,7 @@ COLON = '桁'
 BRACKET_L = '左'
 BRACKET_R = '右'
 APOSTROPHE = '風'
+DASH = "精"
 
 
 class ExcluderPrototype(ABC):
@@ -143,6 +144,31 @@ class AbbreviationsExcluder(ExcluderPrototype):
         """
         return value.replace(
             self.dot, '.'
+        )
+
+
+class CompoundAbbreviationsExcluder(AbbreviationsExcluder):
+    def __init__(self, abbrs: List[str], dot: str = DOT, apply_replacements: bool = True,
+                 ignore_case: bool = True):
+        """
+
+        >>> excl = CompoundAbbreviationsExcluder(["cf.", "V. act."])
+        >>> excl.before_sentence_tokenizer("Cf. article 5, V. act. 9.")
+        'Cf語 article 5, V語 act語 9.'
+        >>> excl.after_sentence_tokenizer('Cf語 article 5, V語 act語 9.')
+        'Cf. article 5, V. act. 9.'
+        """
+        super(CompoundAbbreviationsExcluder, self).__init__(abbrs, dot, apply_replacements)
+        re_kwargs = {}
+        if ignore_case:
+            re_kwargs["flags"] = re.IGNORECASE
+        self.re = re.compile(
+            r"\b("+"|".join([
+                token.replace(" ", r"\s+").replace(".", r"\.")
+                for token in abbrs
+                if token  # Small check.
+            ])+r")",
+            **re_kwargs
         )
 
 

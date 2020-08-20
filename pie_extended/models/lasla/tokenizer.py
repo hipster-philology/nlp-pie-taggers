@@ -8,6 +8,7 @@ from pie_extended.models.lasla._params import abbrs
 from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     ExcluderPrototype,
+    RegexpExcluder,
     AbbreviationsExcluder
 )
 from pie_extended.pipeline.tokenizers.utils import regexps
@@ -27,6 +28,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         self.tokens = []
         self.normalizers: Tuple[ExcluderPrototype, ...] = (
             ReferenceExcluder(),
+            RegexpExcluder(r"(\p{No})"),
             AbbreviationsExcluder(abbrs=abbrs)
         )
 
@@ -81,15 +83,24 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         return str(out)
 
     def replacer(self, inp: str):
+        """
+
+        :param inp:
+        :return:
+
+        """
         for excluder in self.normalizers:
             if not excluder.can_be_replaced and excluder.exclude_regexp.match(inp):
                 return inp
         if self.re_roman_number.match(inp):
             return self.roman_to_number(inp)
         elif inp.isnumeric():
-            if int(inp) > 3:
-                return "3"
-            return str(inp)
+            if inp.isdigit():  # avoid. ↀ
+                if int(inp) > 3:
+                    return "3"
+                else:
+                    return inp
+            return "3"
         elif "." == inp:
             return "."
 

@@ -58,8 +58,12 @@ class LatinRulesProcessor(RuleBasedProcessor):
         if self.PONCTU.match(token):
             return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty",
                     "treated": annotation['treated']}
-        elif annotation["lemma"].isnumeric() and not token.isnumeric():
-            annotation["lemma"] = str(roman_number(token))
+        elif annotation["lemma"].isdigit() and annotation["treated"].isdigit() and not token.isnumeric():
+            try:
+                annotation["lemma"] = str(roman_number(token))
+            except KeyError:
+                annotation["lemma"] = "<UNK_NUMBER>"
+                print("Weird behavior on this token", annotation)
         elif annotation["lemma"].startswith("界"):
             lem = annotation["lemma"][1:]
             return {

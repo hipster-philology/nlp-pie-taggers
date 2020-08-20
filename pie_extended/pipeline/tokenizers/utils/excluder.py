@@ -47,7 +47,7 @@ class ReferenceExcluder(ExcluderPrototype):
         self.colon: str = colon
         self.bracket_r: str = bracket_r
         self.bracket_l: str = bracket_l
-        self.re: re.Regex = re.compile(r"(\[REF:[A-Za-z0-9\.]+\])")
+        self.re: re.Regex = re.compile(r"(\[REF:[^\]]+\])")
 
     @property
     def can_be_replaced(self) -> bool:
@@ -62,7 +62,7 @@ class ReferenceExcluder(ExcluderPrototype):
             .replace(".", self.dot)\
             .replace(":", self.colon)\
             .replace("[", self.bracket_l)\
-            .replace("]", self.bracket_r)+ " "
+            .replace("]", self.bracket_r) + " "
 
     def before_sentence_tokenizer(self, value: str) -> str:
         """ Normalize a string before it goes into sentence tokenizing
@@ -94,6 +94,39 @@ class ReferenceExcluder(ExcluderPrototype):
 
     def ignore(self, string: str) -> bool:
         return bool(self.re.match(string))
+
+
+class RegexpExcluder(ExcluderPrototype):
+    def __init__(self, regex: str):
+        """
+
+        :param regex: Regular expression to exclude from tokenization
+
+        Exclude data from tokenization
+
+        >>> r = RegexpExcluder(r"(\p{No})")
+        >>> r.can_be_replaced
+        False
+        >>> r.exclude_regexp.match("¹") is None
+        False
+        >>> r.exclude_regexp.match("2") is None
+        True
+        """
+        self.re = re.compile(regex)
+
+    @property
+    def can_be_replaced(self) -> bool:
+        return False
+
+    @property
+    def exclude_regexp(self) -> Optional[re.Regex]:
+        return self.re
+
+    def before_sentence_tokenizer(self, value: str) -> str:
+        return value
+
+    def after_sentence_tokenizer(self, value: str) -> str:
+        return value
 
 
 class AbbreviationsExcluder(ExcluderPrototype):

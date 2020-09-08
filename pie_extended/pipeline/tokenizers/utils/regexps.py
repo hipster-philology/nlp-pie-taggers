@@ -1,4 +1,4 @@
-import pie_extended .pipeline.tokenizers.utils.chars as chars
+import pie_extended.pipeline.tokenizers.utils.chars as chars
 
 
 RomanNumbers = r"(?:M{1,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})" \

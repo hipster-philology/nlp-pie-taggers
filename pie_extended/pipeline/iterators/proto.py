@@ -102,11 +102,22 @@ class DataIterator:
         :param lower: Whether or not to lower the text
         :yields: (Sentence as a list of word, Size of the sentence, Elements removed from the sentence)
         """
+        sentences = []
+
+        func = self.tokenizer.sentence_tokenizer
         if no_tokenizer:
-            for sentence in self.tokenizer.bypass_tokenizer(data, lower=lower):
-                clean_sentence, removed_from_input = self.exclude_tokens(sentence)
-                yield clean_sentence, len(clean_sentence), removed_from_input
-        else:
-            for sentence in self.tokenizer.sentence_tokenizer(data, lower=lower):
-                clean_sentence, removed_from_input = self.exclude_tokens(sentence)
-                yield clean_sentence, len(clean_sentence), removed_from_input
+            func = self.tokenizer.bypass_tokenizer
+
+        last_sentence_index = 0
+        for sentence in func(data, lower=lower):
+            clean_sentence, removed_from_input = self.exclude_tokens(sentence)
+            if len(clean_sentence) == 0 and len(sentences):
+                sentences[-1][2].update({
+                    last_sentence_index + removed_index: removed_value
+                    for removed_index, removed_value in removed_from_input.items()
+                })
+                last_sentence_index += len(removed_from_input)
+            else:
+                sentences.append((clean_sentence, len(clean_sentence), removed_from_input))
+                last_sentence_index = len(sentence)
+        yield from sentences

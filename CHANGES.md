@@ -1,5 +1,11 @@
 # Releases
 
+### 0.0.18 (2020/09/08) - Release named A2M
+
+- Fixed the way the DataIterator deals with documents ending with a sentence formed of excluded tokens only.
+- Fixed a typo in an import pattern
+- (Latin Model) Dealt with some weird Unicode numerals which unexpectedly broke our `.isnumeric()` usage (e.g. ↀ )
+
 ### 0.0.17 (2020/07/26)
 
 - Added a way to tag texts where word are already tokenized: new lines are word separator, 

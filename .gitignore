@@ -1,5 +1,6 @@
 .idea
 /*.txt
+/*.tsv
 pie_extended/downloads/*
 tests/**/*.txt
 # Byte-compiled / optimized / DLL files

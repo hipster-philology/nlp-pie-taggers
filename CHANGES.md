@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.18 (2020/09/18)
+
+- (Latin Model) Fixed a long standing bug where Latin would not tag Gender because I forgot it in the GlueProcessor... Big Facepalm
+
 ### 0.0.18 (2020/09/08) - Release named A2M
 
 - Fixed the way the DataIterator deals with documents ending with a sentence formed of excluded tokens only.

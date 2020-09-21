@@ -2,7 +2,7 @@ import regex as re
 from ...utils import get_path, ObjectCreator
 
 from autocat import NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
-from ...pipeline.disambiguators.autocat import Autocat
+from ...pipeline.disambiguators.autocat import Autocat, DisambiguationAsTask
 from pie_extended.models.lasla.processor import LatinRulesProcessor, LatinGlueProcessor, MoodTenseVoice
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.models.lasla.tokenizer import LatMemorizingTokenizer
@@ -51,7 +51,9 @@ def _get_disambiguator():
         get_path("lasla", "latin-straight.json"), lemma_key="lemma")
     impossible = NeedsDisambiguation.from_file(
         get_path("lasla", "latin-needs.json"), lemma_key="lemma")
-    return Autocat(GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, impossible)))
+    tasks = DisambiguationAsTask(task_name="Dis", separator="", undisambiguated_marker="?",
+                                 lemma_key="lemma", empty_value="_", impossible_disambiguator=impossible)
+    return Autocat(GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, tasks)))
 
 
 Disambiguator: ObjectCreator = ObjectCreator(_get_disambiguator)

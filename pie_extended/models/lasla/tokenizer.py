@@ -56,7 +56,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
 
         >>> x = LatMemorizingTokenizer()
         >>> list(x.sentence_tokenizer("XX Lasciva puella et lasciue C. Agamemnone whateverve."))
-        [['3', 'lasciua', 'puella', 'et', 'lasciue', 'c', 'agamemnone', 'whateuerue', '.']]
+        [['3', 'Lasciua', 'puella', 'et', 'lasciue', 'C', 'Agamemnone', 'whateuerue', '.']]
 
         """
         sentences = list()
@@ -104,5 +104,5 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         elif "." == inp:
             return "."
 
-        inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "").lower()
+        inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "")#.lower()
         return inp

@@ -9,7 +9,7 @@ DESC = Metadata(
     "https://github.com/chartes/deucalion-model-lasla"
 )
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 DOWNLOADS = [
     File("https://raw.githubusercontent.com/PonteIneptique/latin-lasla-models/"+VERSION+"/latin-straight.json",
          "latin-straight.json"),
@@ -21,4 +21,4 @@ DOWNLOADS = [
          "model.tar")
 ]
 
-Models = "<{},lemma,Deg,Numb,Person,Mood_Tense_Voice,Case,Gend,pos>".format(get_path("lasla", "model.tar"))
+Models = "<{},lemma,Deg,Numb,Person,Mood_Tense_Voice,Case,Gend,Dis,Entity,pos>".format(get_path("lasla", "model.tar"))

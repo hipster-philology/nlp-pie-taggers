@@ -16,11 +16,15 @@ class LatinRulesProcessor(RuleBasedProcessor):
     >>> p.set_tasks(["lemma", "pos", "morph", "treated"])
     ['lemma', 'pos', 'morph', 'treated']
     >>> p.get_dict("uinipollens", ['界pollens', '', '', 'uinipollens']) == [
-    ...    {'lemma': 'pollens', 'treated': 'uinipollens', 'morph': 'MORPH=empty', 'pos': 'ADJqua', 'form': 'uinipollens'}
+    ...    {'lemma': 'pollens', 'treated': 'uinipollens', 'morph': 'MORPH=empty', 'pos': 'ADJqua', 'form': 'uinipollens'
+    ...     , 'Dis': '_', 'Entity': '_'}
     ... ]
     True
-    >>> p.get_dict("similist", ['界sum', '', '', 'similist'])
-    [{'lemma': 'sum1', 'treated': 'similist', 'morph': 'Numb=Sing|Mood=Ind|Tense=Pres|Voice=Act|Person=3', 'pos': 'VER', 'form': 'similist'}]
+    >>> p.get_dict("similist", ['界sum', '', '', 'similist']) == [{'lemma': 'sum1', 'treated': 'similist',
+    ... 'morph': 'Numb=Sing|Mood=Ind|Tense=Pres|Voice=Act|Person=3',
+    ... 'pos': 'VER', 'form': 'similist', 'Dis': '_', 'Entity': '_'}]
+    True
+
     """
     PONCTU = re.compile(r"^\W+$")
     CLITICS_POS = {
@@ -57,13 +61,18 @@ class LatinRulesProcessor(RuleBasedProcessor):
 
         if self.PONCTU.match(token):
             return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty",
-                    "treated": annotation['treated']}
+                    "treated": annotation['treated'], "Dis": "_", "Entity": "_"}
         elif annotation["lemma"].isdigit() and annotation["treated"].isdigit() and not token.isnumeric():
             try:
                 annotation["lemma"] = str(roman_number(token))
             except KeyError:
                 annotation["lemma"] = "<UNK_NUMBER>"
                 print("Weird behavior on this token", annotation)
+        elif annotation["pos"] == "NOM":
+            if annotation["lemma"][0].isupper():
+                annotation["pos"] = "NOMpro"
+            else:
+                annotation["pos"] = "NOMcom"
         elif annotation["lemma"].startswith("界"):
             lem = annotation["lemma"][1:]
             return {
@@ -71,7 +80,9 @@ class LatinRulesProcessor(RuleBasedProcessor):
                 "treated": annotation["treated"],
                 "morph": self.CLITICS_MORPH.get(lem, "MORPH=empty"),
                 "pos": self.CLITICS_POS.get(lem, "UNK"),
-                "form": annotation["form"]
+                "form": annotation["form"],
+                "Dis": "_",
+                "Entity": "_"
             }
 
         return annotation
@@ -81,7 +92,7 @@ class LatinRulesProcessor(RuleBasedProcessor):
 
 
 class LatinGlueProcessor(GlueProcessor):
-    OUTPUT_KEYS = ["form", "lemma", "pos", "morph"]
+    OUTPUT_KEYS = ["form", "lemma", "pos", "morph", "Dis", "Entity"]
     GLUE = {"morph": ["Case", "Numb", "Gend", "Deg", "Mood", "Tense", "Voice", "Person"]}
     WHEN_EMPTY = {"morph": "MORPH=empty"}
     EMPTY_TAG: Dict[str, str] = {"Case": "_", "Numb": "_", "Deg": "_", "Mood": "_", "Tense": "_", "Voice": "_",

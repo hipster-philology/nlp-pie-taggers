@@ -1,10 +1,15 @@
 # Releases
 
-### 0.0.19 (2020/09/22)
+### 0.0.21 (2020/09/24) 
+
+- (models/LASLA) Fixed a bug where clitics are not split correctly after nouns
+- Fixed multiple typos in CHANGES.md in version numbers
+
+### 0.0.20 (2020/09/22)
 
 - **New Latin model** which handles capitalized input, entities and better disambiguation.
 
-### 0.0.18 (2020/09/18)
+### 0.0.19 (2020/09/18)
 
 - (Latin Model) Fixed a long standing bug where Latin would not tag Gender because I forgot it in the GlueProcessor... Big Facepalm
 

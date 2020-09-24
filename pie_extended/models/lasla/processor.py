@@ -59,6 +59,18 @@ class LatinRulesProcessor(RuleBasedProcessor):
         # If Else condition
         token = annotation["form"]
 
+        if annotation["lemma"].startswith("界"):
+            lem = annotation["lemma"][1:]
+            return {
+                "lemma": lem + self.CLITICS_DIS.get(lem, ""),
+                "treated": annotation["treated"],
+                "morph": self.CLITICS_MORPH.get(lem, "MORPH=empty"),
+                "pos": self.CLITICS_POS.get(lem, "UNK"),
+                "form": annotation["form"],
+                "Dis": "_",
+                "Entity": "_"
+            }
+
         if self.PONCTU.match(token):
             return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty",
                     "treated": annotation['treated'], "Dis": "_", "Entity": "_"}
@@ -73,17 +85,6 @@ class LatinRulesProcessor(RuleBasedProcessor):
                 annotation["pos"] = "NOMpro"
             else:
                 annotation["pos"] = "NOMcom"
-        elif annotation["lemma"].startswith("界"):
-            lem = annotation["lemma"][1:]
-            return {
-                "lemma": lem+self.CLITICS_DIS.get(lem, ""),
-                "treated": annotation["treated"],
-                "morph": self.CLITICS_MORPH.get(lem, "MORPH=empty"),
-                "pos": self.CLITICS_POS.get(lem, "UNK"),
-                "form": annotation["form"],
-                "Dis": "_",
-                "Entity": "_"
-            }
 
         return annotation
 

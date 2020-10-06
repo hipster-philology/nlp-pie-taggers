@@ -1,0 +1,4 @@
+input,checksum,source,source_checksum
+tests/test_checksum/file1.txt,de0fa52e7c33b285257b47ff21e7b2f8
+tests/test_checksum/file2.txt,fake_checksum,tests/test_checksum/source2.txt,c7289364c9c6fcd3c5e6974edfd3abb7
+tests/test_checksum/file3.txt,ed7c77f2ed00549a0219525d120a72be,tests/test_checksum/source3.txt,fake_checksum

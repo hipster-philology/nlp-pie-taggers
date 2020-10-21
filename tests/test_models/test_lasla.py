@@ -19,6 +19,30 @@ Licet querare, nec tibi tener puer""")
     return filename
 
 
+class FakeAnnotationMaker:
+    def __init__(self):
+        self.cnt = 0
+
+    def make_response(self, token, is_ignored=False, treated=None):
+        if is_ignored:
+            return {
+                'token': token, 'lemma': token, 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_',
+                'treated': '--IGN.--'
+            }
+        else:
+            resp = {
+                'token': token, 'lemma': f'lemma{self.cnt}', 'pos': f'pos{self.cnt}',
+                'morph': 'Case=Case{0}|Numb=Numb{0}|Gend=Gend{0}|Deg=Deg{0}|Mood=Mood{0}|Tense=Tense{0}|'
+                         'Voice=Voice{0}|Person=Person{0}'.format(self.cnt),
+                'Dis': f'Dis{self.cnt}', 'treated': treated if treated else token
+            }
+            self.cnt += 1
+            return resp
+
+    def make_multiple_response(self, tokens, is_ignored=False):
+        for token in tokens:
+            yield self.make_response(token, is_ignored=is_ignored)
+
 def make_fake_data(sentences: List[str], nb_tasks: int = 9) -> List[Tuple[str, List[str]]]:
     return [
         [
@@ -31,7 +55,7 @@ def make_fake_data(sentences: List[str], nb_tasks: int = 9) -> List[Tuple[str, L
 
 def make_controller(sentences: List[str]):
     # Add the lemmatizer routes
-    tasks = "lemma,Voice,Mood,Deg,Numb,Person,Tense,Case,Gend,Dis,Entity,pos".split(",")
+    tasks = "lemma,Voice,Mood,Deg,Numb,Person,Tense,Case,Gend,Dis,pos".split(",")
     tagger = FakeTagger(
         make_fake_data(sentences, nb_tasks=len(tasks)),
         tasks=tasks
@@ -63,7 +87,7 @@ class TestLasla(TestCase):
             {"form": "uiduarum", "lemma": "uiduarum", "pos": "fake", "morph": "Case=fake|Numb=fake|Gend=fake"
                                                                               "|Deg=fake|Mood=fake|"
                                                                               "Tense=fake|Voice=fake|Person=fake",
-                                                                              'Dis': 'fake', 'Entity': 'fake',
+                                                                              'Dis': 'fake',
              "treated": "uiduarum"},
             "Punctuation should be reinserted and mostly should not break anything"
         )
@@ -158,141 +182,41 @@ class TestLasla(TestCase):
                 content.append(dict(list(zip(header, splitted))))
         self.maxDiff = None
 
+        fam = FakeAnnotationMaker()
+        """\\\<1>[$@$](V)\\\§
+\\<1>[$@$]\\§
+§
+\[I]\§
+At o sceleste penis, o meum malum,
+graui piaque lege noxiam lues.
+Licet querare, nec tibi tener puer"""
         self.assertEqual(
                 content,
-            [{'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '<', 'lemma': '<', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': '1', 'lemma': 'lemma0', 'pos': 'pos0',
-                                       'morph': 'Case=Case0|Numb=Numb0|Gend=Gend0|Deg=Deg0|Mood=Mood0|Tense=Tense0|Voice=Voice0|Person=Person0',
-                                       'Dis': 'Dis0', 'Entity': 'Entity0', 'treated': '1'},
-             {'token': '>', 'lemma': '>', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '[', 'lemma': '[', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '$', 'lemma': '$', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '@', 'lemma': '@', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '$', 'lemma': '$', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': ']', 'lemma': ']', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '(', 'lemma': '(', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'V', 'lemma': 'lemma1', 'pos': 'pos1',
-                                       'morph': 'Case=Case1|Numb=Numb1|Gend=Gend1|Deg=Deg1|Mood=Mood1|Tense=Tense1|Voice=Voice1|Person=Person1',
-                                       'Dis': 'Dis1', 'Entity': 'Entity1', 'treated': '3'},
-             {'token': ')', 'lemma': ')', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '§', 'lemma': '§', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '<', 'lemma': '<', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': '1', 'lemma': 'lemma2', 'pos': 'pos2',
-                                       'morph': 'Case=Case2|Numb=Numb2|Gend=Gend2|Deg=Deg2|Mood=Mood2|Tense=Tense2|Voice=Voice2|Person=Person2',
-                                       'Dis': 'Dis2', 'Entity': 'Entity2', 'treated': '1'},
-             {'token': '>', 'lemma': '>', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '[', 'lemma': '[', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '$', 'lemma': '$', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '@', 'lemma': '@', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '$', 'lemma': '$', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': ']', 'lemma': ']', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '§', 'lemma': '§', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '§', 'lemma': '§', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '[', 'lemma': '[', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'I', 'lemma': 'lemma3', 'pos': 'pos3',
-                                       'morph': 'Case=Case3|Numb=Numb3|Gend=Gend3|Deg=Deg3|Mood=Mood3|Tense=Tense3|Voice=Voice3|Person=Person3',
-                                       'Dis': 'Dis3', 'Entity': 'Entity3', 'treated': '1'},
-             {'token': ']', 'lemma': ']', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '\\', 'lemma': '\\', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'},
-             {'token': '§', 'lemma': '§', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'At', 'lemma': 'lemma4', 'pos': 'pos4',
-                                       'morph': 'Case=Case4|Numb=Numb4|Gend=Gend4|Deg=Deg4|Mood=Mood4|Tense=Tense4|Voice=Voice4|Person=Person4',
-                                       'Dis': 'Dis4', 'Entity': 'Entity4', 'treated': 'At'},
-             {'token': 'o', 'lemma': 'lemma5', 'pos': 'pos5',
-              'morph': 'Case=Case5|Numb=Numb5|Gend=Gend5|Deg=Deg5|Mood=Mood5|Tense=Tense5|Voice=Voice5|Person=Person5',
-              'Dis': 'Dis5', 'Entity': 'Entity5', 'treated': 'o'},
-             {'token': 'sceleste', 'lemma': 'lemma6', 'pos': 'pos6',
-              'morph': 'Case=Case6|Numb=Numb6|Gend=Gend6|Deg=Deg6|Mood=Mood6|Tense=Tense6|Voice=Voice6|Person=Person6',
-              'Dis': 'Dis6', 'Entity': 'Entity6', 'treated': 'sceleste'},
-             {'token': 'penis', 'lemma': 'lemma7', 'pos': 'pos7',
-              'morph': 'Case=Case7|Numb=Numb7|Gend=Gend7|Deg=Deg7|Mood=Mood7|Tense=Tense7|Voice=Voice7|Person=Person7',
-              'Dis': 'Dis7', 'Entity': 'Entity7', 'treated': 'penis'},
-             {'token': ',', 'lemma': ',', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'o', 'lemma': 'lemma8', 'pos': 'pos8',
-                                       'morph': 'Case=Case8|Numb=Numb8|Gend=Gend8|Deg=Deg8|Mood=Mood8|Tense=Tense8|Voice=Voice8|Person=Person8',
-                                       'Dis': 'Dis8', 'Entity': 'Entity8', 'treated': 'o'},
-             {'token': 'meum', 'lemma': 'lemma9', 'pos': 'pos9',
-              'morph': 'Case=Case9|Numb=Numb9|Gend=Gend9|Deg=Deg9|Mood=Mood9|Tense=Tense9|Voice=Voice9|Person=Person9',
-              'Dis': 'Dis9', 'Entity': 'Entity9', 'treated': 'meum'},
-             {'token': 'malum', 'lemma': 'lemma10', 'pos': 'pos10',
-              'morph': 'Case=Case10|Numb=Numb10|Gend=Gend10|Deg=Deg10|Mood=Mood10|Tense=Tense10|Voice=Voice10|Person=Person10',
-              'Dis': 'Dis10', 'Entity': 'Entity10', 'treated': 'malum'},
-             {'token': ',', 'lemma': ',', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'graui', 'lemma': 'lemma11', 'pos': 'pos11',
-                                       'morph': 'Case=Case11|Numb=Numb11|Gend=Gend11|Deg=Deg11|Mood=Mood11|Tense=Tense11|Voice=Voice11|Person=Person11',
-                                       'Dis': 'Dis11', 'Entity': 'Entity11', 'treated': 'graui'},
-             {'token': 'piaque', 'lemma': 'lemma12', 'pos': 'pos12',
-              'morph': 'Case=Case12|Numb=Numb12|Gend=Gend12|Deg=Deg12|Mood=Mood12|Tense=Tense12|Voice=Voice12|Person=Person12',
-              'Dis': 'Dis12', 'Entity': 'Entity12', 'treated': 'piaque'},
-             {'token': 'lege', 'lemma': 'lemma13', 'pos': 'pos13',
-              'morph': 'Case=Case13|Numb=Numb13|Gend=Gend13|Deg=Deg13|Mood=Mood13|Tense=Tense13|Voice=Voice13|Person=Person13',
-              'Dis': 'Dis13', 'Entity': 'Entity13', 'treated': 'lege'},
-             {'token': 'noxiam', 'lemma': 'lemma14', 'pos': 'pos14',
-              'morph': 'Case=Case14|Numb=Numb14|Gend=Gend14|Deg=Deg14|Mood=Mood14|Tense=Tense14|Voice=Voice14|Person=Person14',
-              'Dis': 'Dis14', 'Entity': 'Entity14', 'treated': 'noxiam'},
-             {'token': 'lues', 'lemma': 'lemma15', 'pos': 'pos15',
-              'morph': 'Case=Case15|Numb=Numb15|Gend=Gend15|Deg=Deg15|Mood=Mood15|Tense=Tense15|Voice=Voice15|Person=Person15',
-              'Dis': 'Dis15', 'Entity': 'Entity15', 'treated': 'lues'},
-             {'token': '.', 'lemma': '.', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'Licet', 'lemma': 'lemma16', 'pos': 'pos16',
-                                       'morph': 'Case=Case16|Numb=Numb16|Gend=Gend16|Deg=Deg16|Mood=Mood16|Tense=Tense16|Voice=Voice16|Person=Person16',
-                                       'Dis': 'Dis16', 'Entity': 'Entity16', 'treated': 'Licet'},
-             {'token': 'querare', 'lemma': 'lemma17', 'pos': 'pos17',
-              'morph': 'Case=Case17|Numb=Numb17|Gend=Gend17|Deg=Deg17|Mood=Mood17|Tense=Tense17|Voice=Voice17|Person=Person17',
-              'Dis': 'Dis17', 'Entity': 'Entity17', 'treated': 'querare'},
-             {'token': ',', 'lemma': ',', 'pos': 'PUNC', 'morph': 'MORPH=empty', 'Dis': '_', 'Entity': '_',
-              'treated': '--IGN.--'}, {'token': 'nec', 'lemma': 'lemma18', 'pos': 'pos18',
-                                       'morph': 'Case=Case18|Numb=Numb18|Gend=Gend18|Deg=Deg18|Mood=Mood18|Tense=Tense18|Voice=Voice18|Person=Person18',
-                                       'Dis': 'Dis18', 'Entity': 'Entity18', 'treated': 'nec'},
-             {'token': 'tibi', 'lemma': 'lemma19', 'pos': 'pos19',
-              'morph': 'Case=Case19|Numb=Numb19|Gend=Gend19|Deg=Deg19|Mood=Mood19|Tense=Tense19|Voice=Voice19|Person=Person19',
-              'Dis': 'Dis19', 'Entity': 'Entity19', 'treated': 'tibi'},
-             {'token': 'tener', 'lemma': 'lemma20', 'pos': 'pos20',
-              'morph': 'Case=Case20|Numb=Numb20|Gend=Gend20|Deg=Deg20|Mood=Mood20|Tense=Tense20|Voice=Voice20|Person=Person20',
-              'Dis': 'Dis20', 'Entity': 'Entity20', 'treated': 'tener'},
-             {'token': 'puer', 'lemma': 'lemma21', 'pos': 'pos21',
-              'morph': 'Case=Case21|Numb=Numb21|Gend=Gend21|Deg=Deg21|Mood=Mood21|Tense=Tense21|Voice=Voice21|Person=Person21',
-              'Dis': 'Dis21', 'Entity': 'Entity21', 'treated': 'puer'}]
+            [
+                *fam.make_multiple_response(["\\", "\\", "\\", "<"], is_ignored=True),
+                fam.make_response("1"),
+                *fam.make_multiple_response([">", "[", "$", "@", "$", "]", "("], is_ignored=True),
+                fam.make_response("V", is_ignored=False, treated="3"),  # Roman Numeral
+                *fam.make_multiple_response(
+                    [")", "\\", "\\", "\\", "§", "\\", "\\", "<"], is_ignored=True),
+                fam.make_response("1"),
+                *fam.make_multiple_response([
+                    ">", "[", "$", "@", "$", "]",
+                    "\\", "\\", "§",
+                    "§",
+                    "\\", "["], is_ignored=True),
+                fam.make_response("I", is_ignored=False, treated="1"),  # Roman Numeral
+                *fam.make_multiple_response(["]", "\\", "§"], is_ignored=True),
+                *fam.make_multiple_response(["At", "o", "sceleste", "penis"]),
+                fam.make_response(",", is_ignored=True),
+                *fam.make_multiple_response(["o", "meum", "malum"]),
+                fam.make_response(",", is_ignored=True),
+                *fam.make_multiple_response(["graui", "piaque", "lege", "noxiam", "lues"]),
+                fam.make_response(".", is_ignored=True),
+                *fam.make_multiple_response(["Licet", "querare"]),
+                fam.make_response(",", is_ignored=True),
+                *fam.make_multiple_response(["nec", "tibi", "tener", "puer", ])
+            ]
         )
 
     def test_normalizers(self):

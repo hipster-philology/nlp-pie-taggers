@@ -180,6 +180,20 @@ class AbbreviationsExcluder(ExcluderPrototype):
         )
 
 
+class AbbreviationsRemoverExcluder(AbbreviationsExcluder):
+    def after_sentence_tokenizer(self, value: str) -> str:
+        """ Reset the state of a string before it goes into sentence tokenizing
+
+        :param value: String to clean
+
+        >>> excl = AbbreviationsRemoverExcluder(['cf.', 'p.'])
+        >>> excl.after_sentence_tokenizer('cf語 p語 45 et les. points.')
+        'cf p 45 et les. points.'
+
+        """
+        return value.replace(self.dot, '')
+
+
 class CompoundAbbreviationsExcluder(AbbreviationsExcluder):
     def __init__(self, abbrs: List[str], dot: str = DOT, apply_replacements: bool = True,
                  ignore_case: bool = True):

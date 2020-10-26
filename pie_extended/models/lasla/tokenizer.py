@@ -9,7 +9,7 @@ from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     ExcluderPrototype,
     RegexpExcluder,
-    AbbreviationsExcluder
+    AbbreviationsRemoverExcluder
 )
 from pie_extended.pipeline.tokenizers.utils import regexps
 from pie_extended.utils import roman_number
@@ -29,7 +29,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         self.normalizers: Tuple[ExcluderPrototype, ...] = (
             ReferenceExcluder(),
             RegexpExcluder(r"(\p{No})"),
-            AbbreviationsExcluder(abbrs=abbrs)
+            AbbreviationsRemoverExcluder(abbrs=abbrs)
         )
 
     @staticmethod

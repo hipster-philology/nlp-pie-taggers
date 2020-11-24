@@ -50,3 +50,24 @@ class SimpleTokenizer(object):
         for sentence in RE_BYPASS_SENTENCE.split(data):
             if sentence:
                 yield [word for word in RE_BYPASS_WORD.split(sentence) if word]
+
+
+class LengthTokenizer(SimpleTokenizer):
+    def __init__(self, max_len=35):
+        super(LengthTokenizer, self).__init__()
+        self.max_len = max_len
+
+    def sentence_tokenizer(self, text: str, lower: bool = False) -> Generator[List[str], None, None]:
+        sentence = []
+        for token in text.split():
+            sentence.append(token)
+            if len(sentence) == self.max_len:
+                yield sentence
+                sentence = []
+        if sentence:
+            yield sentence
+
+    def word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
+        if lower:
+            return text.lower().split()
+        return text.split()

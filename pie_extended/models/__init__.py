@@ -3,5 +3,6 @@ modules = [
     "fro",
     "fr",
     "freem",
-    "grc"
+    "grc",
+    "dum"
 ]

@@ -62,7 +62,7 @@ You can run the lemmatizer in your own scripts and retrieve token annotations as
 
 ```python
 from typing import List
-from pie_extended.cli.sub import get_tagger, get_model, download
+from pie_extended.cli.utils import get_tagger, get_model, download
 
 # In case you need to download
 do_download = False

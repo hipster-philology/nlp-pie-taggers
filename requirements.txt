@@ -3,4 +3,5 @@ colorama
 click
 requests
 regex
+unidecode
 autodisambiguator>=0.0.1,<1.0.0

@@ -9,7 +9,7 @@ DESC = Metadata(
     "https://github.com/chartes/deucalion-model-lasla"
 )
 
-VERSION = "0.0.4"
+VERSION = "0.0.5alpha"
 DOWNLOADS = [
     File("https://raw.githubusercontent.com/PonteIneptique/latin-lasla-models/"+VERSION+"/latin-straight.json",
          "latin-straight.json"),
@@ -17,7 +17,7 @@ DOWNLOADS = [
          "latin-pos.json"),
     File("https://raw.githubusercontent.com/PonteIneptique/latin-lasla-models/"+VERSION+"/latin-needs.json",
          "latin-needs.json"),
-    File("https://raw.githubusercontent.com/PonteIneptique/latin-lasla-models/"+VERSION+"/model-vulgate.tar",
+    File("https://github.com/PonteIneptique/latin-lasla-models/releases/download/"+VERSION+"/model-lasla-plus.tar",
          "model.tar")
 ]
 

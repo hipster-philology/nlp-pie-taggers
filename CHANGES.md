@@ -1,5 +1,16 @@
 # Releases
 
+### 0.0.22 (2020/12/02)
+
+- (models/lasla) Apply unidecode
+- (models/lasla) Use model LASLA+ from 0.0.5alpha trained on PyTorch 1.3.1
+- (models/lasla) Updated the abbreviation list
+- (CI) Added Github Actions
+- (Documentation) Added a warning about supported python versions
+- (Documentation) Fixed the example
+- (pipeline) Created `AbbreviationsRemoverExcluder`
+- (dependencies) Cleaned the version requirements due to pip update
+
 ### 0.0.21 (2020/09/24) 
 
 - (models/LASLA) Fixed a bug where clitics are not split correctly after nouns

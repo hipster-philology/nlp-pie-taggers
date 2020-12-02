@@ -4,6 +4,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/hipster-philology/nlp-pie-taggers/badge.svg?branch=master)](https://coveralls.io/github/hipster-philology/nlp-pie-taggers?branch=master)
 ![PyPI](https://img.shields.io/pypi/v/pie-extended?style=flat-square)
 
+**Warning**: This software is only compatible with up to Python 3.7 for the moment.
+
 Extension for [`pie`](https://github.com/emanjavacas/pie) to include taggers with their models and pre/postprocessors.
 
 Pie is a wonderful tool to train models. And most of the time, it will be enough. What `pie_extended` is proposing here 

@@ -1,5 +1,10 @@
 # Releases
 
+### 0.0.23 (2020/12/04)
+
+- (models/dum) Added a new model with Middle Dutch thanks to Mike Kestemont
+- (tokenizers) Added a SimpleTokenizer based on length
+
 ### 0.0.22 (2020/12/02)
 
 - (models/lasla) Apply unidecode

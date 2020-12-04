@@ -1,6 +1,6 @@
 import regex as re
 from typing import List, Generator, Tuple
-
+from unidecode import unidecode
 
 from pie_extended.models.fro.tokenizer import _Dots_except_apostrophe
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
@@ -9,7 +9,7 @@ from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     ExcluderPrototype,
     RegexpExcluder,
-    AbbreviationsExcluder
+    AbbreviationsRemoverExcluder
 )
 from pie_extended.pipeline.tokenizers.utils import regexps
 from pie_extended.utils import roman_number
@@ -17,7 +17,7 @@ from pie_extended.utils import roman_number
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
-
+    re_words = re.compile("^\w+$")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
@@ -29,7 +29,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         self.normalizers: Tuple[ExcluderPrototype, ...] = (
             ReferenceExcluder(),
             RegexpExcluder(r"(\p{No})"),
-            AbbreviationsExcluder(abbrs=abbrs)
+            AbbreviationsRemoverExcluder(abbrs=abbrs)
         )
 
     @staticmethod
@@ -104,5 +104,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         elif "." == inp:
             return "."
 
+        if self.re_words.match(inp):  # Might check somehow else but for now... It's weird unidecode normalize into SS
+            inp = unidecode(inp)
         inp = inp.replace("V", "U").replace("v", "u").replace("J", "I").replace("j", "i").replace(".", "")#.lower()
         return inp

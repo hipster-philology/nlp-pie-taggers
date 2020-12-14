@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.24 (2020/12/14)
+
+- (models/fro) Updated model fro to 0.3.0 using multiple tasks
+
 ### 0.0.23 (2020/12/04)
 
 - (models/dum) Added a new model with Middle Dutch thanks to Mike Kestemont

@@ -36,8 +36,16 @@ class FroGlueProcessor(GlueProcessor):
     """
     OUTPUT_KEYS = ["form", "lemma", "POS", "morph"]
     GLUE = {"morph": ["MODE", "TEMPS", "PERS.", "NOMB.", "GENRE", "CAS", "DEGRE"]}
-    EMPTY_TAG: Dict[str, str] = {"CAS": "_", "NOMB.": "_", "DEGRE": "_", "MODE": "_", "TEMPS": "_", "GENRE": "_",
-                                 "PERS.": "_"}
+    EMPTY_TAG: Dict[str, str] = {"CAS": "CAS=x",
+                                 "NOMB.": "NOMB.=x",
+                                 "DEGRE": "DEGRE=x",
+                                 "MODE": "MODE=x",
+                                 "TEMPS": "TEMPS=x",
+                                 "GENRE": "GENRE=x",
+                                 "PERS.": "PERS.=x"}
 
     def __init__(self, *args, **kwargs):
         super(FroGlueProcessor, self).__init__(*args, **kwargs)
+    
+    def _get_glued(self, glued_task: str, token_dict: Dict[str, str]):
+        return token_dict[glued_task]  # Tempfix because tasks contains their own name

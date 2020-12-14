@@ -3,7 +3,7 @@ from ...utils import Metadata, File, get_path
 DESC = Metadata(
     "Ancien Francais (ENC)",
     "fro",
-    ["Jean-Baptiste Camps", "Ariane Pinche", "Thibault Clérice", "Frédéric Duval", "Lucence Ing"],
+    ["Jean-Baptiste Camps", "Ariane Pinche", "Thibault Clérice", "Frédéric Duval", "Lucence Ing", "Naomi KANAOKA"],
     "Model trained on diverse corpora (hagiography, geste, etc.)",
     "https://github.com/chartes/deucalion-model-af"
 )

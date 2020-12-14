@@ -53,7 +53,7 @@ But on top of that, it provides a quick and easy way to use others models ! For 
 ```bash
 pie-extended download lasla
 pie-extended install-addons lasla
-pie-extended tag laslsa your_file.txt
+pie-extended tag lasla your_file.txt
 ```
 
 will give you access to all you need !
@@ -138,6 +138,15 @@ Models = "<{},task1,task2><{},lemma,pos>".format(
 
 Check for a simple example in `pie_extended.models.fro.imports` and a more complex one 
 in `pie_extended.models.lasla.imports`
+
+
+## Install development version (⚠ for development only)
+
+Clone the repository, create an environment, and then
+
+```bash
+python setup.py develop
+```
 
 ## Warning
 

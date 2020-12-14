@@ -72,13 +72,16 @@ class GlueProcessor(ChainedProcessor):
             else:
                 # Otherwise, we glue together things that should be glued together
                 joined = self._glue_char.join([
-                    glued_task + "=" + token_dict[glued_task]
+                    self._get_glued(glued_task, token_dict)
                     for glued_task in self._glue[head]
                     if token_dict[glued_task] != self._empty_tags.get(glued_task, None)
                 ])
                 if not joined:
                     joined = self._glue_empty[head]
                 yield head, joined
+
+    def _get_glued(self, glued_task: str, token_dict: Dict[str, str]):
+        return glued_task + "=" + token_dict[glued_task]
 
     def reinsert(self, form: str) -> Dict[str, str]:
         return dict(form=form, **{key: self.empty_value for key in self._out if key != "form"})

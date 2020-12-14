@@ -5,3 +5,5 @@ requests>=2.25.0
 unidecode>=1.1.1
 autodisambiguator>=0.0.1,<1.0.0
 regex
+numpy<1.18.0
+scipy<1.6.0

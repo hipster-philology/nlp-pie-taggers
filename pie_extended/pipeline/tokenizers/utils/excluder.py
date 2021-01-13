@@ -41,13 +41,14 @@ class ReferenceExcluder(ExcluderPrototype):
                  dot: str = DOT,
                  colon: str = COLON,
                  bracket_l: str = BRACKET_L,
-                 bracket_r: str = BRACKET_R
+                 bracket_r: str = BRACKET_R,
+                 regex_string: str = r"(\[REF:[^\]]+\])"
                  ):
         self.dot: str = dot
         self.colon: str = colon
         self.bracket_r: str = bracket_r
         self.bracket_l: str = bracket_l
-        self.re: re.Regex = re.compile(r"(\[REF:[^\]]+\])")
+        self.re: re.Regex = re.compile(regex_string)
 
     @property
     def can_be_replaced(self) -> bool:

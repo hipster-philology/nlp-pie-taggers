@@ -16,7 +16,8 @@ class GenericExcludePatterns(Enum):
 
 
 class DataIterator:
-    def __init__(self, tokenizer: SimpleTokenizer = None, exclude_patterns: List[Union[str, Pattern]] = None):
+    def __init__(self, tokenizer: SimpleTokenizer = None, exclude_patterns: List[Union[str, Pattern]] = None,
+                 max_tokens: int = 256):
         """ Iterator used to parse the text and returns bits to tag
 
         :param tokenizer: Tokenizer
@@ -26,6 +27,7 @@ class DataIterator:
         if exclude_patterns:
             for pattern in exclude_patterns:
                 self.add_pattern(pattern)
+        self.max_tokens = max_tokens
 
     def add_pattern(self, pattern: str):
         """ Add a pattern for removal
@@ -93,6 +95,14 @@ class DataIterator:
 
         return clean, removed
 
+    def _max_out(self, sentences):
+        for sentence in sentences:
+            if len(sentence) <= self.max_tokens:
+                yield sentence
+            else:
+                for n in range(0, len(sentence), self.max_tokens):
+                    yield sentence[n:n+self.max_tokens]
+
     def __call__(self, data: str, lower: bool = False,
                  no_tokenizer: bool = False) -> Iterable[Tuple[List[str], int, Dict[int, str]]]:
         """ Default iter data takes a text, an option to make lower
@@ -109,7 +119,7 @@ class DataIterator:
             func = self.tokenizer.bypass_tokenizer
 
         last_sentence_index = 0
-        for sentence in func(data, lower=lower):
+        for sentence in self._max_out(func(data, lower=lower)):
             clean_sentence, removed_from_input = self.exclude_tokens(sentence)
             if len(clean_sentence) == 0 and len(sentences):
                 sentences[-1][2].update({

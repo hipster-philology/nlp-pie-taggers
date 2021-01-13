@@ -5,7 +5,7 @@ from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 
 
-def get_iterator_and_processor():
+def get_iterator_and_processor(max_tokens=256):
     tokenizer = FrMemorizingTokenizer()
     processor = MemoryzingProcessor(
             tokenizer_memory=tokenizer,
@@ -15,7 +15,8 @@ def get_iterator_and_processor():
         )
 
     iterator = DataIterator(
-        tokenizer=tokenizer
+        tokenizer=tokenizer,
+        max_tokens=max_tokens
     )
     return iterator, processor
 

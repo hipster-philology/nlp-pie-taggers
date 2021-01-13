@@ -94,7 +94,8 @@ def tag_file(
         fpath: str,
         reset_exclude_patterns: bool = False,
         exclude_patterns: List[str] = None,
-        no_tokenizer: bool = False):
+        no_tokenizer: bool = False,
+        max_tokens: int = 256):
     """ Tag a file with a given model
 
     :param model: Module name of the model
@@ -105,7 +106,7 @@ def tag_file(
     :param no_tokenizer: Does not use usual tokenizers (new line = word separator, two new lines = sentence_
     """
     module = get_model(model)
-    iterator, processor = getattr(get_imports(module), "get_iterator_and_processor")()
+    iterator, processor = getattr(get_imports(module), "get_iterator_and_processor")(max_tokens=max_tokens)
     # Remove first pattern
     if reset_exclude_patterns:
         iterator.reset_patterns()

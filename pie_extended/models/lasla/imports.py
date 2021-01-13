@@ -14,7 +14,7 @@ from pie_extended.pipeline.postprocessor.splitter import SplitterPostProcessor
 uppercase = re.compile(r"^[A-Z]$")
 
 
-def get_iterator_and_processor():
+def get_iterator_and_processor(max_tokens=256):
     tokenizer = LatMemorizingTokenizer()
     processor = LatinRulesProcessor(
         apply_on_reinsert=True,
@@ -39,7 +39,8 @@ def get_iterator_and_processor():
                              if excl.exclude_regexp
                          ] + [
                             GenericExcludePatterns.Punctuation_and_Underscore
-                         ]
+                         ],
+        max_tokens=max_tokens
     )
     return iterator, processor
 

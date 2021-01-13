@@ -1,5 +1,8 @@
 # Releases
 
+### 0.0.25 (2020/12/14)
+- Added a `max_tokens` per sentence limit in DataIterators.
+
 ### 0.0.24 (2020/12/14)
 
 - (models/fro) Updated model fro to 0.3.0 using multiple tasks

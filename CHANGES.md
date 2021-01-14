@@ -1,6 +1,10 @@
 # Releases
 
-### 0.0.25 (2020/12/14)
+### 0.0.26 (2021/01/14)
+
+- (models/lasla) Use model LASLA+ from 0.0.5b trained on PyTorch 1.3.1
+
+### 0.0.25 (2021/01/13)
 - Added a `max_tokens` per sentence limit in DataIterators.
 
 ### 0.0.24 (2020/12/14)

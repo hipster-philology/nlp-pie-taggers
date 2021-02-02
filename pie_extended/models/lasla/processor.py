@@ -77,6 +77,12 @@ class LatinRulesProcessor(RuleBasedProcessor):
         elif self.GREEK.match(token):
             return {"form": token, "lemma": "[Greek]", "pos": "FOR", "morph": "MORPH=empty",
                     "treated": annotation['treated'], "Dis": "_"}
+        elif token.startswith("[IGN:"):
+            return {"form": token, "lemma": "[IGNORED]", "pos": "OUT", "morph": "MORPH=empty",
+                    "treated": annotation['treated'], "Dis": "_"}
+        elif token.startswith("[REF:"):
+            return {"form": token, "lemma": "[METADATA]", "pos": "OUT", "morph": "MORPH=empty",
+                    "treated": annotation['treated'], "Dis": "_"}
         elif annotation["lemma"].isdigit() and annotation["treated"].isdigit() and not token.isnumeric():
             try:
                 annotation["lemma"] = str(roman_number(token))
@@ -87,7 +93,6 @@ class LatinRulesProcessor(RuleBasedProcessor):
 
     def __init__(self, *args, **kwargs):
         super(LatinRulesProcessor, self).__init__(*args, **kwargs)
-
 
 class LatinGlueProcessor(GlueProcessor):
     OUTPUT_KEYS = ["form", "lemma", "pos", "morph", "Dis"]

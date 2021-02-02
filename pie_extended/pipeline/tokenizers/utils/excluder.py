@@ -1,11 +1,10 @@
 from abc import ABC
 import regex as re
-from typing import Match, List, Optional
-
+from typing import Match, List, Optional, Dict
 
 import pie_extended.pipeline.tokenizers.utils.chars as chars
 import pie_extended.pipeline.tokenizers.utils.regexps as regexps
-
+import copy
 
 # Common values so that there is not (too much) collision
 DOT = '語'
@@ -14,6 +13,43 @@ BRACKET_L = '左'
 BRACKET_R = '右'
 APOSTROPHE = '風'
 DASH = "精"
+
+
+_DEFAULT_CHAR_REGISTRY = {
+    ".": '語',
+    ":": '桁',
+    '[': '左',
+    ']': '右',
+    "'": '風',
+    "-": "精"
+}
+
+
+class CharRegistry:
+    def __init__(self, use_default=True, unicode_start_range=0x8d00):
+        self._char_to_code = {}
+        if use_default:
+            self._char_to_code.update(_DEFAULT_CHAR_REGISTRY)
+        self._start_range = unicode_start_range
+
+    def __getitem__(self, item):
+        if item in self._char_to_code:
+            return self._char_to_code[item]
+        else:
+            self._char_to_code[item] = chr(self._start_range + len(self._char_to_code))
+            return self._char_to_code[item]
+
+    def __setitem__(self, key, value):
+        self._char_to_code[key] = value
+
+    def items(self):
+        return self._char_to_code.items()
+
+    def __len__(self):
+        return len(self._char_to_code)
+
+
+DEFAULT_CHAR_REGISTRY = CharRegistry()
 
 
 class ExcluderPrototype(ABC):
@@ -35,20 +71,24 @@ class ExcluderPrototype(ABC):
 
 
 class ReferenceExcluder(ExcluderPrototype):
-    """ Allows for exclusion of reference tokens such as [REF:1.b.Z] """
+    """ Allows for exclusion of reference tokens such as [REF:1.b.Z]
+
+    >>> ref = ReferenceExcluder()
+    >>> ref.before_sentence_tokenizer("ici [REF:###abc??<>] Paris")
+    'ici  左REF桁贆贆贆abc贉贉贇贈右  Paris'
+    >>> ref.after_sentence_tokenizer('ici  左REF桁贆贆贆abc贉贉贇贈右  Paris')
+    'ici  [REF:###abc??<>]  Paris'
+     """
 
     def __init__(self,
-                 dot: str = DOT,
-                 colon: str = COLON,
-                 bracket_l: str = BRACKET_L,
-                 bracket_r: str = BRACKET_R,
-                 regex_string: str = r"(\[REF:[^\]]+\])"
+                 regex_string: str = r"(\[REF:[^\]]+\])",
+                 regex_needs_replacement: str = r"[^\w\s]",
+                 char_registry: Optional[CharRegistry] = None
                  ):
-        self.dot: str = dot
-        self.colon: str = colon
-        self.bracket_r: str = bracket_r
-        self.bracket_l: str = bracket_l
         self.re: re.Regex = re.compile(regex_string)
+        self.char_registry: CharRegistry = char_registry or CharRegistry()
+        # Character that needs to be escaped.
+        self.needs_replacement: re.Regex = re.compile(regex_needs_replacement)
 
     @property
     def can_be_replaced(self) -> bool:
@@ -59,11 +99,14 @@ class ReferenceExcluder(ExcluderPrototype):
         return self.re
 
     def _replace_in(self, match: Match) -> str:
-        return " " + match.group()\
-            .replace(".", self.dot)\
-            .replace(":", self.colon)\
-            .replace("[", self.bracket_l)\
-            .replace("]", self.bracket_r) + " "
+        data = match.group()
+        for char, repl in self.char_registry.items():
+            data = data.replace(char, repl)
+
+        for char in sorted(list(set(self.needs_replacement.findall(data)))):
+            data = data.replace(char, self.char_registry[char])
+
+        return f" {data} "
 
     def before_sentence_tokenizer(self, value: str) -> str:
         """ Normalize a string before it goes into sentence tokenizing
@@ -87,11 +130,9 @@ class ReferenceExcluder(ExcluderPrototype):
         'Choubidou [REF:1.a.Z] choubida [REF:1.b.Z]'
 
         """
-        return value\
-            .replace(self.dot, ".")\
-            .replace(self.colon, ":")\
-            .replace(self.bracket_l, "[")\
-            .replace(self.bracket_r, "]")
+        for char, repl in self.char_registry.items():
+            value = value.replace(repl, char)
+        return value
 
     def ignore(self, string: str) -> bool:
         return bool(self.re.match(string))
@@ -131,12 +172,13 @@ class RegexpExcluder(ExcluderPrototype):
 
 
 class AbbreviationsExcluder(ExcluderPrototype):
-    def __init__(self, abbrs: List[str], dot: str = DOT, apply_replacements: bool = True):
+    def __init__(self, abbrs: List[str], apply_replacements: bool = True,
+                 char_registry: Optional[CharRegistry] = None):
         """
 
         :param: List of abbreviation (dot included), eg. ['cf.', 'p.']
         """
-        self.dot = dot
+        self.char_registry: CharRegistry = char_registry or CharRegistry()
         self.re = re.compile(
             r"("+r"|".join([abbr.replace(".", "") for abbr in abbrs])+r")(\.)"
         )
@@ -144,7 +186,7 @@ class AbbreviationsExcluder(ExcluderPrototype):
 
     def _replace_in(self, match: Match) -> str:
         return match.group()\
-            .replace(".", self.dot)
+            .replace(".", self.char_registry["."])
 
     @property
     def can_be_replaced(self) -> bool:
@@ -177,7 +219,7 @@ class AbbreviationsExcluder(ExcluderPrototype):
 
         """
         return value.replace(
-            self.dot, '.'
+            self.char_registry["."], '.'
         )
 
 
@@ -192,12 +234,12 @@ class AbbreviationsRemoverExcluder(AbbreviationsExcluder):
         'cf p 45 et les. points.'
 
         """
-        return value.replace(self.dot, '')
+        return value.replace(self.char_registry["."], '')
 
 
 class CompoundAbbreviationsExcluder(AbbreviationsExcluder):
-    def __init__(self, abbrs: List[str], dot: str = DOT, apply_replacements: bool = True,
-                 ignore_case: bool = True):
+    def __init__(self, abbrs: List[str], apply_replacements: bool = True,
+                 ignore_case: bool = True, char_registry: Optional[CharRegistry] = None):
         """
 
         >>> excl = CompoundAbbreviationsExcluder(["cf.", "V. act."])
@@ -206,7 +248,7 @@ class CompoundAbbreviationsExcluder(AbbreviationsExcluder):
         >>> excl.after_sentence_tokenizer('Cf語 article 5, V語 act語 9.')
         'Cf. article 5, V. act. 9.'
         """
-        super(CompoundAbbreviationsExcluder, self).__init__(abbrs, dot, apply_replacements)
+        super(CompoundAbbreviationsExcluder, self).__init__(abbrs, apply_replacements, char_registry=char_registry)
         re_kwargs = {}
         if ignore_case:
             re_kwargs["flags"] = re.IGNORECASE
@@ -221,19 +263,20 @@ class CompoundAbbreviationsExcluder(AbbreviationsExcluder):
 
 
 class DottedNumberExcluder(ExcluderPrototype):
-    def __init__(self, number_regex: str = regexps.RomanNumbers, dot: str = DOT):
+    def __init__(self, number_regex: str = regexps.RomanNumbers,
+                 char_registry: Optional[CharRegistry] = None):
         self.re = re.compile(r"\.(" + number_regex + r")\.")
-        self.dot = dot
+        self.char_registry: CharRegistry = char_registry or CharRegistry()
 
     def before_sentence_tokenizer(self, value: str) -> str:
         return self.re.sub(
-            r"{0}\g<1>{0}".format(self.dot),
+            r"{0}\g<1>{0}".format(self.char_registry["."]),
             value,
         )
 
     def after_sentence_tokenizer(self, value: str) -> str:
         return value.replace(
-            self.dot, '.'
+            self.char_registry["."], '.'
         )
 
 

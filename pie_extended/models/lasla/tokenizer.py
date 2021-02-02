@@ -9,7 +9,8 @@ from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     ExcluderPrototype,
     RegexpExcluder,
-    AbbreviationsRemoverExcluder
+    AbbreviationsRemoverExcluder,
+    DEFAULT_CHAR_REGISTRY
 )
 from pie_extended.pipeline.tokenizers.utils import regexps
 from pie_extended.utils import roman_number
@@ -26,11 +27,13 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     def __init__(self):
         super(LatMemorizingTokenizer, self).__init__()
         self.tokens = []
+        self.char_registry = DEFAULT_CHAR_REGISTRY
         self.normalizers: Tuple[ExcluderPrototype, ...] = (
-            ReferenceExcluder(),
-            RegexpExcluder(r"(\p{Greek})"),
+            ReferenceExcluder(char_registry=self.char_registry),
+            ReferenceExcluder(regex_string=r"(\[IGN:[^\]]+\])", char_registry=self.char_registry),
+            RegexpExcluder(r"(\p{Greek}+)"),
             RegexpExcluder(r"(\p{No})"),
-            AbbreviationsRemoverExcluder(abbrs=abbrs)
+            AbbreviationsRemoverExcluder(abbrs=abbrs, char_registry=self.char_registry)
         )
 
     @staticmethod
@@ -71,6 +74,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
     def normalizer(self, data: str) -> str:
         for excluder in self.normalizers:
             data = excluder.before_sentence_tokenizer(data)
+
         data = self.re_add_space_around_punct.sub(
             r" \g<2> ",
             data

@@ -2,7 +2,7 @@ import regex as re
 from typing import List, Generator, Tuple
 
 from pie_extended.pipeline.tokenizers.memorizing import MemorizingTokenizer
-from pie_extended.pipeline.tokenizers.utils.excluder import ExcluderPrototype, DottedNumberExcluder, ApostropheExcluder
+from pie_extended.pipeline.tokenizers.utils.excluder import ExcluderPrototype, DottedNumberExcluder, ApostropheExcluder, DEFAULT_CHAR_REGISTRY
 
 _Dots_except_apostrophe = r".?!\"“”\"«»…\[\]\(\)„“"
 _Dots_collections = r"[" + _Dots_except_apostrophe + "‘’]"
@@ -18,8 +18,9 @@ class FroMemorizingTokenizer(MemorizingTokenizer):
     def __init__(self):
         super(FroMemorizingTokenizer, self).__init__()
         self.tokens = []
+        self.char_registry = DEFAULT_CHAR_REGISTRY
         self.excluders: Tuple[ExcluderPrototype, ...] = (
-            DottedNumberExcluder(),
+            DottedNumberExcluder(char_registry=DEFAULT_CHAR_REGISTRY),
             ApostropheExcluder()
         )
 

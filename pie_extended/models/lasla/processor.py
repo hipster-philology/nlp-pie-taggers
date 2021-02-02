@@ -27,6 +27,7 @@ class LatinRulesProcessor(RuleBasedProcessor):
 
     """
     PONCTU = re.compile(r"^\W+$")
+    GREEK = re.compile(r"^\p{Greek}+$")
     CLITICS_POS = {
         'audeo': 'VER',
         'consultum': 'NOM',
@@ -73,13 +74,15 @@ class LatinRulesProcessor(RuleBasedProcessor):
         if self.PONCTU.match(token):
             return {"form": token, "lemma": token, "pos": "PUNC", "morph": "MORPH=empty",
                     "treated": annotation['treated'], "Dis": "_"}
+        elif self.GREEK.match(token):
+            return {"form": token, "lemma": "[Greek]", "pos": "FOR", "morph": "MORPH=empty",
+                    "treated": annotation['treated'], "Dis": "_"}
         elif annotation["lemma"].isdigit() and annotation["treated"].isdigit() and not token.isnumeric():
             try:
                 annotation["lemma"] = str(roman_number(token))
             except KeyError:
                 annotation["lemma"] = "<UNK_NUMBER>"
                 print("Weird behavior on this token", annotation)
-
         return annotation
 
     def __init__(self, *args, **kwargs):

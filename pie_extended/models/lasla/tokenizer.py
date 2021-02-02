@@ -28,6 +28,7 @@ class LatMemorizingTokenizer(MemorizingTokenizer):
         self.tokens = []
         self.normalizers: Tuple[ExcluderPrototype, ...] = (
             ReferenceExcluder(),
+            RegexpExcluder(r"(\p{Greek})"),
             RegexpExcluder(r"(\p{No})"),
             AbbreviationsRemoverExcluder(abbrs=abbrs)
         )

@@ -30,3 +30,9 @@ jobs:
       run: |
         pie-extended download lasla
         nosetests --with-coverage --cover-package=pie_extended --cover-xml --verbose --nologcapture --with-doctest
+    - name: Coveralls Parallel
+      uses: AndreMiras/coveralls-python-action@develop
+      if: runner.os == 'Linux'
+      with:
+        flag-name: run-${{ matrix.test_number }}
+        parallel: true

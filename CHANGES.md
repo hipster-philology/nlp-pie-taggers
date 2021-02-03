@@ -1,5 +1,10 @@
 # Releases
 
+### 0.0.27 (2021/02/01)
+
+- (models/lasla) Support ignoring character tokens through `[IGN:char]`
+- (pipeline/excluders) Made sure excluder would use the same replacement character through a CharRegistry dictionary 
+
 ### 0.0.26 (2021/01/14)
 
 - (models/lasla) Use model LASLA+ from 0.0.5b trained on PyTorch 1.3.1

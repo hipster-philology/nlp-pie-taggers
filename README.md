@@ -34,11 +34,12 @@ The current system provide an easier access to adding **customized**:
 
 ## Current supported languages
 
-- Classical Latin (Modele: `lasla`)
-- Ancient Greek (Modele: `grc`)
-- Old French (Modele: `fro`)
-- Early Modern French (Modele: `freem`)
-- Classical French (Modele: `fr`)
+- Classical Latin (Model: `lasla`)
+- Ancient Greek (Model: `grc`)
+- Old French (Model: `fro`)
+- Early Modern French (Model: `freem`)
+- Classical French (Model: `fr`)
+- Old Dutch (Model: `dum`)
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)
 

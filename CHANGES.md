@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.28 (2021/02/11)
+
+- (requirements) Upgrade pie version
+
 ### 0.0.27 (2021/02/01)
 
 - (models/lasla) Support ignoring character tokens through `[IGN:char]`

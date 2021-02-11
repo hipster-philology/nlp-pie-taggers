@@ -94,6 +94,7 @@ class LatinRulesProcessor(RuleBasedProcessor):
     def __init__(self, *args, **kwargs):
         super(LatinRulesProcessor, self).__init__(*args, **kwargs)
 
+
 class LatinGlueProcessor(GlueProcessor):
     OUTPUT_KEYS = ["form", "lemma", "pos", "morph", "Dis"]
     GLUE = {"morph": ["Case", "Numb", "Gend", "Deg", "Mood", "Tense", "Voice", "Person"]}

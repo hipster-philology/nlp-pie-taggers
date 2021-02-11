@@ -50,6 +50,7 @@ class GlueProcessor(ChainedProcessor):
     # Value that means the current element is empty
     EMPTY_TAG: Dict[str, str] = {"Case": "_", "Numb": "_", "Deg": "_", "Mood": "_", "Tense": "_", "Voice": "_",
                                  "Person": "_"}
+    KEEP_EMPTY = False
 
     def __init__(self, *args, **kwargs):
         super(GlueProcessor, self).__init__(*args, **kwargs)
@@ -60,6 +61,7 @@ class GlueProcessor(ChainedProcessor):
         self._glue_char = self.GLUE_CHAR
         self._glue_empty = self.GLUE_EMPTY
         self._empty_tags = self.EMPTY_TAG
+        self._keep_empty = self.KEEP_EMPTY
 
     def _yield_annotation(
             self, 
@@ -74,7 +76,7 @@ class GlueProcessor(ChainedProcessor):
                 joined = self._glue_char.join([
                     self._get_glued(glued_task, token_dict)
                     for glued_task in self._glue[head]
-                    if token_dict[glued_task] != self._empty_tags.get(glued_task, None)
+                    if self._keep_empty or token_dict[glued_task] != self._empty_tags.get(glued_task, None)
                 ])
                 if not joined:
                     joined = self._glue_empty[head]

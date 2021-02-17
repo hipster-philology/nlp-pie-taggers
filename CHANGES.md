@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.31 (2021/02/17)
+
+- (requirements) Upgrade pie version because I (@ponteineptique) messed up.
+
 ### 0.0.30 (2021/02/17)
 
 - (requirements) Upgrade pie version

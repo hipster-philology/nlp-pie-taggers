@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.30 (2021/02/17)
+
+- (requirements) Upgrade pie version
+
 ### 0.0.29 (2021/02/11)
 
 - (models/grc) Added morphology tags and updated to [0.0.2](https://github.com/hipster-philology/greek-lemmatization-data/releases/tag/0.0.2)

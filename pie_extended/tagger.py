@@ -18,7 +18,7 @@ class ExtensibleTagger(Tagger):
         super(ExtensibleTagger, self).__init__(
             device=device,
             batch_size=batch_size,
-            lower=True
+            lower=lower
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 

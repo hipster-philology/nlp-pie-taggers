@@ -1,5 +1,10 @@
 # Releases
 
+### 0.0.32 (2021/03/22)
+
+- (model/grc) Added a `[REF:.*]` excluder
+- (Tagger) Passed the argument for lower to the main Tagger (might not change a thing)
+
 ### 0.0.31 (2021/02/17)
 
 - (requirements) Upgrade pie version because I (@ponteineptique) messed up.

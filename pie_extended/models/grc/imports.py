@@ -13,7 +13,12 @@ def get_iterator_and_processor(max_tokens=256):
 
     iterator = DataIterator(
         tokenizer=tokenizer,
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
+        exclude_patterns=[
+            excl.exclude_regexp
+            for excl in tokenizer.normalizers
+            if excl.exclude_regexp
+        ]
     )
     return iterator, processor
 

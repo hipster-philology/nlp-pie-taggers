@@ -61,10 +61,13 @@ def download(model):
               help="Reset exclude patterns")
 @click.option("--add-pattern", "add_pattern",
               help="Add new exclude patterns  for token (Regular expression)", multiple=True)
+@click.option("--max-tokens", "max_tokens",
+              help="Maximum length of sentence", type=int, default=64)
 def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, device: str, debug: bool,
         model_path: str,
         reset_patterns: bool, add_pattern: Iterable[str],
-        no_tokenizer: bool = False):
+        no_tokenizer: bool = False,
+        max_tokens: int = 64):
     """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
@@ -79,8 +82,10 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
     failures = []
     for file in tqdm(filepath):
         try:
-            utils.tag_file(model, tagger, file, reset_exclude_patterns=reset_patterns,
-                         exclude_patterns=add_pattern, no_tokenizer=no_tokenizer)
+            utils.tag_file(
+                model, tagger, file, reset_exclude_patterns=reset_patterns,
+                exclude_patterns=add_pattern, no_tokenizer=no_tokenizer,
+                max_tokens=max_tokens)
         except Exception as E:
             failures.append(E)
             click.echo("{} could not be lemmatized".format(file))

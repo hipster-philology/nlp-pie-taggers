@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.34 (2021/04/02)
+
+- (CLI) Allows to specify `--max-tokens` at the CLI level
+
 ### 0.0.33 (2021/04/02)
 
 - (model/lasla) Updated model to use multi-part pie model

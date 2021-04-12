@@ -8,16 +8,14 @@ DESC = Metadata(
         "Standardizing linguistic data: method and tools for annotating(pre-orthographic) French",
         "https://github.com/e-ditiones/LEM17"
 )
-
+VERSION ="v1"
 DOWNLOADS = [
-        File("https://github.com/e-ditiones/LEM17/raw/7ec86d61c9d13cc8d0e56d6dd37971f0f220ad70/"
-             "Models/Train_2/models/lemma.tar", "lemma.tar"),
-        File("https://github.com/e-ditiones/LEM17/raw/7ec86d61c9d13cc8d0e56d6dd37971f0f220ad70/"
-             "Models/Train_2/models/pos.tar", "pos.tar")
+        File(f"https://github.com/e-ditiones/LEM17/releases/download/{VERSION}/lemma.tar", "lemma.tar"),
+        File(f"https://github.com/e-ditiones/LEM17/releases/download/{VERSION}/pos.tar", "pos.tar")
 ]
 
 
-Models = "<{},lemma><{},POS>".format(
+Models = "<{},lemma><{},POS,MODE,TEMPS,PERS,NOMB,GENRE,CAS>".format(
         get_path("freem", "lemma.tar"),
         get_path("freem", "pos.tar")
 )

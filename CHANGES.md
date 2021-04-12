@@ -1,5 +1,12 @@
 # Releases
 
+### 0.0.35 (2021/04/12)
+
+- (models/Freem) Update model to handle morph
+- (models/Freem+Fr) Added reference excluder
+- (models/Freem+Fr) Excluders updated to use CharRegistry
+- (pipeline/excluders) reworked ApostropheExcluder and the like to use CharRegistry
+
 ### 0.0.34 (2021/04/02)
 
 - (CLI) Allows to specify `--max-tokens` at the CLI level

@@ -1,11 +1,12 @@
-from typing import Tuple, Match
+from typing import Tuple, Match, Optional
 import regex as re
 
-from pie_extended.pipeline.tokenizers.utils.excluder import ExcluderPrototype, DASH, APOSTROPHE
+from pie_extended.pipeline.tokenizers.utils.excluder import ExcluderPrototype, DASH, APOSTROPHE, CharRegistry
 from pie_extended.pipeline.tokenizers.utils import chars
 
 
-AUJOURDHUI_MASK = "字"
+AUJOURDHUI_CONSTANT = "#AUJOURDHUI#"
+
 CLITICS = tuple(sorted([
     '-ce', '-ci', '-elle', '-elles', '-en', '-eux', '-il', '-ils', '-je', '-la', '-le',
     '-les', '-leur', '-leurs',
@@ -35,42 +36,50 @@ class AujourdhuiExcluder(ExcluderPrototype):
     """ Normalizes Aujourd'hui before it goes into splitting sentences
 
     >>> excl = AujourdhuiExcluder()
-    >>> excl.before_sentence_tokenizer("Aujourd'hui j'ai poney")
-    "Aujourd字0hui j'ai poney"
-    >>> excl.after_sentence_tokenizer("Aujourd字0hui j'ai poney")
+    >>> len(excl.before_sentence_tokenizer("Aujourd'hui j'ai poney").split()) == 3
+    True
+    >>> len(excl.after_sentence_tokenizer("Aujourd字0hui j'ai poney").split()) == 3
+    True
+    >>> excl.after_sentence_tokenizer(excl.before_sentence_tokenizer("Aujourd'hui j'ai poney"))
     "Aujourd'hui j'ai poney"
     """
-    def __init__(self, apostrophe: str = chars.APOSTROPHE, apostrophe_mask: str = AUJOURDHUI_MASK):
+    def __init__(self, char_registry: Optional[CharRegistry] = None, apostrophe: str = chars.APOSTROPHE):
+        self.char_registry: CharRegistry = char_registry or CharRegistry()
         self.apostrophes = apostrophe
-        self.mask = apostrophe_mask
         self.re = re.compile("(aujourd)(["+self.apostrophes+"])(hui)", flags=re.IGNORECASE)
 
     def _replace(self, regex_match: Match) -> str:
-        return regex_match.group(1) + self.mask + str(self.apostrophes.index(regex_match.group(2))) + regex_match.group(3)
+        return regex_match.group(1) + \
+               self.char_registry[AUJOURDHUI_CONSTANT] + \
+               str(self.apostrophes.index(regex_match.group(2))) +\
+               regex_match.group(3)
 
     def before_sentence_tokenizer(self, value: str) -> str:
         return self.re.sub(self._replace, value)
 
     def after_sentence_tokenizer(self, value: str) -> str:
-
         for index_apo, apostrophe in enumerate(self.apostrophes):
-            value = value.replace(self.mask+str(index_apo), apostrophe)
+            value = value.replace(
+                self.char_registry[AUJOURDHUI_CONSTANT] + str(index_apo),
+                apostrophe
+            )
         return value
 
 
 class FrenchCliticsExcluder(ExcluderPrototype):
-    def __init__(self, clitics: Tuple[str, ...] = CLITICS, dash: str = DASH,
+    def __init__(self,
+                 clitics: Tuple[str, ...] = CLITICS, char_registry: Optional[CharRegistry] = None,
                  add_space_before: bool = True, add_space_after: bool = True,
-                 apostrophes: str = chars.APOSTROPHE, apostrophes_mask: str = APOSTROPHE):
+                 apostrophes: str = chars.APOSTROPHE):
         self.clitics = clitics
-        self.dash = dash
+        self.char_registry: CharRegistry = char_registry or CharRegistry()
         self.apostrophes = apostrophes
-        self.apostrophes_mask = apostrophes_mask
         self.re = re.compile(
             r"((-)(t))?(-)(" +
             r"|".join([tok.replace("-", "") for tok in self.clitics]) +
             # We use apostrophe_mask and the \d because a mask could have already been applied
-            r")([" + self.apostrophes + r"]|" + self.apostrophes_mask + r"\d|\b|$)",
+            r")([" + self.apostrophes + r"]|" +
+            self.char_registry[self.char_registry.APOSTROPHE_CONSTANT] + r"\d|\b|$)",
             flags=re.IGNORECASE
         )
 
@@ -92,9 +101,9 @@ class FrenchCliticsExcluder(ExcluderPrototype):
         g0, g1, g2, g3, g4, g5 = match.groups()
         before = ""
         if g0:
-            before = self.dash+"t"
+            before = self.char_registry["-"]+"t"
 
-        return self.space_before + before + self.dash + g4 + g5 + self.space_after
+        return self.space_before + before + self.char_registry["-"] + g4 + g5 + self.space_after
 
     def before_sentence_tokenizer(self, value: str) -> str:
         """ Normalize before sentence is tokenized
@@ -115,4 +124,4 @@ class FrenchCliticsExcluder(ExcluderPrototype):
         )
 
     def after_sentence_tokenizer(self, value: str) -> str:
-        return value.replace(self.dash, "-")
+        return value.replace(self.char_registry["-"], "-")

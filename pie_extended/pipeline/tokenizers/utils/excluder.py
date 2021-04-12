@@ -21,11 +21,14 @@ _DEFAULT_CHAR_REGISTRY = {
     '[': '左',
     ']': '右',
     "'": '風',
-    "-": "精"
+    "-": "精",
+    "#APOSTROPHE#": "風"
 }
 
 
 class CharRegistry:
+    APOSTROPHE_CONSTANT: str = "#APOSTROPHE#"
+
     def __init__(self, use_default=True, unicode_start_range=0x8d00):
         self._char_to_code = {}
         if use_default:
@@ -74,9 +77,11 @@ class ReferenceExcluder(ExcluderPrototype):
     """ Allows for exclusion of reference tokens such as [REF:1.b.Z]
 
     >>> ref = ReferenceExcluder()
-    >>> ref.before_sentence_tokenizer("ici [REF:###abc??<>] Paris")
-    'ici  左REF桁贆贆贆abc贉贉贇贈右  Paris'
-    >>> ref.after_sentence_tokenizer('ici  左REF桁贆贆贆abc贉贉贇贈右  Paris')
+    >>> len(ref.before_sentence_tokenizer("ici [REF:###abc??<>] Paris").split()) == 3
+    True
+    >>> len(ref.after_sentence_tokenizer('ici  左REF桁贆贆贆abc贉贉贇贈右  Paris').split()) == 3
+    True
+    >>> ref.after_sentence_tokenizer(ref.before_sentence_tokenizer("ici [REF:###abc??<>] Paris"))
     'ici  [REF:###abc??<>]  Paris'
      """
 
@@ -286,12 +291,12 @@ class ApostropheExcluder(ExcluderPrototype):
     """
     def __init__(self,
                  match_apostrophes=chars.APOSTROPHE,
-                 apostrophe_mask=APOSTROPHE,
+                 char_registry: Optional[CharRegistry] = None,
                  add_space_after: bool = True,
                  add_space_before: bool = False):
         self.apostrophes = match_apostrophes
         self.re: re.Regex = re.compile(r"(\w+)([" + self.apostrophes + r"])(\w+)")
-        self.apostrophe_mask: str = apostrophe_mask
+        self.char_registry = char_registry or CharRegistry()
 
         # Space handling
         self.space_before: str = ""
@@ -304,10 +309,10 @@ class ApostropheExcluder(ExcluderPrototype):
 
     def _before_sentence_tokenizer(self, regex_match: Match) -> str:
         """ Given a match on `l'abbé` returns `l風0abbé` where
-            風 is the character mask and 0 the index of the apostroph in the match_apostrophes value
+            風 is the character mask and 0 the index of the apostrophe in the match_apostrophes value
         """
         return regex_match.group(1) + \
-            self.apostrophe_mask + \
+            self.char_registry[self.char_registry.APOSTROPHE_CONSTANT] + \
             str(self.apostrophes.index(regex_match.group(2))) + \
             regex_match.group(3)
 
@@ -338,6 +343,6 @@ class ApostropheExcluder(ExcluderPrototype):
         """
         for index_apo, apostrophe in enumerate(self.apostrophes):
             value = value.replace(
-                self.apostrophe_mask+str(index_apo),
+                self.char_registry[self.char_registry.APOSTROPHE_CONSTANT] + str(index_apo),
                 self.space_before + apostrophe + self.space_after)
         return value

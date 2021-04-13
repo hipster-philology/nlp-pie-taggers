@@ -18,7 +18,13 @@ def get_iterator_and_processor(max_tokens=256):
     )
     iterator = DataIterator(
         tokenizer=tokenizer,
-        exclude_patterns=[GenericExcludePatterns.Punctuation_and_Underscore],
+        exclude_patterns=[
+            excl.exclude_regexp
+            for excl in tokenizer.normalizers
+            if excl.exclude_regexp
+        ] + [
+            GenericExcludePatterns.Punctuation_and_Underscore
+        ],
         max_tokens=max_tokens
     )
     return iterator, processor

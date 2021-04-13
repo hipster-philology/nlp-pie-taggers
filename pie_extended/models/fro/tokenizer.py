@@ -26,9 +26,9 @@ class FroMemorizingTokenizer(MemorizingTokenizer):
         self.tokens = []
         self.char_registry: CharRegistry = CharRegistry()
         self.normalizers: Tuple[ExcluderPrototype, ...] = (
+            ApostropheExcluder(char_registry=self.char_registry),
             ReferenceExcluder(char_registry=self.char_registry),
             DottedNumberExcluder(char_registry=self.char_registry),
-            ApostropheExcluder(char_registry=self.char_registry)
         )
 
     @staticmethod

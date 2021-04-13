@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.36 (2021/04/12)
+
+- (models/fro) Added [REF:...] excluder
+
 ### 0.0.35 (2021/04/12)
 
 - (models/Freem) Update model to handle morph

@@ -1,4 +1,4 @@
-nlp_pie==0.3.7c0
+PaPie==0.3.9
 colorama>=0.4.4
 click<8.0,>=7.0
 requests>=2.25.0

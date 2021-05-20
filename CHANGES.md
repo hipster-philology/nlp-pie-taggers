@@ -1,5 +1,9 @@
 # Releases
 
+### 0.0.38 (2021/05/20)
+
+- (deps) Moved to PaPie
+
 ### 0.0.37 (2021/04/14)
 
 - (models/fro) Fixed regression for apostrophes

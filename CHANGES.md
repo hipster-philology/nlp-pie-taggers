@@ -1,5 +1,10 @@
 # Releases
 
+### 0.0.39 (2021/05/20)
+
+- (models/fro) Updated the model
+
+
 ### 0.0.38 (2021/05/20)
 
 - (deps) Moved to PaPie

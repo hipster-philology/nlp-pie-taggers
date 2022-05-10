@@ -12,6 +12,17 @@ from ..utils import ObjectCreator
 from pie.utils import model_spec
 
 
+def check(model: str, force: bool = False) -> bool:
+    """ Check if files are available for a given model """
+    module = get_model(model)
+    return False not in [
+        os.path.exists(
+            get_path(model, file.name)
+        )
+        for file in module.DOWNLOADS
+    ] or force
+
+
 def get_model(model: str):
     """ Retrieve a module given a string
 

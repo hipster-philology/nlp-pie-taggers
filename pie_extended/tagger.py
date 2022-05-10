@@ -40,8 +40,21 @@ class ExtensibleTagger(Tagger):
                 no_tokenizer: bool = False) -> str:
         return list(self.iter_tag_token(data, iterator, processor=processor, no_tokenizer=no_tokenizer))
 
-    def iter_tag_token(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
-                       no_tokenizer: bool = False) -> Generator[Dict[str, str], None, None]:
+    def iter_tag_token(self,
+                       data: str,
+                       iterator: DataIterator,
+                       processor: ProcessorPrototype,
+                       no_tokenizer: bool = False,
+                       empty_token_on_sent_break: bool = False) -> Generator[Optional[Dict[str, str]], None, None]:
+        """ Reads the string in [DATA] with [ITERATOR] and [PROCESSOR], then returns each token as a dict
+
+        :param data: Textual
+        :param iterator: Iterator used to read data
+        :param processor: Processor used to post-process data
+        :param no_tokenizer: Disable the tokenizer inside the iterator
+        :param empty_token_on_sent_break: Returns a None token when going into a new sequence.
+        :yield: Token in the form of a dict or, if [empty_token...] is True, a None value when changing "sentences"
+        """
         # Reset at each document
         processor.reset()
         iterator.tokenizer.reset()
@@ -90,6 +103,8 @@ class ExtensibleTagger(Tagger):
 
                 for reinsertion in sorted(list(sent_reinsertion.keys())):
                     yield processor.reinsert(sent_reinsertion[reinsertion])
+                if empty_token_on_sent_break:
+                    yield None
 
     def iter_tag(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
                  formatter_class: Type[Formatter] = Formatter, no_tokenizer: bool = False):

@@ -3,7 +3,7 @@ from ...utils import Metadata, File, get_path
 DESC = Metadata(
         "Early Modern French",
         "freem",
-        ["Simon Gabay", "Jean-Baptiste Camps", "Thibault ClÃ©rice", "Jean-Baptiste Tanguy", "Matthias Gille-Levenson",
+        ["Simon Gabay", "Jean-Baptiste Camps", "Thibault Clérice", "Jean-Baptiste Tanguy", "Matthias Gille-Levenson",
          "Florian Cafiero"],
         "Standardizing linguistic data: method and tools for annotating(pre-orthographic) French",
         "https://github.com/FreEM-corpora/FreEMlpm"

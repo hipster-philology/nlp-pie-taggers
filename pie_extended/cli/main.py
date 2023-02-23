@@ -87,7 +87,7 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
                 exclude_patterns=add_pattern, no_tokenizer=no_tokenizer,
                 max_tokens=max_tokens)
         except Exception as E:
-            failures.append(E)
+            failures.append((file, E))
             click.echo("{} could not be lemmatized".format(file))
             if debug:
                 raise E

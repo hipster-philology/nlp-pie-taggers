@@ -47,6 +47,11 @@ If you trained models and want some help sharing them with Pie Extended, open an
 
 To install, simply do `pip install pie-extended`. Then, look at all available models.
 
+### WARNING: if you don't have a GPU or CUDA
+
+Please, in case of doubt, run `pip install pie-extended  --extra-index-url https://download.pytorch.org/whl/cpu`
+
+
 ## Run on terminal
 
 But on top of that, it provides a quick and easy way to use others models ! For example, in a shell :

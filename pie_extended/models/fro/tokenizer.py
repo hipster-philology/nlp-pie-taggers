@@ -9,6 +9,8 @@ from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     CharRegistry
 )
+from pie_extended.pipeline.tokenizers.utils import regexps
+from pie_extended.utils import roman_number
 
 _Dots_except_apostrophe = r".?!\"“”\"«»…\[\]\(\)„“"
 _Dots_collections = r"[" + _Dots_except_apostrophe + "‘’]"
@@ -17,6 +19,7 @@ _Dots_collections = r"[" + _Dots_except_apostrophe + "‘’]"
 class FroMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
     re_remove_ending_apostrophe = re.compile(r"(?<=\w)([\'’ʼ])")
+    re_roman_number = re.compile(r"^"+regexps.RomanNumbers+"$")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )
@@ -70,7 +73,15 @@ class FroMemorizingTokenizer(MemorizingTokenizer):
         )
         return data
 
+    def roman_to_number(self, inp: str) -> str:
+        out = roman_number(inp)
+        if out > 2:
+            out = 2
+        return str(out)
+
     def replacer(self, inp: str):
+        if self.re_roman_number.match(inp):
+            return self.roman_to_number(inp)
         for excluder in self.normalizers:
             if not excluder.can_be_replaced and excluder.exclude_regexp.match(inp):
                 return inp

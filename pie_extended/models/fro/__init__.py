@@ -8,7 +8,7 @@ DESC = Metadata(
     "https://github.com/chartes/deucalion-model-af"
 )
 
-VERSION = "0.4.1"
+VERSION = "1.0.0"
 
 DOWNLOADS = [
     File("https://github.com/chartes/deucalion-model-af/releases/download/" + VERSION + "/lemma.tar",

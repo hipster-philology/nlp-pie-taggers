@@ -4,6 +4,7 @@ from typing import Dict, Pattern
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
 from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
+from pie_extended.utils import roman_number
 
 
 class FroRulesProcessor(RuleBasedProcessor):
@@ -24,6 +25,8 @@ class FroRulesProcessor(RuleBasedProcessor):
             return {"form": token, "lemma": token, "POS": pos, "morph": "MORPH=empty", "treated": token}
         elif self.NUMBER.match(token):
             annotation["pos"] = "ADJcar"
+        elif annotation["treated"] == "2":
+            annotation["lemma"] = str(roman_number(annotation["form"]))
         return annotation
 
     def __init__(self, *args, **kwargs):

@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9, "3.10"]
+        python-version: [3.8, 3.9, "3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v2
@@ -29,8 +29,9 @@ jobs:
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with nose
       run: |
+        pip install pytest pytest-cov
         pie-extended download lasla
-        nosetests --with-coverage --cover-package=pie_extended --cover-xml --verbose --nologcapture --with-doctest
+        pytest --doctest-modules --cov=pie_extended --verbose tests
     - name: Coveralls Parallel
       uses: AndreMiras/coveralls-python-action@develop
       if: runner.os == 'Linux'

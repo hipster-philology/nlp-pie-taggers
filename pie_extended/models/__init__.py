@@ -4,5 +4,6 @@ modules = [
     "fr",
     "freem",
     "grc",
-    "dum"
+    "dum",
+    "occ_cont"
 ]

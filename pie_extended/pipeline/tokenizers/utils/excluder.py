@@ -293,9 +293,10 @@ class ApostropheExcluder(ExcluderPrototype):
                  match_apostrophes=chars.APOSTROPHE,
                  char_registry: Optional[CharRegistry] = None,
                  add_space_after: bool = True,
-                 add_space_before: bool = False):
+                 add_space_before: bool = False,
+                 regex: Optional[str] = None):
         self.apostrophes = match_apostrophes
-        self.re: re.Regex = re.compile(r"(\w+)([" + self.apostrophes + r"])(\w+)")
+        self.re: re.Regex = re.compile(regex or (r"(\w+)([" + self.apostrophes + r"])(\w+)"))
         self.char_registry = char_registry or CharRegistry()
 
         # Space handling

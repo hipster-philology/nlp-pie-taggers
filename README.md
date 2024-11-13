@@ -40,6 +40,9 @@ The current system provide an easier access to adding **customized**:
 - Early Modern French (Model: `freem`)
 - Classical French (Model: `fr`)
 - Old Dutch (Model: `dum`)
+- Eastern Armenian (Model: `hy_hye`)
+- Western Armenian (Model: `hy_hyw`)
+- Classical Armenian (Model: `hy_xcl`)
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)
 

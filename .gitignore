@@ -3,6 +3,7 @@
 /*.tsv
 pie_extended/downloads/*
 tests/**/*.txt
+run.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

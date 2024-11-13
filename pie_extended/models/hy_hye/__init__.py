@@ -6,7 +6,7 @@ MODEL_NAME = "hy_hye"
 DESC = Metadata(
         "Eastern Armenian",
         MODEL_NAME,
-        ["Chahan Vidal-Gorène, Nadi Tomeh, Victoria Khurshudyan"],
+        ["Chahan Vidal-Gorène", "Nadi Tomeh", "Victoria Khurshudyan"],
         "Pie Model for Lemmatization, POS Tagging, and Morphological Analysis of Eastern Armenian, trained using Universal Dependencies for Eastern Armenian.",
         "https://aclanthology.org/2024.nlp4dh-1.42/"
 )

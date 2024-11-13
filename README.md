@@ -43,6 +43,9 @@ The current system provide an easier access to adding **customized**:
 - Old Dutch (Model: `dum`)
 - Old Occitan (Model: `old_occ`)
 - Old Castilian (Model: `osp`, dummy models)
+- Eastern Armenian (Model: `hy_hye`)
+- Western Armenian (Model: `hy_hyw`)
+- Classical Armenian (Model: `hy_xcl`)
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)
 

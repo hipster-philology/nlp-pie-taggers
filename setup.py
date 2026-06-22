@@ -24,7 +24,7 @@ VERSION = "0.1.4"
 # What packages are required for this module to be executed?
 
 REQUIRED = [
-    "PaPie~=0.4.0",
+    "PaPie>=0.5.0",
     "colorama>=0.4.4",
     "click<8.0,>=7.0",
     "requests~=2.25.0",

@@ -19,7 +19,7 @@ DESCRIPTION = "Extension for nlp-pie package"
 URL = 'https://github.com/hipster-philology/nlp-pie-taggers'
 AUTHOR = 'Thibault Clérice'
 REQUIRES_PYTHON = '>=3.8.0'
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 
 # What packages are required for this module to be executed?
 

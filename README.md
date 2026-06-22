@@ -37,9 +37,11 @@ The current system provide an easier access to adding **customized**:
 - Classical Latin (Model: `lasla`)
 - Ancient Greek (Model: `grc`)
 - Old French (Model: `fro`)
+- Middle French (Model: `frm`)
 - Early Modern French (Model: `freem`)
 - Classical French (Model: `fr`)
 - Old Dutch (Model: `dum`)
+- Old Occitan (Model: `old_occ`)
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)
 

@@ -1,3 +1,38 @@
 [build-system]
 requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pie_extended"
+version = "0.1.4"
+description = "Extension for nlp-pie package"
+readme = "README.md"
+requires-python = ">=3.8.0"
+license = { text = "MIT" }
+authors = [
+    { name = "Thibault Clérice" }
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Topic :: Text Processing :: Linguistic"
+]
+dependencies = [
+    "PaPie>=0.5.0",
+    "colorama>=0.4.4",
+    "click<8.0,>=7.0",
+    "requests~=2.25.0",
+    "unidecode~=1.1.1",
+    "autodisambiguator>=0.0.1,<1.0.0",
+    "regex",
+    "numpy<1.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/hipster-philology/nlp-pie-taggers"
+
+[project.scripts]
+pie-extended = "pie_extended.cli.main:pie_ext"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "env", "venv"]

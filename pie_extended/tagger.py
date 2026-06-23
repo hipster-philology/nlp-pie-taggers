@@ -14,11 +14,19 @@ from .pipeline.postprocessor.proto import ProcessorPrototype
 
 
 class ExtensibleTagger(Tagger):
-    def __init__(self, device='cpu', batch_size=100, lower=False, disambiguation=None):
+    """
+
+    :param quantize: Use Int8 quantization
+    :param cache: Use cache
+    """
+    def __init__(self, device='cpu', batch_size=100, lower=False, disambiguation=None,
+                 quantize=True, cache=True):
         super(ExtensibleTagger, self).__init__(
             device=device,
             batch_size=batch_size,
-            lower=lower
+            lower=lower,
+            quantize=quantize,
+            cache=cache
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 

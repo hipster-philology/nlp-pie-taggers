@@ -79,13 +79,16 @@ def get_list() -> Iterable[Tuple[str, Metadata]]:
             yield module, desc
 
 
-def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None) -> ExtensibleTagger:
+def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None,
+               quantize: bool = True, cache: bool = True) -> ExtensibleTagger:
     """ Retrieve the tagger
 
     :param model: Module of the tagger
     :param batch_size: Size of the batch
     :param device: Device to use (cuda/cpu)
     :param model_path: Path to the model if you want to override the package one
+    :param quantize: Use Int8 quantization
+    :param cache: Use cache
     :return: Tagger
     """
     module = get_model(model)
@@ -93,7 +96,8 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None) 
     disambiguator = getattr(get_imports(module), "Disambiguator", None)
     if isinstance(disambiguator, ObjectCreator):
         disambiguator = disambiguator.create()
-    tagger = ExtensibleTagger(disambiguation=disambiguator, batch_size=batch_size, device=device)
+    tagger = ExtensibleTagger(disambiguation=disambiguator, batch_size=batch_size, device=device,
+                              quantize=quantize, cache=cache)
     model_spec_string = model_path or getattr(module, "Models")
     for model, tasks in model_spec(model_spec_string):
         tagger.add_model(model, *tasks)

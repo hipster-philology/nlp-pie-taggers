@@ -42,6 +42,7 @@ The current system provide an easier access to adding **customized**:
 - Classical French (Model: `fr`)
 - Old Dutch (Model: `dum`)
 - Old Occitan (Model: `old_occ`)
+- Old Castilian (Model: `osp`, dummy models)
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)
 

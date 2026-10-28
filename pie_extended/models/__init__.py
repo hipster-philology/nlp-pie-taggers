@@ -6,5 +6,6 @@ modules = [
     "freem",
     "grc",
     "dum",
-    "occ_cont"
+    "occ_cont",
+    "osp"
 ]

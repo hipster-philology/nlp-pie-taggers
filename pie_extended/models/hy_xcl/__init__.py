@@ -4,7 +4,7 @@ MODEL_NAME = "hy_xcl"
 
 DESC = Metadata(
         "Classical Armenian",
-        MODEL_NAME,
+        "xcl",  # ISO 639-3
         ["Chahan Vidal-Gorène", "Nadi Tomeh", "Victoria Khurshudyan"],
         "Pie Model for Lemmatization, POS Tagging, and Morphological Analysis of Classical Armenian, trained using Universal Dependencies for Classical Armenian.",
         "https://aclanthology.org/2024.nlp4dh-1.42/"

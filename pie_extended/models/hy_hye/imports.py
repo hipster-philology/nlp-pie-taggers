@@ -1,14 +1,15 @@
-from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
+from pie_extended.models.hy_hye.tokenizer import ArmenianTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator
-from pie_extended.pipeline.tokenizers.simple_tokenizer import LengthTokenizer
+from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 
 
 def get_iterator_and_processor(max_tokens=256):
-    tokenizer = LengthTokenizer(35)
-    processor = ProcessorPrototype()
+    """ Shared by the three Armenian models (hy_hye, hy_hyw, hy_xcl): same tokenization, no pre/post-processing.
+
+    Punctuation is tagged by the models (it is part of their training data) so nothing is excluded.
+    """
     iterator = DataIterator(
-        tokenizer=tokenizer,
+        tokenizer=ArmenianTokenizer(),
         max_tokens=max_tokens
     )
-    return iterator, processor
-
+    return iterator, ProcessorPrototype()

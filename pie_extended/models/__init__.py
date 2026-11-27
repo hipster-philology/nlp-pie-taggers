@@ -8,5 +8,8 @@ modules = [
     "grc_grecy",
     "dum",
     "occ_cont",
-    "osp"
+    "osp",
+    "hy_hye",
+    "hy_hyw",
+    "hy_xcl"
 ]

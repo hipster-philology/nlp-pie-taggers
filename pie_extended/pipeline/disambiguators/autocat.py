@@ -1,4 +1,4 @@
-from autocat.autocat import ProtoDisambiguator, NeedsDisambiguation
+from .lexicons import ProtoDisambiguator, NeedsDisambiguation
 from .proto import Disambiguator
 from typing import Optional, Set, Tuple
 

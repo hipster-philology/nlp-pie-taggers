@@ -1,6 +1,8 @@
 from ...utils import get_path, ObjectCreator
 
-from autocat import NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
+from ...pipeline.disambiguators.lexicons import (
+    NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
+)
 from ...pipeline.disambiguators.autocat import Autocat, DisambiguationAsTask
 from pie_extended.models.lasla.processor import LatinRulesProcessor, LatinGlueProcessor, MoodTenseVoice
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype

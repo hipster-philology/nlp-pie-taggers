@@ -141,6 +141,24 @@ def install(model):
     click.echo(click.style("Done", bold=True))
 
 
+@pie_ext.command("build-lexicons")
+@click.argument("category_key")
+@click.argument("files", nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
+@click.option("--lemma_key", "lemma_key", default="lemma", help="Key in the TSV files that identifies the lemma")
+@click.option("--dis_key", "disambiguation_key", default="Dis",
+              help="Key in the TSV files that identifies the disambiguation index")
+@click.option("--prefix", "prefix", default="./", help="Prefix of the JSON files that are written")
+def build_lexicons(category_key: str, files: Iterable[str], lemma_key: str, disambiguation_key: str, prefix: str):
+    """ Learn lexicons for the disambiguation of lemmas from [files] (TSV, with a header).
+
+    [category_key] is the column that tells the disambiguation (for example pos): this writes
+    PREFIX + category_key.json, PREFIX + straight.json and PREFIX + needs.json
+    """
+    from pie_extended.pipeline.disambiguators import detector
+    detector.build_lexicons(prefix=prefix, category_key=category_key, lemma_key=lemma_key, files=files,
+                            disambiguation_key=disambiguation_key)
+
+
 @pie_ext.command("details")
 @click.argument("model", type=click.Choice(MODELS, case_sensitive=False))
 @click.option("--model_path", type=str, default=None,

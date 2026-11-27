@@ -1,6 +1,6 @@
 # Tagger usage
 
-`pie-extended` is the command that tags files from a terminal. It has five commands:
+`pie-extended` is the command that tags files from a terminal. It has six commands:
 
 | Command | What it does |
 |---|---|
@@ -9,6 +9,7 @@
 | `pie-extended install-addons MODEL` | Installs what a model needs besides its files, if anything |
 | `pie-extended tag MODEL FILE...` | Tags one or several files |
 | `pie-extended details MODEL` | Prints the characters the model knows |
+| `pie-extended build-lexicons CATEGORY FILE...` | Builds the lexicons of a disambiguator from an annotated corpus (see {doc}`api-usage`) |
 
 ```text
 $ pie-extended list

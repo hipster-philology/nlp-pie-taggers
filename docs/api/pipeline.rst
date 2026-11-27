@@ -58,6 +58,19 @@ Disambiguators
 .. automodule:: pie_extended.pipeline.disambiguators.autocat
    :members:
 
+Lexicons
+~~~~~~~~
+
+Disambiguation of the lemmas (``qui1``, ``qui2``) from a lexicon that follows from another annotation.
+
+.. automodule:: pie_extended.pipeline.disambiguators.lexicons
+   :members:
+
+The lexicons are built from an annotated corpus (``pie-extended build-lexicons``):
+
+.. automodule:: pie_extended.pipeline.disambiguators.detector
+   :members:
+
 Formatters
 ----------
 

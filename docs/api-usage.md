@@ -339,6 +339,15 @@ A model can also share the code of another: `frm` reuses `fro`'s `get_iterator_a
 
 ### A disambiguator
 
+Pie Extended comes with disambiguators built on lexicons
+({mod}`~pie_extended.pipeline.disambiguators.lexicons`): a lexicon says, for a lemma, what to add to it (`qui1`,
+`qui2`) depending on another annotation, usually the part of speech, so that the model does not have to learn it. The
+lexicons are built from an annotated corpus (a TSV with the columns `lemma`, `pos` and `Dis`, the index of the
+disambiguation) with `pie-extended build-lexicons pos corpus.tsv --prefix latin-`, which writes `latin-pos.json`,
+`latin-straight.json` and `latin-needs.json`; `pie_extended.models.lasla.imports` shows how they are used.
+
+You can also write your own.
+
 A {class}`~pie_extended.pipeline.disambiguators.proto.Disambiguator` is called on each tagged sentence **before** the
 processor, and can change the predictions. Latin, for example, uses a lexicon to decide between homographs. It receives
 the sentence as `[(token, tags), ...]` and the list of the tasks, and gives the sentence back:

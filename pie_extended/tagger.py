@@ -74,8 +74,15 @@ class ExtensibleTagger(Tagger):
         :yield: Token in the form of a dict or, if [empty_token...] is True, a None value when changing "sentences"
         """
         # Reset at each document
+        needs_spacing = getattr(processor, "needs_spacing", False)
+        if needs_spacing and no_tokenizer:
+            raise ValueError(
+                "The space after each token cannot be known with `no_tokenizer`: the original spacing is "
+                "lost in pre-tokenized input. Disable the SpaceAfter column (--no-space-after)."
+            )
         processor.reset()
         iterator.tokenizer.reset()
+        spacing_set = False
         # Iterate !
         for chunk in utils.chunks(
                 iterator(data, lower=self.lower, no_tokenizer=no_tokenizer),
@@ -83,6 +90,15 @@ class ExtensibleTagger(Tagger):
 
             # Unzip the batch into the sentences, their sizes and the dictionaries of things that needs
             #  to be reinserted
+            if needs_spacing and not spacing_set:
+                # The iterator read the whole text before giving its first chunk
+                spacing, missed = iterator.spacing()
+                if missed:
+                    warnings.warn("{} token(s) could not be aligned to the original text: "
+                                  "SpaceAfter is not reliable for them".format(missed))
+                processor.set_spacing(spacing)
+                spacing_set = True
+
             sents, lengths, needs_reinsertion = zip(*chunk)
             is_empty = [not bool(sent) for sent in sents]
 

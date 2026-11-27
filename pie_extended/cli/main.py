@@ -66,6 +66,9 @@ def download(model):
 @click.option("--tasks", "tasks", type=str, default=None,
               help="Comma separated list of columns to produce (e.g. lemma,POS). Models not needed "
                    "for them are neither loaded nor run. Default: everything")
+@click.option("--space-after/--no-space-after", "space_after", default=True,
+              help="Output a SpaceAfter column (No when the next token is glued to the token). "
+                   "Cannot be used with --no-tokenizer")
 @click.option("--no-quantize", "no_quantize", is_flag=True, default=False,
               help="Disable int8 dynamic quantization (enabled by default on cpu)")
 @click.option("--no-cache", "no_cache", is_flag=True, default=False,
@@ -80,9 +83,13 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
         no_tokenizer: bool = False,
         max_tokens: int = 64,
         tasks: str = None, no_quantize: bool = False, no_cache: bool = False,
-        cache_size: int = None, num_threads: int = None):
+        cache_size: int = None, num_threads: int = None, space_after: bool = True):
     """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
+    if space_after and no_tokenizer:
+        raise click.UsageError(
+            "--no-tokenizer cannot be used with the SpaceAfter column (the original spacing is lost in "
+            "pre-tokenized input): add --no-space-after")
     click.echo(click.style("Getting the tagger", bold=True))
     try:
         tagger = utils.get_tagger(
@@ -102,7 +109,8 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
     # Built once for all files: the tagger resets tokenizer and processors before each document
     pipeline = utils.get_pipeline(
         model, tagger, reset_exclude_patterns=reset_patterns,
-        exclude_patterns=add_pattern, max_tokens=max_tokens)
+        exclude_patterns=add_pattern, max_tokens=max_tokens,
+        space_after=space_after)
     for file in tqdm(filepath):
         try:
             utils.tag_file(model, tagger, file, no_tokenizer=no_tokenizer, pipeline=pipeline)

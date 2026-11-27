@@ -3,6 +3,7 @@ import regex as re
 from typing import List, Tuple, Dict, Iterable, Pattern, Union
 
 from pie_extended.pipeline.tokenizers.simple_tokenizer import SimpleTokenizer
+from pie_extended.pipeline.tokenizers.spacing import space_after
 from enum import Enum
 
 
@@ -28,6 +29,10 @@ class DataIterator:
             for pattern in exclude_patterns:
                 self.add_pattern(pattern)
         self.max_tokens = max_tokens
+        # What was read by the last call: needed to find out spacing between tokens
+        self._text: str = ""
+        self._lower: bool = False
+        self._tokens: List[str] = []
 
     def add_pattern(self, pattern: str):
         """ Add a pattern for removal
@@ -113,6 +118,8 @@ class DataIterator:
         :yields: (Sentence as a list of word, Size of the sentence, Elements removed from the sentence)
         """
         sentences = []
+        seen_tokens: List[str] = []
+        self._text, self._lower = data, lower
 
         func = self.tokenizer.sentence_tokenizer
         if no_tokenizer:
@@ -120,6 +127,7 @@ class DataIterator:
 
         last_sentence_index = 0
         for sentence in self._max_out(func(data, lower=lower)):
+            seen_tokens.extend(sentence)
             clean_sentence, removed_from_input = self.exclude_tokens(sentence)
             if len(clean_sentence) == 0 and len(sentences):
                 sentences[-1][2].update({
@@ -130,4 +138,20 @@ class DataIterator:
             else:
                 sentences.append((clean_sentence, len(clean_sentence), removed_from_input))
                 last_sentence_index = len(sentence)
+        self._tokens = seen_tokens
         yield from sentences
+
+    def spacing(self) -> Tuple[List[bool], int]:
+        """ Tells, for each token of the last text read, if it is followed by a space in this text
+
+        Memorizing tokenizers know the tokens before replacement, others have not changed them.
+
+        :return: A boolean per token (in the order of the text, excluded tokens included) and the number of
+            tokens that could not be located in the text
+        """
+        memory = getattr(self.tokenizer, "tokens", None)
+        if memory and all(isinstance(entry, tuple) for entry in memory):
+            tokens = [entry[1] for entry in memory]
+        else:
+            tokens = self._tokens
+        return space_after(self._text, tokens, lower=self._lower)

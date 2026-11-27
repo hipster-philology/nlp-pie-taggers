@@ -10,6 +10,7 @@ from ..utils import Metadata, PATH, get_path
 from ..tagger import ExtensibleTagger
 from ..utils import ObjectCreator
 from ..pipeline.postprocessor.proto import SelectTasksProcessor
+from ..pipeline.postprocessor.spacing import SpaceAfterProcessor
 from pie.utils import model_spec
 
 
@@ -164,7 +165,8 @@ def get_pipeline(
         model: str, tagger: ExtensibleTagger,
         reset_exclude_patterns: bool = False,
         exclude_patterns: Optional[Iterable[str]] = None,
-        max_tokens: int = 256):
+        max_tokens: int = 256,
+        space_after: bool = True):
     """ Builds the (iterator, processor) couple for a model, ready to be reused over several files
 
     Reuse is safe because `ExtensibleTagger.iter_tag_token` resets the processor chain and the tokenizer
@@ -175,12 +177,16 @@ def get_pipeline(
     :param reset_exclude_patterns: Remove all pre-registered token exclusion regular expressions
     :param exclude_patterns: New exclude patterns to add to the data iterator (Does not require reset)
     :param max_tokens: Maximum sentence length
+    :param space_after: Add a `SpaceAfter` column (`No` when the next token is glued to the token, `_` otherwise)
     """
     module = get_model(model)
     iterator, processor = getattr(get_imports(module), "get_iterator_and_processor")(max_tokens=max_tokens)
     selected = getattr(tagger, "selected_outputs", None)
     if selected:
         processor = SelectTasksProcessor(processor, selected)
+    if space_after:
+        # Outermost: it must be called once per input token
+        processor = SpaceAfterProcessor(processor)
     # Remove first pattern
     if reset_exclude_patterns:
         iterator.reset_patterns()
@@ -198,7 +204,8 @@ def tag_file(
         exclude_patterns: List[str] = None,
         no_tokenizer: bool = False,
         max_tokens: int = 256,
-        pipeline: Optional[Tuple] = None):
+        pipeline: Optional[Tuple] = None,
+        space_after: bool = True):
     """ Tag a file with a given model
 
     :param model: Module name of the model
@@ -208,12 +215,14 @@ def tag_file(
     :param exclude_patterns: New exclude patterns to add to the data iterator (Does not require reset)
     :param no_tokenizer: Does not use usual tokenizers (new line = word separator, two new lines = sentence_
     :param pipeline: (iterator, processor) built by `get_pipeline` to reuse over several files. When given,
-        `reset_exclude_patterns`, `exclude_patterns` and `max_tokens` were applied at its creation
+        `reset_exclude_patterns`, `exclude_patterns`, `max_tokens` and `space_after` were applied at its creation
         and are ignored here.
+    :param space_after: Add a `SpaceAfter` column (ignored if a pipeline is given)
     """
     if pipeline is None:
         pipeline = get_pipeline(model, tagger, reset_exclude_patterns=reset_exclude_patterns,
-                                exclude_patterns=exclude_patterns, max_tokens=max_tokens)
+                                exclude_patterns=exclude_patterns, max_tokens=max_tokens,
+                                space_after=space_after)
     iterator, processor = pipeline
     tagger.tag_file(fpath, iterator=iterator, processor=processor, no_tokenizer=no_tokenizer)
     return True

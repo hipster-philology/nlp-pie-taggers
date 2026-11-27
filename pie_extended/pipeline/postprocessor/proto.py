@@ -36,6 +36,11 @@ class ProcessorPrototype:
     def postprocess(self, line):
         pass
 
+    def set_spacing(self, spacing: List[bool]) -> None:
+        """ Receives, for each token of the document, if it is followed by a space (only used by the
+        processors that output it, see SpaceAfterProcessor) """
+        pass
+
     def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
         """ Translates output columns into the tasks that models must produce for them
 

@@ -67,6 +67,19 @@ pie-extended tag lasla your_file.txt
 
 will give you access to all you need !
 
+Useful options of `pie-extended tag`:
+
+- `--tasks lemma,POS`: only output (and only load/run the models needed for) these columns.
+- `--space-after / --no-space-after`: the last column, `SpaceAfter`, tells if a token is followed by a space in the
+  original text. It is `No` when the next token is glued to it (`virumque` in `virumque: cano`) and `_` otherwise
+  (and for the last token of a text). It is on by default, but cannot be used with `--no-tokenizer` (the original
+  spacing of pre-tokenized input is lost): use `--no-tokenizer --no-space-after`.
+- `--no-quantize`, `--no-cache`, `--cache-size`, `--num-threads`: tune speed/memory.
+
+In Python, `get_pipeline(model, tagger)` builds the iterator and processor (with the `SpaceAfter` column unless
+`space_after=False`) once, so that you can reuse them over several texts. The processors given by
+`get_iterator_and_processor()` do not output it: wrap them with `SpaceAfterProcessor(processor)` to get it.
+
 ## Python API
 
 You can run the lemmatizer in your own scripts and retrieve token annotations as dictionaries:

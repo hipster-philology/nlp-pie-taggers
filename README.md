@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/hipster-philology/nlp-pie-taggers/badge.svg?branch=master)](https://coveralls.io/github/hipster-philology/nlp-pie-taggers?branch=master)
 ![PyPI](https://img.shields.io/pypi/v/pie-extended?style=flat-square)
 
-**Requirements**: Python 3.12 or later (tested on 3.12; later versions are tested but allowed to fail until PyTorch supports them).
+**Requirements**: Python 3.12 or later (tested on 3.12, 3.13 and 3.14), PaPie 0.6.1 or later (it allows recent PyTorch versions, hence recent Pythons).
 
 Extension for [`pie`](https://github.com/emanjavacas/pie) to include taggers with their models and pre/postprocessors.
 

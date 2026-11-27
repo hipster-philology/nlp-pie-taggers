@@ -222,7 +222,7 @@ def tag_file(
     :param fpath: Path to the file to edit
     :param reset_exclude_patterns: Remove all pre-registered token exclusion regular expressions
     :param exclude_patterns: New exclude patterns to add to the data iterator (Does not require reset)
-    :param no_tokenizer: Does not use usual tokenizers (new line = word separator, two new lines = sentence_
+    :param no_tokenizer: Does not use usual tokenizers (new line = word separator, two new lines = sentence)
     :param pipeline: (iterator, processor) built by `get_pipeline` to reuse over several files. When given,
         `reset_exclude_patterns`, `exclude_patterns`, `max_tokens` and `space_after` were applied at its creation
         and are ignored here.

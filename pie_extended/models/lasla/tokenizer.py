@@ -18,7 +18,7 @@ from pie_extended.utils import roman_number
 
 class LatMemorizingTokenizer(MemorizingTokenizer):
     re_add_space_around_punct = re.compile(r"(\s*)([^\w\s])(\s*)")
-    re_words = re.compile("^\w+$")
+    re_words = re.compile(r"^\w+$")
     _sentence_boundaries = re.compile(
         r"([" + _Dots_except_apostrophe + r"]+\s*)+"
     )

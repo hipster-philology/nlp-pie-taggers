@@ -182,10 +182,10 @@ class TestLasla(TestCase):
         self.maxDiff = None
 
         fam = FakeAnnotationMaker()
-        """\\\<1>[$@$](V)\\\§
+        """\\\\<1>[$@$](V)\\\\§
 \\<1>[$@$]\\§
 §
-\[I]\§
+\\[I]\\§
 At o sceleste penis, o meum malum,
 graui piaque lege noxiam lues.
 Licet querare, nec tibi tener puer"""

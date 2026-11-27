@@ -27,6 +27,7 @@ class FakeAutoTag(ExtensibleTagger):
         self.lengths: List[int] = []
         self.tasks = tasks
         self.lower = False
+        self.batch_size = 100
         self.glue_task: str = kwargs.get("glue_task", "_")
         self.glue_value: str = kwargs.get("glue_value", "|")
         self.disambiguation = None

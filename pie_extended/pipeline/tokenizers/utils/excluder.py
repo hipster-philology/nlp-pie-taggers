@@ -138,7 +138,7 @@ class ReferenceExcluder(ExcluderPrototype):
 
 class RegexpExcluder(ExcluderPrototype):
     def __init__(self, regex: str):
-        """
+        r"""
 
         :param regex: Regular expression to exclude from tokenization
 

@@ -47,7 +47,7 @@ class DataIterator:
             self.exclude_patterns.append(pattern)
 
     def reset_patterns(self) -> None:
-        """ Removes removal patterns
+        r""" Removes removal patterns
 
         >>> x = DataIterator(exclude_patterns=[r'\W+'])
         >>> x.exclude_tokens(["Je", "suis", "content", ",", "mais", "...", '"', "fatigué", '"', "."])
@@ -59,11 +59,11 @@ class DataIterator:
         self.exclude_patterns = []
 
     def exclude_tokens(self, sentence: List[str]) -> Tuple[List[str], Dict[int, str]]:
-        """ Removes punctuation from a list and keeps its index
+        r""" Removes punctuation from a list and keeps its index
 
-        :param sentence:
+        :param sentence: Tokens of a sentence
         :return: First the sentence with things removed, then a dictionary whose keys are index of token to reinsert and
-        associated values are punctuation to reinsert.
+            associated values are punctuation to reinsert.
 
         You can use string when generating the exclude_pattern
 

@@ -1,11 +1,11 @@
 name: Documentation
 
 # The documentation is built on every push and pull request (a warning is an error), and published
-# on GitHub Pages when master changes.
+# on GitHub Pages when main changes.
 # Once: Settings > Pages > Build and deployment > Source: "GitHub Actions"
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

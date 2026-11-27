@@ -17,7 +17,7 @@ If you use Pie Extended in your work, please cite it:
 ```
 
 The DOI [10.5281/zenodo.3883589](https://doi.org/10.5281/zenodo.3883589) always points to the latest version.
-GitHub also reads the file [`CITATION.CFF`](https://github.com/hipster-philology/nlp-pie-taggers/blob/master/CITATION.CFF)
+GitHub also reads the file [`CITATION.CFF`](https://github.com/hipster-philology/nlp-pie-taggers/blob/main/CITATION.CFF)
 of the repository: use the *Cite this repository* button to get other formats (APA, BibTeX...).
 
 ## The models

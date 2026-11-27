@@ -19,7 +19,6 @@ Python 3.12 or later is needed.
 pip install pie-extended --extra-index-url https://download.pytorch.org/whl/cpu   # the extra index: no GPU needed
 pie-extended list                                  # the available models
 pie-extended download lasla                        # the files of a model
-pie-extended install-addons lasla                  # what it needs besides, if anything
 pie-extended tag lasla your_file.txt --tasks lemma,pos
 ```
 
@@ -59,6 +58,7 @@ If you trained models and want some help sharing them with Pie Extended, open an
 | [Install](https://hipster-philology.github.io/nlp-pie-taggers/install.html) | The package and the models |
 | [Tagger usage](https://hipster-philology.github.io/nlp-pie-taggers/tagger.html) | Tag files from a terminal |
 | [API usage](https://hipster-philology.github.io/nlp-pie-taggers/api-usage.html) | Tag from Python, build a pipeline, add a model |
+| [Backends](https://hipster-philology.github.io/nlp-pie-taggers/backends.html) | Pie and spaCy backends: change the pipeline of a model, add a spaCy model |
 | [API](https://hipster-philology.github.io/nlp-pie-taggers/api/index.html) | Reference of the classes and functions |
 | [Citation](https://hipster-philology.github.io/nlp-pie-taggers/citation.html) | How to cite the software and the models |
 

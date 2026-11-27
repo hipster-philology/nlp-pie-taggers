@@ -45,15 +45,48 @@ On top of that, every model gets for free:
 - a `SpaceAfter` column, that tells whether a token is followed by a space in your text, to rebuild it;
 - quantization and an embedding cache, to run on a CPU.
 
-A model does not have to be a Pie model: a [spaCy pipeline](tagger.md#other-tools-spacy-and-grecy) can be put behind
-the same pipeline.
+A model does not have to be a Pie model: a [spaCy pipeline](backends.md) can be put behind
+the same processing pipeline.
+
+(vocabulary)=
+## Vocabulary
+
+A few words mean different things depending on the type of model, so here is how they are used in this documentation.
+
+**Model**
+: What you ask the command for (`lasla`, `grc_grecy`): a Python package made of the files of the model, and of the code
+  around it.
+
+**Backend**
+: What runs the predictions: **Pie** (the model is a set of files, one network per task) or **spaCy** (the model is a
+  spaCy pipeline). See {doc}`backends`.
+
+**Tagger**
+: The Python object that runs the model on tokens: `ExtensibleTagger` (Pie) or `SpacyTagger` (spaCy).
+
+**Pipeline**: two different things
+: *The pipeline* of Pie Extended is the processing: a data iterator (it tokenizes) and a processor (it builds the columns
+  of the output). It is what `get_pipeline` gives, and it does not depend on the backend. A *spaCy pipeline* is a spaCy
+  model, such as `grc_perseus_trf`: it is what the spaCy backend runs. When it is the latter, the documentation says
+  *spaCy pipeline*.
+
+**Task** and **column**
+: A *task* is what a model computes (`lemma`, `Case`). A *column* is what is written (`lemma`, `morph`, that merges
+  several tasks, `treated`, `SpaceAfter`). `--tasks` and `get_tagger(tasks=...)` take **columns**: Pie Extended works out
+  which tasks, and so which models, are needed. `add_model` and the constructor of a tagger take **tasks**.
+
+| | Pie model | spaCy model |
+|---|---|---|
+| What *the model* is | files (`.tar`), one for each task | the name of a spaCy pipeline |
+| What `--model_path` takes | files and tasks: `"<lemma.tar,lemma><pos.tar,pos>"` | the name: `grc_proiel_sm` (or `"<grc_proiel_sm,lemma,pos>"`) |
+| What `pie-extended download` does | fetches the files | nothing |
+| What `pie-extended install-addons` does | nothing, or what the model needs (`hy_xcl`) | installs the spaCy pipeline |
 
 ## Quick start
 
 ```bash
 pip install pie-extended --extra-index-url https://download.pytorch.org/whl/cpu
 pie-extended download lasla
-pie-extended install-addons lasla
 echo "Arma uirumque cano, Troiae qui primus ab oris." > text.txt
 pie-extended tag lasla text.txt --tasks lemma,pos --no-space-after
 cat text-pie.txt
@@ -85,6 +118,7 @@ oris        ora     NOMcom
 install
 tagger
 api-usage
+backends
 api/index
 models
 citation
@@ -93,6 +127,7 @@ citation
 - {doc}`install`: install the package and the models;
 - {doc}`tagger`: tag files from a terminal;
 - {doc}`api-usage`: tag texts from Python, build a pipeline, add a model;
+- {doc}`backends`: Pie and spaCy backends, change the pipeline of a model, add a spaCy model;
 - {doc}`api/index`: reference of the classes and functions;
 - {doc}`models`: the available models, and what is specific to each;
 - {doc}`citation`: how to cite Pie Extended and the models.

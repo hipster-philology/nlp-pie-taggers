@@ -130,25 +130,32 @@ which makes tagging faster and the models lighter without noticeable change of t
 `--device cuda`
 : Run on a GPU (quantization is then turned off, with a warning).
 
-## Your own model
+## Run another model
 
-`--model_path` replaces the model by yours, with the same syntax as the models of the package: one or several
-`<file,task,task...>` groups.
+`--model_path` runs another model than the one of the package, **without touching any code**. For a Pie model, give
+the files and what each one gives, in groups `<file,task,task...>`:
 
 ```bash
 pie-extended tag lasla text.txt --model_path "<my_lemma.tar,lemma><my_pos.tar,pos>"
 ```
 
+For a model that runs a spaCy pipeline (`grc_grecy`), the name of the pipeline is enough: see below.
+
 ## Other tools (spaCy and GreCy)
 
 A model does not have to run through Pie: a spaCy pipeline can be put behind the same iterators, processors and
 options (`--tasks`, `SpaceAfter`...). `grc_grecy` is the first one: Ancient Greek with
-[GreCy](https://github.com/jmyerston/greCy).
+[GreCy](https://github.com/jmyerston/greCy). How this works, and how to change or add a spaCy model in the code, is in
+{doc}`backends`.
 
 ```bash
-pip install "pie-extended[grecy]"
-pie-extended install-addons grc_grecy   # installs the spaCy pipeline grc_proiel_sm
+pip install "pie-extended[grecy]"       # spaCy, spacy-transformers and GreCy
+pie-extended install-addons grc_grecy   # installs the spaCy pipeline of the model: grc_perseus_trf (about 480 MB)
 ```
+
+The pipeline of `grc_grecy` is `grc_perseus_trf`: the GreCy pipeline for the Perseus treebank, with a transformer.
+It is the heaviest of the family (see below for lighter ones). It is set in the code of the model, see
+{ref}`change-the-pipeline` if you want another one for everybody.
 
 The tasks are `lemma`, `pos` (universal POS), `tag` (language specific POS) and `morph` (UD features). Here, lemma and
 POS only, and no `SpaceAfter`:
@@ -170,23 +177,49 @@ token  lemma  pos
 καὶ    καί    CCONJ
 ```
 
-### A larger spaCy model
+### Run a specific pipeline
 
-The default pipeline is `grc_proiel_sm`. GreCy also provides `grc_proiel_{sm,lg,trf}` and `grc_perseus_{sm,lg,trf}`.
-Install the pipeline you want (the `trf` ones also need `spacy-transformers`) and choose it with `--model_path`, with
-the name of the pipeline where the file would be:
+`pie-extended tag grc_grecy` runs the pipeline of the model (`grc_perseus_trf`). To run another one for a run, install it
+and give its name to `--model_path`:
 
 ```bash
-pip install spacy-transformers
-pip install "https://github.com/jmyerston/greCy/releases/download/v3.8.2/grc_proiel_trf-3.8.2-py3-none-any.whl"
-pie-extended tag grc_grecy demo.txt --tasks lemma,pos --no-space-after \
-    --model_path "<grc_proiel_trf,lemma,morph,pos,tag>"
+pie-extended tag grc_grecy demo.txt --model_path grc_proiel_sm
 ```
+
+That is all: the code is not touched, and you get the same columns as with the default (`lemma`, `morph`, `pos`, `tag`),
+`--tasks` and the other options work as usual. If the pipeline is not installed, the command says so.
+
+GreCy provides six pipelines: `grc_perseus_{sm,lg,trf}` and `grc_proiel_{sm,lg,trf}`, trained on two treebanks (Perseus
+and PROIEL) in three sizes: `sm` (small, a 43 MB download), `lg` (with word vectors, 264 MB) and `trf` (transformer,
+476 MB). Install the one you want from its wheel, for example the small PROIEL one:
+
+```bash
+pip install "https://github.com/jmyerston/greCy/releases/download/v3.8.2/grc_proiel_sm-3.8.2-py3-none-any.whl"
+```
+
+`python -m grecy install grc_proiel_sm` does the same, but it needs `pip` in your environment. (The transformer ones
+also need `spacy-transformers`, which is in the extra `grecy`.)
+
+The treebanks do not follow the same conventions: `pos` is the universal part of speech, but `tag` and `morph` follow
+the ones of the treebank, so changing the pipeline changes the **values** you get. The article `ὁ`, with the small
+pipelines:
+
+| Pipeline | `pos` | `tag` | `morph` |
+|---|---|---|---|
+| `grc_proiel_sm` | `DET` | `S-` | `Case=Nom\|Definite=Def\|Gender=Masc\|Number=Sing\|PronType=Dem` |
+| `grc_perseus_sm` | `DET` | `P-` | `Case=Nom\|Gender=Masc\|Number=Sing` |
+
+To offer fewer tasks than the model does, use the full syntax, with the tasks after the name of the pipeline:
+`--model_path "<grc_proiel_sm,lemma,pos>"` (`--tasks lemma,pos` does the same for one run).
 
 ```{warning}
 Two different GreCy pipelines cannot be loaded in the same Python process (spaCy refuses to register their components
-twice): use one pipeline per run.
+twice): use one pipeline per run. You can *install* several, but do not ask spaCy for the list of the installed
+pipelines (`spacy.util.get_installed_models()` fails then): use `pip list | grep grc`.
 ```
+
+If a pipeline is not installed, the command says so and how to install it: `pie-extended install-addons MODEL` installs
+the pipeline that a model runs by default, any other one has to be installed with pip.
 
 ## Reference of the commands
 

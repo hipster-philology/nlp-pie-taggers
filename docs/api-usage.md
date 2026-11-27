@@ -8,7 +8,8 @@ the {doc}`api/index` lists every class and function.
 
 Two objects are needed. The **tagger** holds the models (it is loaded once, which is slow). The **pipeline** is made of
 a data iterator, that cuts the text into sentences and words, and of a processor, that builds the columns from what the
-tagger predicts (it is cheap and can be reused).
+tagger predicts (it is cheap and can be reused). This is the processing pipeline of Pie Extended, not a spaCy pipeline:
+see the {ref}`vocabulary <vocabulary>`.
 
 ```python
 from pie_extended.cli.utils import get_tagger, get_pipeline
@@ -37,13 +38,16 @@ command line, one token can give several lines (here `uirumque` and its enclitic
 : Where the models run (`"cpu"` or `"cuda"`), and how many sentences are tagged together.
 
 `tasks`
-: The columns you want, for example `["lemma", "pos"]`. The models that are not needed are not loaded.
+: The **columns** you want, for example `["lemma", "pos"]`. The models that are not needed to give them are not loaded.
+  (A tagger made by hand takes *tasks*, what a model computes: see {doc}`backends`.)
 
 `quantize`, `cache`, `cache_size`, `num_threads`
 : Speed and memory, see {doc}`tagger`.
 
 `model_path`
-: Your own model, with the syntax `"<file.tar,lemma><other.tar,pos>"`.
+: Another model than the one of the package. For a Pie model, its files and tasks:
+  `"<file.tar,lemma><other.tar,pos>"`. For a spaCy model, the name of the pipeline is enough:
+  `model_path="grc_proiel_sm"` (see {doc}`backends`).
 
 ## Choose the columns
 
@@ -383,12 +387,11 @@ for token in tagger.tag_str("Roma est magna", iterator=DataIterator(tokenizer=Si
 {'form': 'magna', 'lemma': 'lemma2', 'pos': 'pos2'}
 ```
 
-## Other backends
+## Backends
 
-The tagger is only what turns tokens into predictions: {class}`~pie_extended.spacy_tagger.SpacyTagger` does it with a
-spaCy pipeline instead of Pie models, and gets everything else from the same pipeline. To add a model that runs
-through spaCy, add to its package `Backend = "spacy"`, and give the name of the spaCy pipeline where `Models` has a
-file: `Models = "<grc_proiel_sm,lemma,morph,pos,tag>"` (see `pie_extended.models.grc_grecy`).
+A model does not have to run through Pie: a **backend** is what turns tokens into predictions, and a spaCy pipeline can
+be put behind the same iterators, processors and options. {doc}`backends` explains how backends work, how to change the
+pipeline of `grc_grecy` (`SpacyModel`), and how to add a model that runs a spaCy pipeline, or a task.
 
 ```python
 tagger = get_tagger("grc_grecy", tasks=["lemma", "pos"])

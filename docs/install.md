@@ -35,19 +35,23 @@ pie-extended list
 
 ## Install the models
 
-The files of the models are not part of the package: they are downloaded on demand, in the folder `downloads` of
-the package, **for each model you need**.
+The files of the models are not part of the package: they are downloaded on demand, **for each model you need**.
+They go in the folder `downloads` of the package, or in the folder given by the environment variable
+`PIE_EXTENDED_DOWNLOADS` if you set it (for example to keep them outside of the environment, or on a bigger disk). The
+sizes of the downloads are in {doc}`models`.
 
 ```bash
 pie-extended download lasla        # the files of the model
-pie-extended install-addons lasla  # what the model needs besides (lexicons, spaCy pipeline, ...), if anything
+pie-extended install-addons hy_xcl # what a model needs besides its files, for the few that need something
 ```
 
 Which command does what depends on the model:
 
 - `download` fetches the files listed by the model (a Pie model is one file per task: `lemma.tar`, `pos.tar`...);
-- `install-addons` runs the extra installation of the model, if it has one. For example `hy_xcl` learns from a
-  treebank how to split the clitics of Classical Armenian, and `grc_grecy` installs a spaCy pipeline.
+  a model that runs a spaCy pipeline has none;
+- `install-addons` runs the extra installation of the model, **for the two models that have one**: `hy_xcl` learns from a
+  treebank how to split the clitics of Classical Armenian, and `grc_grecy` installs its spaCy pipeline. For the others
+  it does nothing.
 
 {doc}`models` tells what each model needs.
 

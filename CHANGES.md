@@ -1,5 +1,19 @@
 # Releases
 
+### Unreleased
+
+- (models/grc_grecy) The default pipeline is `grc_perseus_trf` (the Perseus treebank, with a transformer) instead of
+  `grc_proiel_sm`. `pie-extended install-addons grc_grecy` installs the pipeline of the model (`SpacyModel`), and the
+  extra `grecy` includes `spacy-transformers`. Use `--model_path "<grc_proiel_sm,lemma,morph,pos,tag>"` for the old one
+- `--model_path` (and `get_tagger(model_path=...)`) take the name of a spaCy pipeline: `--model_path grc_proiel_sm`
+  runs it with the tasks of the model, no need for `"<grc_proiel_sm,lemma,morph,pos,tag>"` anymore
+- `SpacyTagger(pipeline="grc_proiel_sm", tasks=["lemma", "pos"])`: the pipeline can be given to the constructor of the
+  tagger
+- `tagger.selected_outputs` is an attribute of every tagger: the columns asked for (`None`: all of them). `get_tagger(tasks=...)`
+  sets it, and `get_pipeline` follows it. Set it by hand on a tagger that you made yourself to get the same columns
+- A spaCy pipeline that is not installed is reported with how to install it (and no more with the advice to download
+  Pie models)
+
 ### 1.0.0 (unreleased)
 
 **Breaking changes**

@@ -25,14 +25,14 @@ class SpacyTagger(ExtensibleTagger):
         "tag": lambda token: token.tag_,
         "morph": lambda token: str(token.morph),
     }
-    # spaCy components that must run to produce a task (shared encoders are always kept: they feed all of them)
-    COMPONENTS: Dict[str, Set[str]] = {
-        "lemma": {"lemmatizer", "propn_lemmatizer", "attribute_ruler"},
-        "pos": {"morphologizer", "attribute_ruler"},
-        "morph": {"morphologizer", "attribute_ruler"},
-        "tag": {"tagger", "attribute_ruler"},
+    # spaCy components that never produce one of the tasks: they are not run. This is a deliberate blacklist: pipelines
+    # differ a lot (the transformer models have a `morpheus_lemmatizer` that the small ones lack, and dropping it changes
+    # lemmas), so a component that is not known to be useless is kept.
+    # The gain is small: the shared encoder (tok2vec/transformer) costs much more than the parser.
+    UNUSED_COMPONENTS: Set[str] = {
+        "parser", "ner", "entity_ruler", "entity_linker", "span_ruler", "spancat", "textcat", "textcat_multilabel",
+        "coref", "span_resolver",
     }
-    ENCODERS: Set[str] = {"tok2vec", "transformer"}
 
     def __init__(self, device: str = "cpu", batch_size: int = 100, lower: bool = False, disambiguation=None,
                  **ignored):
@@ -43,7 +43,7 @@ class SpacyTagger(ExtensibleTagger):
         self._tasks: List[str] = []
 
     def add_model(self, model_path: str, *tasks: str) -> None:
-        """ Loads a spaCy pipeline, running only what is needed for the tasks
+        """ Loads a spaCy pipeline (without the components that do not produce a task, see UNUSED_COMPONENTS)
 
         :param model_path: Name of an installed spaCy pipeline (grc_proiel_sm) or path to one
         :param tasks: Tasks to output (see EXTRACTORS)
@@ -68,11 +68,7 @@ class SpacyTagger(ExtensibleTagger):
                 "spaCy pipeline {!r} not found: install it with `pie-extended install-addons`".format(model_path)
             ) from error
 
-        needed: Set[str] = set(self.ENCODERS)
-        for task in tasks:
-            needed |= self.COMPONENTS[task]
-        # Parser, NER... do not produce any of our tasks: they are the only thing we can skip (outputs unchanged)
-        self.nlp.select_pipes(enable=[name for name in self.nlp.pipe_names if name in needed])
+        self.nlp.select_pipes(disable=[name for name in self.nlp.pipe_names if name in self.UNUSED_COMPONENTS])
         self._tasks = sorted(tasks)  # PaPie also sorts its tasks
 
     def tag(self, sents: List[List[str]], lengths: Optional[List[int]] = None, **kwargs

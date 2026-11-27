@@ -5,18 +5,10 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Versions after 3.12 are allowed to fail (PaPie pins torch~=2.4, which has no wheels for them yet)
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
-        experimental: [false]
-        include:
-          - python-version: "3.13"
-            experimental: true
-          - python-version: "3.14"
-            experimental: true
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
     - uses: actions/checkout@v4

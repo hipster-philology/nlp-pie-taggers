@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+from . import SpacyModel
 from .tokenizer import GreCyMemorizingTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
@@ -29,8 +30,13 @@ def get_iterator_and_processor(max_tokens=256):
     return iterator, processor
 
 
-def addons(name: str = "grc_proiel_sm") -> bool:
-    """ Installs the spaCy pipeline (a wheel published on GreCy's releases) in the current environment """
+def addons(name: str = None) -> bool:
+    """ Installs a spaCy pipeline (a wheel published on GreCy's releases) in the current environment
+
+    :param name: Name of the pipeline. By default, the one of the model (`SpacyModel`): changing it there changes
+        what the model runs **and** what `pie-extended install-addons grc_grecy` installs
+    """
+    name = name or SpacyModel
     url = WHEEL.format(v=GRECY_VERSION, v_=GRECY_VERSION.lstrip("v"), name=name)
     command = [sys.executable, "-m", "pip", "install", url]
     print("Running: " + " ".join(command))

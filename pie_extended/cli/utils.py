@@ -139,16 +139,24 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None,
     :param model: Module of the tagger
     :param batch_size: Size of the batch
     :param device: Device to use (cuda/cpu)
-    :param model_path: Path to the model if you want to override the package one
+    :param model_path: The model to run instead of the one of the package: files and tasks
+        (`"<lemma.tar,lemma><pos.tar,pos>"`), or, for a model that runs a spaCy pipeline, just the name of the
+        pipeline (`"grc_proiel_sm"`): it gives the tasks of the model
     :param quantize: Use Int8 quantization (cpu only)
     :param cache: Use cache
-    :param tasks: Only compute these output columns (e.g. ["lemma", "POS"]). Models that are not needed
-        for them are not loaded. None means everything.
+    :param tasks: The output columns you want (e.g. ["lemma", "POS"]): the models, or the tasks, that are not needed
+        for them are not loaded. None means everything. This is not the same as the tasks given to `add_model` or to
+        the constructor of a tagger (what a model computes): from the columns, `get_tagger` works out what has to be
+        computed, and keeps the columns in `tagger.selected_outputs` for `get_pipeline`.
     :param cache_size: Size of the embedding cache
     :param num_threads: Number of torch threads
     :return: Tagger
     """
     module = get_model(model)
+    if model_path and "<" not in model_path and getattr(module, "Backend", "pie") == "spacy":
+        # Only the name of a spaCy pipeline: it has to give what the model gives
+        model_tasks = [task for _, tasks_of_model in model_spec(module.Models) for task in tasks_of_model]
+        model_path = "<{},{}>".format(model_path, ",".join(model_tasks))
     spec = list(model_spec(model_path or getattr(module, "Models")))
     selected = None
     if tasks:
@@ -177,6 +185,10 @@ def get_pipeline(
         max_tokens: int = 256,
         space_after: bool = True):
     """ Builds the (iterator, processor) couple for a model, ready to be reused over several files
+
+    This is the *processing* pipeline of Pie Extended (tokenization, then the columns of the output), that is
+    the same whatever the model it is used with: not a spaCy pipeline. The columns are those that were asked for
+    when the tagger was made (`tagger.selected_outputs`, see `get_tagger(tasks=...)`).
 
     Reuse is safe because `ExtensibleTagger.iter_tag_token` resets the processor chain and the tokenizer
     before each document (memory of the tokenizer, cursor of the memorizing processor, ...).

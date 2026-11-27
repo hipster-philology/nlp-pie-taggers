@@ -40,6 +40,9 @@ class ExtensibleTagger(Tagger):
             **extra
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
+        # The columns of the output that are asked for (None: all of them). Not what the models compute: that is
+        # given to `add_model`. `get_tagger(tasks=...)` sets it, `get_pipeline` makes the pipeline follow it.
+        self.selected_outputs: Optional[List[str]] = None
 
     def tag_file(self, fpath: str, iterator: DataIterator, processor: ProcessorPrototype, no_tokenizer: bool = False):
         # Read content of the file

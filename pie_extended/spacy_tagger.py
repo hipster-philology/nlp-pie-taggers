@@ -1,8 +1,12 @@
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from .tagger import ExtensibleTagger
 
 EMPTY = "_"
+
+
+class PipelineNotFound(FileNotFoundError):
+    """ The spaCy pipeline of a model is not installed (its message tells how to install it) """
 
 
 class SpacyTagger(ExtensibleTagger):
@@ -35,12 +39,21 @@ class SpacyTagger(ExtensibleTagger):
     }
 
     def __init__(self, device: str = "cpu", batch_size: int = 100, lower: bool = False, disambiguation=None,
-                 **ignored):
+                 pipeline: Optional[str] = None, tasks: Optional[Sequence[str]] = None, **ignored):
+        """
+        :param pipeline: Name of the spaCy pipeline to run. It is loaded now (it is what `add_model` does), so that a
+            tagger can be made in one line: `SpacyTagger(pipeline="grc_proiel_sm", tasks=["lemma", "pos"])`
+        :param tasks: The tasks that the pipeline gives (all of `EXTRACTORS` by default). Only with `pipeline`. This is what
+            is *computed*; the columns of the output, that you may want to restrict more (`treated` is one), are
+            `selected_outputs`, that `get_tagger(tasks=...)` sets for you
+        """
         # quantize/cache/cache_size/num_threads are PaPie options: they have no meaning here
         super(SpacyTagger, self).__init__(device=device, batch_size=batch_size, lower=lower,
                                           disambiguation=disambiguation, quantize=False, cache=False)
         self.nlp = None
         self._tasks: List[str] = []
+        if pipeline is not None:
+            self.add_model(pipeline, *(tasks or sorted(self.EXTRACTORS)))
 
     def add_model(self, model_path: str, *tasks: str) -> None:
         """ Loads a spaCy pipeline (without the components that do not produce a task, see UNUSED_COMPONENTS)
@@ -64,8 +77,9 @@ class SpacyTagger(ExtensibleTagger):
         try:
             self.nlp = spacy.load(model_path)
         except OSError as error:  # spaCy's way to say the pipeline is not installed
-            raise FileNotFoundError(
-                "spaCy pipeline {!r} not found: install it with `pie-extended install-addons`".format(model_path)
+            raise PipelineNotFound(
+                "spaCy pipeline {!r} is not installed. `pie-extended install-addons MODEL` installs the pipeline "
+                "that a model runs by default, any other one has to be installed with pip.".format(model_path)
             ) from error
 
         self.nlp.select_pipes(disable=[name for name in self.nlp.pipe_names if name in self.UNUSED_COMPONENTS])

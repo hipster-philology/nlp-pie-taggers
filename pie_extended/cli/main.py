@@ -3,6 +3,7 @@ import requests
 
 
 from pie_extended.cli import utils
+from pie_extended.spacy_tagger import PipelineNotFound
 from typing import Iterable
 
 MODELS = [name for name, *_ in utils.get_list()]
@@ -60,7 +61,8 @@ def download(model):
 @click.option("--debug", is_flag=True,
               help="Raise error when a file is not tagged correctly")
 @click.option("--model_path", type=str, default=None,
-              help="Provide this with your own model path if you want to test it")
+              help="Run another model than the one of the package: its files and tasks, "
+                   "\"<lemma.tar,lemma><pos.tar,pos>\", or the name of a spaCy pipeline (grc_proiel_sm)")
 @click.option("--reset-exclude-patterns", "reset_patterns", is_flag=True, default=False,
               help="Reset exclude patterns")
 @click.option("--add-pattern", "add_pattern",
@@ -103,6 +105,11 @@ def tag(model: str, filepath: str, allowed_failure: int, batch_size: int, device
         )
     except ValueError as e:
         raise click.BadParameter(str(e), param_hint="--tasks") from e
+    except PipelineNotFound as e:  # spaCy: nothing to `download`
+        click.echo(str(e))
+        if debug:
+            raise e
+        return
     except FileNotFoundError as e:
         click.echo("Model not found: please make sure you have downloaded the model files with "
                    "pie-extended download " + model)

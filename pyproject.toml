@@ -33,7 +33,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Models that run through spaCy (grc_grecy). The pipelines themselves are installed with `pie-extended install-addons`
-grecy = ["spacy>=3.7", "grecy"]
+grecy = ["spacy>=3.7", "spacy-transformers", "grecy"]
 
 # Documentation: `make docs` (see docs/)
 docs = ["sphinx>=7.2", "furo", "myst-parser>=3.0", "sphinx-copybutton", "sphinx-click>=5.1"]

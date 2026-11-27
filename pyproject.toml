@@ -40,9 +40,13 @@ docs = ["sphinx>=7.2", "furo", "myst-parser>=3.0", "sphinx-copybutton", "sphinx-
 
 [project.urls]
 Homepage = "https://github.com/hipster-philology/nlp-pie-taggers"
+Documentation = "https://hipster-philology.github.io/nlp-pie-taggers/"
+Source = "https://github.com/hipster-philology/nlp-pie-taggers"
+Issues = "https://github.com/hipster-philology/nlp-pie-taggers/issues"
+Changelog = "https://github.com/hipster-philology/nlp-pie-taggers/blob/master/CHANGES.md"
 
 [project.scripts]
 pie-extended = "pie_extended.cli.main:pie_ext"
 
 [tool.setuptools.packages.find]
-exclude = ["tests", "env", "venv"]
+exclude = ["tests*", "docs*", "env", "venv"]

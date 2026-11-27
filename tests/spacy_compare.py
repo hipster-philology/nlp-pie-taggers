@@ -16,19 +16,25 @@ from spacy.tokens import Doc  # noqa: E402
 
 from pie_extended.spacy_tagger import SpacyTagger  # noqa: E402
 
-SENTENCES = json.loads(sys.argv[1])
-name, tasks = sys.argv[2], sys.argv[3:]
 
-# Ours first: it is the one that disables components
-tagger = SpacyTagger(batch_size=2)
-tagger.add_model(name, *tasks)
-tagged, names = tagger.tag(SENTENCES)
-ours = [[dict(zip(names, tags)) for _, tags in sentence] for sentence in tagged]
+def main() -> None:
+    sentences = json.loads(sys.argv[1])
+    name, tasks = sys.argv[2], sys.argv[3:]
 
-# Reference: the same pipeline with nothing disabled
-nlp = spacy.load(name)
-docs = nlp.pipe([Doc(nlp.vocab, words=words) for words in SENTENCES])
-plain = [[{"lemma": t.lemma_, "pos": t.pos_, "tag": t.tag_, "morph": str(t.morph) or "_"} for t in doc]
-         for doc in docs]
+    # Ours first: it is the one that disables components
+    tagger = SpacyTagger(batch_size=2)
+    tagger.add_model(name, *tasks)
+    tagged, names = tagger.tag(sentences)
+    ours = [[dict(zip(names, tags)) for _, tags in sentence] for sentence in tagged]
 
-print(json.dumps({"plain": plain, "ours": ours}))
+    # Reference: the same pipeline with nothing disabled
+    nlp = spacy.load(name)
+    docs = nlp.pipe([Doc(nlp.vocab, words=words) for words in sentences])
+    plain = [[{"lemma": t.lemma_, "pos": t.pos_, "tag": t.tag_, "morph": str(t.morph) or "_"} for t in doc]
+             for doc in docs]
+
+    print(json.dumps({"plain": plain, "ours": ours}))
+
+
+if __name__ == "__main__":
+    main()

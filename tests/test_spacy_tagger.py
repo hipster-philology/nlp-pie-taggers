@@ -6,7 +6,7 @@ import sys
 import warnings
 from unittest import TestCase, skipUnless
 
-from pie_extended.cli.utils import get_model, get_imports, get_pipeline, get_tagger
+from pie_extended.cli.utils import get_model, get_pipeline, get_tagger
 from pie_extended.models.grc_grecy.tokenizer import GreCyMemorizingTokenizer, MODIFIER_APOSTROPHE
 from pie_extended.spacy_tagger import SpacyTagger
 

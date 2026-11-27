@@ -4,7 +4,7 @@ MODEL_NAME = "hy_hyw"
 
 DESC = Metadata(
         "Western Armenian",
-        MODEL_NAME,
+        "hyw",  # ISO 639-3
         ["Chahan Vidal-Gorène", "Nadi Tomeh", "Victoria Khurshudyan"],
         "Pie Model for Lemmatization, POS Tagging, and Morphological Analysis of Western Armenian, trained using Universal Dependencies for Western Armenian.",
         "https://aclanthology.org/2024.nlp4dh-1.42/"

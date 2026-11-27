@@ -5,12 +5,11 @@ MODEL_NAME = "hy_hye"
 
 DESC = Metadata(
         "Eastern Armenian",
-        MODEL_NAME,
+        "hye",  # ISO 639-3
         ["Chahan Vidal-Gorène", "Nadi Tomeh", "Victoria Khurshudyan"],
         "Pie Model for Lemmatization, POS Tagging, and Morphological Analysis of Eastern Armenian, trained using Universal Dependencies for Eastern Armenian.",
         "https://aclanthology.org/2024.nlp4dh-1.42/"
 )
-VERSION ="v1.0.0"
 DOWNLOADS = [
         File("https://zenodo.org/records/14059437/files/hye-ud-abbr-2024_11_04-21_35_36.tar?download=1", "abbr.tar"),
         File("https://zenodo.org/records/14059437/files/hye-ud-adptype-2024_11_04-21_39_05.tar?download=1", "adptype.tar"),

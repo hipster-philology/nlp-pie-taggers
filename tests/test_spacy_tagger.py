@@ -1,4 +1,8 @@
 import importlib.util
+import json
+import os
+import subprocess
+import sys
 import warnings
 from unittest import TestCase, skipUnless
 
@@ -85,30 +89,18 @@ class TestGreCyTagging(TestCase):
         by_form = [(a["form"], a["SpaceAfter"]) for a in annotations]
         self.assertEqual(by_form[4:6], [("λόγος", "No"), (",", "_")])
 
-    def test_subset_of_tasks_gives_the_same_values_and_runs_less(self):
-        full_tagger, full = self.tag()
+    def test_subset_of_tasks_gives_the_same_values(self):
+        _, full = self.tag()
         sub_tagger, sub = self.tag(tasks=["lemma", "pos"])
         self.assertEqual([(a["lemma"], a["pos"]) for a in sub], [(a["lemma"], a["pos"]) for a in full])
         self.assertEqual(sorted(sub_tagger._tasks), ["lemma", "pos"])
-        enabled = set(sub_tagger.nlp.pipe_names)
-        self.assertNotIn("parser", enabled)
-        self.assertNotIn("ner", enabled)
-        self.assertNotIn("tagger", enabled, "`tag` was not requested")
-        self.assertIn("lemmatizer", enabled)
 
-    def test_same_output_when_the_parser_is_skipped(self):
-        """ Skipping what does not produce a task must not change any value """
-        tagger, annotations = self.tag()
-        self.assertNotIn("parser", tagger.nlp.pipe_names)
-        import spacy
-        from spacy.tokens import Doc
-        reference = spacy.load(MODEL)
-        words = ["ἐν", "ἀρχῇ", "ἦν", "ὁ", "λόγος"]
-        doc = reference(Doc(reference.vocab, words=words))
-        expected = [(t.lemma_, t.pos_, t.tag_, str(t.morph) or "_") for t in doc]
-        tagged, tasks = tagger.tag([words])
-        got = [dict(zip(tasks, tags)) for _, tags in tagged[0]]
-        self.assertEqual([(g["lemma"], g["pos"], g["tag"], g["morph"]) for g in got], expected)
+    def test_only_components_that_produce_nothing_are_skipped(self):
+        tagger, _ = self.tag()
+        enabled = set(tagger.nlp.pipe_names)
+        self.assertFalse(enabled & SpacyTagger.UNUSED_COMPONENTS)
+        self.assertIn("lemmatizer", enabled)
+        self.assertIn("morphologizer", enabled)
 
     def test_several_documents_with_one_pipeline(self):
         tagger = get_tagger("grc_grecy")
@@ -117,3 +109,45 @@ class TestGreCyTagging(TestCase):
             warnings.simplefilter("ignore")
             first = [tagger.tag_str(TEXT, iterator=iterator, processor=processor) for _ in range(2)]
         self.assertEqual(first[0], first[1])
+
+
+# Pipelines to compare with plain spaCy, if installed. The transformer ones have a component the small ones lack
+# (`morpheus_lemmatizer`): dropping it once changed 24 lemmas out of 560.
+PIPELINES = [name for name in ("grc_proiel_sm", "grc_proiel_trf", "grc_perseus_sm", "grc_perseus_trf")
+             if has_pipeline(name)]
+SENTENCES = [
+    "ἐν ἀρχῇ ἦν ὁ λόγος , καὶ ὁ λόγος ἦν πρὸς τὸν θεόν .".split(),
+    "μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος οὐλομένην , ἣ μυρίʼ Ἀχαιοῖς ἄλγεʼ ἔθηκε .".split(),
+    "ἄνδρα μοι ἔννεπε μοῦσα πολύτροπον , ὃς μάλα πολλὰ πλάγχθη .".split(),
+    "πάντα διʼ αὐτοῦ ἐγένετο , καὶ χωρὶς αὐτοῦ ἐγένετο οὐδὲ ἓν ὃ γέγονεν .".split(),
+]
+
+
+@skipUnless(PIPELINES, "No GreCy pipeline installed")
+class TestSameAsPlainSpacy(TestCase):
+    """ Whatever we skip, values must be the ones of the full spaCy pipeline.
+
+    One subprocess per pipeline: two GreCy pipelines cannot live in the same process (see tests/spacy_compare.py)
+    """
+    def compare(self, name, tasks):
+        script = os.path.join(os.path.dirname(__file__), "spacy_compare.py")
+        env = dict(os.environ, PYTHONPATH=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        result = subprocess.run([sys.executable, script, json.dumps(SENTENCES), name, *tasks],
+                                capture_output=True, text=True, env=env, timeout=600)
+        self.assertEqual(result.returncode, 0, result.stderr[-2000:])
+        return json.loads(result.stdout.strip().splitlines()[-1])
+
+    def test_all_tasks(self):
+        for name in PIPELINES:
+            with self.subTest(pipeline=name):
+                result = self.compare(name, ["lemma", "pos", "tag", "morph"])
+                self.assertEqual(result["ours"], result["plain"])
+
+    def test_lemma_and_pos_only(self):
+        for name in PIPELINES:
+            with self.subTest(pipeline=name):
+                result = self.compare(name, ["lemma", "pos"])
+                self.assertEqual(
+                    result["ours"],
+                    [[{k: token[k] for k in ("lemma", "pos")} for token in sentence] for sentence in result["plain"]]
+                )

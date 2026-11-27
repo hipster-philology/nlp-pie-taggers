@@ -1,7 +1,7 @@
 # Pie Extended
 
-[![Tests](https://github.com/hipster-philology/nlp-pie-taggers/actions/workflows/test.yml/badge.svg)](https://github.com/hipster-philology/nlp-pie-taggers/actions/workflows/test.yml)
-[![Documentation](https://github.com/hipster-philology/nlp-pie-taggers/actions/workflows/docs.yml/badge.svg)](https://hipster-philology.github.io/nlp-pie-taggers/)
+[![Tests](https://github.com/hipster-philology/nlp-pie-taggers/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/hipster-philology/nlp-pie-taggers/actions/workflows/test.yml)
+[![Documentation](https://github.com/hipster-philology/nlp-pie-taggers/actions/workflows/docs.yml/badge.svg?branch=master)](https://hipster-philology.github.io/nlp-pie-taggers/)
 [![PyPI](https://img.shields.io/pypi/v/pie-extended?style=flat-square)](https://pypi.org/project/pie-extended/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3883589.svg)](https://doi.org/10.5281/zenodo.3883589)
 

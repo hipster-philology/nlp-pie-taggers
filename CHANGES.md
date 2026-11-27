@@ -1,5 +1,18 @@
 # Releases
 
+### 1.0.2 (2026/11/27)
+
+- `pie_extended.backends`: one place to import the taggers from (`BACKENDS`, `ExtensibleTagger`, `SpacyTagger`, `CompositeTagger`,
+  `SoterLemmatizer`); an unknown `Backend` is now an error and no longer falls back to the Pie tagger
+- Documented: one pipeline per request in a service
+
+- (models/grc_soter) Ancient Greek with the lemma from [Sôtêr mini](https://huggingface.co/Zual/soter-mini) (a lemmatizer of
+  1.9 million parameters, from Hugging Face) and the part of speech from the light pipeline `grc_perseus_sm`. The extra
+  `soter` installs what it needs
+- `CompositeTagger`: the tasks of a model can come from different engines, written as the other models
+  (`--model_path "<soter:Zual/soter-mini,lemma><grc_proiel_sm,pos,morph>"`, `#proiel` after the name of Sôtêr for the lemmas of
+  PROIEL). Only the engines that are needed for the columns asked for are loaded
+
 ### 1.0.1 (2026/11/27)
 
 - (models/grc_grecy) The default pipeline is `grc_perseus_trf` (the Perseus treebank, with a transformer) instead of

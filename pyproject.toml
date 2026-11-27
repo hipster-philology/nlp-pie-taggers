@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pie_extended"
-version = "1.0.1"
+version = "1.0.2"
 description = "Extension for nlp-pie package"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -34,6 +34,8 @@ dependencies = [
 [project.optional-dependencies]
 # Models that run through spaCy (grc_grecy). The pipelines themselves are installed with `pie-extended install-addons`
 grecy = ["spacy>=3.7", "spacy-transformers", "grecy"]
+# grc_soter: the lemmatizer Sôtêr (a model of Hugging Face) and a light spaCy pipeline for the part of speech
+soter = ["transformers", "spacy>=3.7", "grecy"]
 
 # Documentation: `make docs` (see docs/)
 docs = ["sphinx>=7.2", "furo", "myst-parser>=3.0", "sphinx-copybutton", "sphinx-click>=5.1"]

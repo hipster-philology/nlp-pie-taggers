@@ -177,6 +177,17 @@ token  lemma  pos
 καὶ    καί    CCONJ
 ```
 
+### Another lemmatizer: Sôtêr
+
+`grc_soter` takes the lemma from Sôtêr, a very small lemmatizer of Ancient Greek, and the part of speech from a light
+spaCy pipeline. The two do not come from the same tool, and it is explained on the page of the {doc}`backends`:
+
+```bash
+pip install "pie-extended[soter]"
+pie-extended install-addons grc_soter
+pie-extended tag grc_soter demo.txt --tasks lemma,pos
+```
+
 ### Run a specific pipeline
 
 `pie-extended tag grc_grecy` runs the pipeline of the model (`grc_perseus_trf`). To run another one for a run, install it

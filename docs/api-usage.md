@@ -389,6 +389,20 @@ for token in tagger.tag_str("Roma est magna", iterator=DataIterator(tokenizer=Si
 
 ## Backends
 
+All the backends are imported from one place (importing them needs neither spaCy nor `transformers`):
+
+```python
+from pie_extended.backends import BACKENDS, ExtensibleTagger, SpacyTagger, CompositeTagger, SoterLemmatizer
+```
+
+`BACKENDS` maps the `Backend` of a model (`"pie"`, `"spacy"`, `"composite"`) to its tagger; an unknown value is an error.
+The older paths (`pie_extended.tagger`, `.spacy_tagger`, `.composite_tagger`, `.soter`) still work.
+
+```{warning}
+In a service: load the tagger **once**, but make the iterator and processor (`get_pipeline`) **for each request**. They keep
+the state of the text being read, and sharing one between threads fails.
+```
+
 A model does not have to run through Pie: a **backend** is what turns tokens into predictions, and a spaCy pipeline can
 be put behind the same iterators, processors and options. {doc}`backends` explains how backends work, how to change the
 pipeline of `grc_grecy` (`SpacyModel`), and how to add a model that runs a spaCy pipeline, or a task.

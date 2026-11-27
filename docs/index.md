@@ -58,8 +58,9 @@ A few words mean different things depending on the type of model, so here is how
   around it.
 
 **Backend**
-: What runs the predictions: **Pie** (the model is a set of files, one network per task) or **spaCy** (the model is a
-  spaCy pipeline). See {doc}`backends`.
+: What runs the predictions: **Pie** (the model is a set of files, one network per task), **spaCy** (the model is a
+  spaCy pipeline) or **composite** (each task comes from the engine that is best at it: the lemma from a lemmatizer, the
+  part of speech from a spaCy pipeline). See {doc}`backends`.
 
 **Tagger**
 : The Python object that runs the model on tokens: `ExtensibleTagger` (Pie) or `SpacyTagger` (spaCy).

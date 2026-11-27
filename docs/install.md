@@ -31,6 +31,7 @@ pie-extended list
 | Extra | Command | What for |
 |---|---|---|
 | `grecy` | `pip install "pie-extended[grecy]"` | Models run through spaCy (`grc_grecy`, see {doc}`tagger`) |
+| `soter` | `pip install "pie-extended[soter]"` | The lemmatizer Sôtêr with a light spaCy pipeline (`grc_soter`, see {doc}`backends`) |
 | `docs` | `pip install "pie-extended[docs]"` | Build this documentation |
 
 ## Install the models

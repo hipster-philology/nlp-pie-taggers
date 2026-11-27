@@ -8,6 +8,8 @@ import requests
 from .. import models
 from ..utils import Metadata, PATH, get_path
 from ..tagger import ExtensibleTagger
+from ..backends import BACKENDS
+from ..composite_tagger import SOTER
 from ..utils import ObjectCreator
 from ..pipeline.postprocessor.proto import SelectTasksProcessor
 from ..pipeline.postprocessor.spacing import SpaceAfterProcessor
@@ -153,7 +155,7 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None,
     :return: Tagger
     """
     module = get_model(model)
-    if model_path and "<" not in model_path and getattr(module, "Backend", "pie") == "spacy":
+    if model_path and "<" not in model_path and getattr(module, "Backend", "pie") in ("spacy", "composite"):
         # Only the name of a spaCy pipeline: it has to give what the model gives
         model_tasks = [task for _, tasks_of_model in model_spec(module.Models) for task in tasks_of_model]
         model_path = "<{},{}>".format(model_path, ",".join(model_tasks))
@@ -165,10 +167,13 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None,
     disambiguator = getattr(get_imports(module), "Disambiguator", None)
     if isinstance(disambiguator, ObjectCreator):
         disambiguator = disambiguator.create()
-    tagger_class = ExtensibleTagger
-    if getattr(module, "Backend", "pie") == "spacy":
-        from ..spacy_tagger import SpacyTagger  # spaCy is an optional dependency
-        tagger_class = SpacyTagger
+    backend = getattr(module, "Backend", "pie")
+    if backend not in BACKENDS:
+        raise ValueError("Unknown Backend {!r} for the model {}. Available: {}".format(
+            backend, model, ", ".join(sorted(BACKENDS))))
+    if backend == "spacy" and (len(spec) > 1 or spec[0][0].startswith(SOTER)):
+        backend = "composite"  # The tasks come from several engines (a lemmatizer, a spaCy pipeline...)
+    tagger_class = BACKENDS[backend]
     tagger = tagger_class(disambiguation=disambiguator, batch_size=batch_size, device=device,
                           quantize=quantize, cache=cache, cache_size=cache_size, num_threads=num_threads)
     for path, model_tasks in spec:

@@ -30,6 +30,7 @@ written, rounded:
 | `hy_hye` | 638 MB (25 models) | nothing | |
 | `hy_hyw` | 1 GB (30 models) | nothing | |
 | `hy_xcl` | 296 MB (15 models) | downloads the treebank (about 13 MB, and an internet connection) and learns the clitics: keeps 160 KB | |
+| `grc_soter` | nothing | installs `grc_perseus_sm` (43 MB) and fetches Sôtêr (7.5 MB, from Hugging Face) | `pip install "pie-extended[soter]"`: transformers, spaCy and GreCy |
 | `grc_grecy` | nothing | installs the spaCy pipeline (`grc_perseus_trf`: 476 MB; the small ones: 43 MB) | `pip install "pie-extended[grecy]"`: spaCy, spacy-transformers (for a transformer pipeline) and GreCy |
 
 A Pie model is one network for each task, and all of them are loaded to tag: asking for fewer columns with `--tasks`
@@ -60,6 +61,11 @@ and `freem` share the same post-processing. `dum` has only `lemma` and `pos` and
 instead, by default `grc_perseus_trf` (the Perseus treebank, with a transformer). Its tasks are `lemma`, `pos`, `tag`
 and `morph` (UD features). Elisions (`δι'`) are kept in their word, and the apostrophe is given to the model as U+02BC,
 as GreCy requires: your spelling stays in `token`.
+
+`grc_soter` gives the lemma from [Sôtêr mini](https://huggingface.co/Zual/soter-mini) (a lemmatizer of 1.9 million
+parameters) and the part of speech from the light pipeline `grc_perseus_sm`: see {ref}`combine-engines`. The lemma is
+better than the one of the pipelines (94.6% against 92.8% and 93.5% on the Perseus treebank) and the part of speech is
+8 points worse than the one of the transformer.
 
 - To use another pipeline for one run: {doc}`tagger` (`--model_path`).
 - To change the pipeline of the model for everybody, or to add a model that runs a spaCy pipeline:

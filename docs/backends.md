@@ -16,6 +16,8 @@ The **backend** is the part that turns tokens into predictions. Everything else 
 | What the model needs | `pie-extended download` (the files) | `pie-extended install-addons` (the pipeline, with pip) |
 
 {func}`~pie_extended.cli.utils.get_tagger` reads `Backend` in the package of the model and builds the matching tagger.
+A third kind, **composite** (`Backend = "composite"`), takes each task from the engine that is best at it: see
+[Combine engines](#combine-engines-a-lemmatizer-and-a-spacy-pipeline).
 
 ## How the spaCy backend runs a pipeline
 
@@ -223,3 +225,101 @@ print(tagged[0])
 processor of the model (`get_pipeline` accepts any tagger). The tasks are sorted, as Pie does.
 
 For the reference of the class: {class}`~pie_extended.spacy_tagger.SpacyTagger`.
+
+(combine-engines)=
+## Combine engines: a lemmatizer and a spaCy pipeline
+
+Not every task has to come from the same tool. `grc_soter` takes the **lemma** from
+[Sôtêr mini](https://huggingface.co/Zual/soter-mini), a lemmatizer of Ancient Greek of 1.9 million parameters
+(Apache-2.0), and the **part of speech** from a light GreCy pipeline:
+
+```bash
+pip install "pie-extended[soter]"
+pie-extended install-addons grc_soter     # the spaCy pipeline, and Sôtêr (7.5 MB, kept in the cache of Hugging Face)
+pie-extended tag grc_soter demo.txt
+```
+
+```text
+token  lemma  pos    treated  SpaceAfter
+ἐν     ἐν     ADP    ἐν       _
+ἀρχῇ   ἀρχή   NOUN   ἀρχῇ     _
+ἦν     εἰμί   AUX    ἦν       _
+ὁ      ὁ      DET    ὁ        _
+λόγος  λόγος  NOUN   λόγος    No
+,      ,      PUNCT  ,        _
+```
+
+### How it is written
+
+A {class}`~pie_extended.composite_tagger.CompositeTagger` has several engines, and each task is given by one of them.
+They are written as the other models (`<name,tasks>`), in `Models` or in `--model_path`:
+
+| Name | Engine | Gives |
+|---|---|---|
+| `soter:Zual/soter-mini` | the lemmatizer Sôtêr ({class}`~pie_extended.soter.SoterLemmatizer`) | `lemma` |
+| `soter:Zual/soter-mini#proiel` | the same, with the lemmas of the convention of PROIEL (`#ptnk`: PTNK) | `lemma` |
+| `grc_perseus_sm`, any other name | a spaCy pipeline ({class}`~pie_extended.spacy_tagger.SpacyTagger`) | `lemma`, `pos`, `tag`, `morph` |
+
+So `grc_soter` is only this, in `pie_extended/models/grc_soter/__init__.py`:
+
+```python
+Backend = "composite"
+Models = "<soter:Zual/soter-mini,lemma><grc_perseus_sm,pos>"
+```
+
+and any other combination is a `--model_path` away, with no code to change, for `grc_soter` as for `grc_grecy`. For
+example the lemmas of PROIEL, and the morphology of the pipeline as well:
+
+```bash
+pie-extended tag grc_grecy demo.txt --model_path "<soter:Zual/soter-mini#proiel,lemma><grc_proiel_sm,pos,morph>"
+```
+
+The conventions of lemmatization differ between the treebanks: Sôtêr gives the one of Perseus (the entries of the LSJ), and
+restores the other ones from a table of its repository. The verb of `εἶπεν` is `εἶπον` for Perseus and `λέγω` for PROIEL:
+with `#proiel` you get `λέγω`.
+
+`get_tagger` makes a `CompositeTagger` when the model has `Backend = "composite"`, or when the tasks of a spaCy model come
+from several entries. A task given by two engines is an error, and is found before anything is loaded.
+
+**Only what is asked for is loaded.** The columns that you ask for decide which engines are needed:
+`--tasks pos` never loads Sôtêr, and `--tasks lemma` never loads spaCy.
+
+### What the combination gives
+
+Against the treebank of Perseus (400 sentences of the dev set, the tokens are the gold ones for every engine, CPU):
+
+| | Lemma | UPOS |
+|---|---|---|
+| Sôtêr mini | **94.6%** | |
+| `grc_perseus_sm` (light) | 92.8% | 81.6% |
+| `grc_perseus_trf` (default of `grc_grecy`) | 93.5% | **89.6%** |
+| `grc_soter`: lemma of Sôtêr, part of speech of `grc_perseus_sm` | **94.6%** | 81.6% |
+
+The lemma is better with Sôtêr, and the part of speech is **8 points worse** with the light pipeline than with the
+transformer, and less steady on rare forms: the light pipeline calls the elided `διʼ` an adjective, with a right lemma.
+Choose the pipeline of the part of speech accordingly (`--model_path "<soter:Zual/soter-mini,lemma><grc_perseus_trf,pos>"`
+puts the transformer back). The lemma is also the slow part: about 4 ms for a token (12 threads), ten times the whole of the
+light pipeline. Take the numbers with care: these treebanks are data of the pipelines, and only the *differences* matter.
+
+### Each engine reads its own apostrophe
+
+The engines do not agree on the apostrophe of an elision (`δι᾽`), and this was measured on the 90 elided words of PROIEL:
+
+| Apostrophe given to the engine | Sôtêr: lemma right | GreCy: lemma right |
+|---|---|---|
+| U+2019 `’` (as in the treebanks) | **100%** | 57% |
+| ASCII `'` | 89% | |
+| U+02BC `ʼ` | 46% | **100%** |
+
+The tokenizer gives U+02BC (GreCy needs it), so Sôtêr converts every apostrophe to U+2019, and the text to NFC (it works
+on bytes, and gives gibberish for decomposed accents), **inside** the engine: whichever tokenizer a model uses, each engine
+gets what it was trained on. Your spelling stays in `token`.
+
+### What it needs
+
+- `transformers` (`pip install "pie-extended[soter]"`, with spaCy and GreCy for the part of speech);
+- Sôtêr is downloaded from Hugging Face the first time (7.5 MB, in `~/.cache/huggingface`, or `HF_HOME`). With
+  `HF_HUB_OFFLINE=1` nothing is downloaded: run `pie-extended install-addons grc_soter` first;
+- Sôtêr only gives `lemma`. Two GreCy pipelines cannot be combined (see above): the spaCy engine of a combination is one;
+- the options of Sôtêr (the context of 8 words, the batch, the device) are those of
+  {class}`~pie_extended.soter.SoterLemmatizer`. `--device cuda` was not tried.

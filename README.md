@@ -45,7 +45,8 @@ print(tagger.tag_str("Arma uirumque cano", iterator=iterator, processor=processo
 ## Models
 
 Latin, Ancient Greek, Old, Middle, Classical and Early Modern French, Middle Dutch, Occitan, Old Castilian (placeholder)
-and Eastern, Western and Classical Armenian. Some of them run through spaCy ([GreCy](https://github.com/jmyerston/greCy)).
+and Eastern, Western and Classical Armenian. Some of them run through spaCy ([GreCy](https://github.com/jmyerston/greCy)), and some combine engines: the lemma of
+Ancient Greek from [Sôtêr](https://huggingface.co/Zual/soter-mini), the part of speech from a spaCy pipeline.
 The documentation lists them, with what is specific to each.
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)

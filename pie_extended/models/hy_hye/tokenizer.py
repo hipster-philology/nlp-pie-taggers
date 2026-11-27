@@ -1,5 +1,5 @@
 import regex as re
-from typing import Generator, List
+from typing import Generator, List, Tuple
 
 from pie_extended.pipeline.tokenizers.simple_tokenizer import SimpleTokenizer
 
@@ -42,8 +42,13 @@ class ArmenianTokenizer(SimpleTokenizer):
     >>> tokenizer.surface_tokens()[3:6]
     ['Ինչպե՞ս', '', 'ես']
     """
-    def __init__(self):
+    def __init__(self, segmenter=None):
+        """
+        :param segmenter: Object with a `cuts(word) -> List[int]` method that gives where a word is cut in several
+            words (Classical Armenian clitics, see `pie_extended.models.hy_xcl.segmenter`). None: words are not cut.
+        """
         super(ArmenianTokenizer, self).__init__()
+        self.segmenter = segmenter
         self._surfaces: List[str] = []
 
     def reset(self):
@@ -64,6 +69,30 @@ class ArmenianTokenizer(SimpleTokenizer):
         if sentence:
             yield sentence
 
+    def _pieces(self, word: str, written: str) -> Tuple[List[str], List[str]]:
+        """ The words a written word is made of, and how each of them is written
+
+        >>> class AfterFirstLetter:
+        ...     cuts = lambda self, word: [1]
+        >>> ArmenianTokenizer(AfterFirstLetter())._pieces("զմեղս", "զմեղս")
+        (['զ', 'մեղս'], ['զ', 'մեղս'])
+
+        The marks stay with the piece they follow, whatever the place of the cut:
+
+        >>> ArmenianTokenizer(AfterFirstLetter())._pieces("զինչ", "զի՞նչ")
+        (['զ', 'ինչ'], ['զ', 'ի՞նչ'])
+        """
+        cuts = self.segmenter.cuts(word) if self.segmenter else []
+        if not cuts:
+            return [word], [written]
+        bounds = [0] + list(cuts) + [len(word)]
+        pieces = [word[start:end] for start, end in zip(bounds, bounds[1:])]
+        # Place of each letter of the word in the written word (marks are not letters of the word)
+        place = [index for index, character in enumerate(written) if character not in MARKS]
+        starts = [0] + [place[cut] for cut in cuts]
+        surfaces = [written[start:end] for start, end in zip(starts, starts[1:] + [len(written)])]
+        return pieces, surfaces
+
     def word_tokenizer(self, text: str, lower: bool = False) -> List[str]:
         tokens: List[str] = []
         for match in _TOKEN.finditer(text):
@@ -76,8 +105,9 @@ class ArmenianTokenizer(SimpleTokenizer):
             word = _MARKS.sub("", written)
             marks = _MARKS.findall(written)
             if word:
-                tokens.append(word)
-                self._surfaces.append(written)
+                pieces, surfaces = self._pieces(word, written)
+                tokens.extend(pieces)
+                self._surfaces.extend(surfaces)
                 for mark in marks:  # Not written anywhere: it comes from the word
                     tokens.append(mark)
                     self._surfaces.append("")

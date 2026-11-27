@@ -41,7 +41,6 @@ napoleon_use_param = True
 
 # Theme
 html_theme = "furo"
-html_static_path = ["_static"]
 html_theme_options = {
     "source_repository": "https://github.com/hipster-philology/nlp-pie-taggers/",
     "source_branch": "master",

@@ -96,6 +96,64 @@ Tasks are `lemma`, `pos` (universal POS), `tag` (language specific POS) and `mor
 To add another spaCy model, create a model package with `Backend = "spacy"` and a `Models` string whose "path" is
 the name of the spaCy pipeline (see `pie_extended/models/grc_grecy`).
 
+### Demo: lemma and POS only
+
+In a shell, `--tasks lemma,pos` keeps these two columns and `--no-space-after` removes the `SpaceAfter` column:
+
+```bash
+echo "ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν." > demo.txt
+pie-extended tag grc_grecy demo.txt --tasks lemma,pos --no-space-after
+cat demo-pie.txt   # the output is written next to the input (tab separated, \r\n line endings)
+```
+
+```
+token	lemma	pos
+ἐν	ἐν	ADP
+ἀρχῇ	ἀρχή	NOUN
+ἦν	εἰμί	AUX
+ὁ	ὁ	DET
+λόγος	λόγος	NOUN
+,	,	PUNCT
+καὶ	καί	CCONJ
+```
+
+The same in Python, writing the TSV on the standard output:
+
+```python
+import sys
+from pie_extended.cli.utils import get_pipeline, get_tagger
+
+tagger = get_tagger("grc_grecy", tasks=["lemma", "pos"])  # tasks=None: lemma, morph, pos, tag
+iterator, processor = get_pipeline("grc_grecy", tagger, space_after=False)
+
+text = "ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν."
+for line in tagger.iter_tag(text, iterator, processor=processor):
+    sys.stdout.write(line.replace("\r\n", "\n"))
+```
+
+Without `--no-space-after` (`space_after=False`), a last `SpaceAfter` column is `No` when the next token is glued to
+the token (`λόγος` followed by a comma) and `_` otherwise.
+
+### Using a larger model
+
+The default pipeline is `grc_proiel_sm`. GreCy also provides `grc_proiel_{sm,lg,trf}` and `grc_perseus_{sm,lg,trf}`.
+Install the pipeline you want (the `trf` ones also need `spacy-transformers`) and select it with the same
+`<pipeline,tasks>` syntax as the other models:
+
+```bash
+pip install spacy-transformers
+pip install "https://github.com/jmyerston/greCy/releases/download/v3.8.2/grc_proiel_trf-3.8.2-py3-none-any.whl"
+pie-extended tag grc_grecy demo.txt --tasks lemma,pos --no-space-after \
+    --model_path "<grc_proiel_trf,lemma,morph,pos,tag>"
+```
+
+```python
+tagger = get_tagger("grc_grecy", tasks=["lemma", "pos"], model_path="<grc_proiel_trf,lemma,morph,pos,tag>")
+```
+
+Two different GreCy pipelines cannot be loaded in the same Python process (spaCy refuses to register their components
+twice): use one pipeline per run.
+
 ## Python API
 
 You can run the lemmatizer in your own scripts and retrieve token annotations as dictionaries:

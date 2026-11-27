@@ -149,8 +149,11 @@ class DataIterator:
         :return: A boolean per token (in the order of the text, excluded tokens included) and the number of
             tokens that could not be located in the text
         """
+        surfaces = self.tokenizer.surface_tokens()
         memory = getattr(self.tokenizer, "tokens", None)
-        if memory and all(isinstance(entry, tuple) for entry in memory):
+        if surfaces is not None:
+            tokens = surfaces
+        elif memory and all(isinstance(entry, tuple) for entry in memory):
             tokens = [entry[1] for entry in memory]
         else:
             tokens = self._tokens

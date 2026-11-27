@@ -15,7 +15,8 @@ def space_after(text: str, tokens: List[str], lower: bool = False) -> Tuple[List
     At the very end of the text, we consider there is a space after (nothing is glued to the next token).
 
     :param text: Original text
-    :param tokens: Tokens in the order they were found in the text, *before* any replacement
+    :param tokens: Tokens in the order they were found in the text, *before* any replacement. An empty string is
+        a token that is not written in the text but moved from somewhere else (see below).
     :param lower: Whether the tokens were lowercased by the tokenizer
     :return: One boolean per token (True if a space follows), and the number of tokens that could not be located
         in the text (those are given True)
@@ -29,6 +30,15 @@ def space_after(text: str, tokens: List[str], lower: bool = False) -> Tuple[List
 
     >>> space_after("Arma uirumque", ["arma", "uirumque"], lower=True)
     ([True, True], 0)
+
+    A token that is not written in the text (an empty string) is glued to the previous token. This is for tokenizers
+    that detach a character from its word and output it after it (Armenian `Մի՞թե` -> `Միթե`, `՞`): the word is
+    given with the whole written form (mark included), and the moved token with an empty string.
+
+    >>> space_after("Մի՞թե այդ", ["Մի՞թե", "", "այդ"])
+    ([False, True, True], 0)
+    >>> space_after("Ո՞րն էր", ["Ո՞րն", "", "էր"])
+    ([False, True, True], 0)
 
     A token we cannot find does not prevent the next ones from being aligned:
 
@@ -46,7 +56,14 @@ def space_after(text: str, tokens: List[str], lower: bool = False) -> Tuple[List
     length = len(haystack)
 
     for token in tokens:
-        index = haystack.find(token, position) if token else -1
+        if token == "":
+            # Not written in the text: it ends where the previous token ends
+            if out:
+                out[-1] = False
+            out.append(position >= length or haystack[position].isspace())
+            continue
+
+        index = haystack.find(token, position)
         # We only trust a match that is directly after the previous token (modulo whitespace),
         #  or that is close enough to be a rewritten token.
         if index != -1 and haystack[position:index].strip() and index - position > RESYNC_WINDOW:

@@ -1,6 +1,6 @@
 # Releases
 
-### Unreleased
+### 1.0.1 (2026/11/27)
 
 - (models/grc_grecy) The default pipeline is `grc_perseus_trf` (the Perseus treebank, with a transformer) instead of
   `grc_proiel_sm`. `pie-extended install-addons grc_grecy` installs the pipeline of the model (`SpacyModel`), and the
@@ -13,8 +13,12 @@
   sets it, and `get_pipeline` follows it. Set it by hand on a tagger that you made yourself to get the same columns
 - A spaCy pipeline that is not installed is reported with how to install it (and no more with the advice to download
   Pie models)
+- Documentation: a page for the backends (how the spaCy one runs a pipeline, how to change the pipeline of a model, to
+  add a model or a task), a vocabulary (model, backend, tagger, the two meanings of "pipeline", tasks and columns), what
+  each model needs (sizes, add-ons, extras), and the environment variable `PIE_EXTENDED_DOWNLOADS` that tells where the
+  files of the models go. `install-addons lasla` does nothing: it is not part of the quick start anymore
 
-### 1.0.0 (unreleased)
+### 1.0.0 (2026/11/27)
 
 **Breaking changes**
 

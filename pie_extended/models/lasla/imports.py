@@ -1,4 +1,3 @@
-import regex as re
 from ...utils import get_path, ObjectCreator
 
 from autocat import NeedsDisambiguation, StraightAutodisambiguation, CategoryAutodisambiguation, GroupAutodisambiguation
@@ -10,8 +9,8 @@ from pie_extended.pipeline.iterators.proto import DataIterator, GenericExcludePa
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 from pie_extended.pipeline.postprocessor.splitter import SplitterPostProcessor
 
-# Uppercase regexp
-uppercase = re.compile(r"^[A-Z]$")
+# Tasks that must be tagged for the disambiguation to run (see `get_tagger(tasks=...)`)
+DISAMBIGUATION_TASKS = ("lemma", "pos", "Dis")
 
 
 def get_iterator_and_processor(max_tokens=256):
@@ -55,12 +54,10 @@ def _get_disambiguator():
     tasks = DisambiguationAsTask(task_name="Dis", separator="", undisambiguated_marker="?",
                                  lemma_key="lemma", empty_value="_", impossible_disambiguator=impossible)
     return Autocat(GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, tasks)),
-                   required=("lemma", "pos", "Dis"))
+                   required=DISAMBIGUATION_TASKS)
 
 
 Disambiguator: ObjectCreator = ObjectCreator(_get_disambiguator)
-# Known without loading the (downloaded) data: tasks that must be tagged for the disambiguation to run
-Disambiguator.required = ("lemma", "pos", "Dis")
 
 
 def addons():

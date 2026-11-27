@@ -1,18 +1,12 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import regex as re
-from typing import Match, List, Optional, Dict
+from typing import Match, List, Optional
 
 import pie_extended.pipeline.tokenizers.utils.chars as chars
 import pie_extended.pipeline.tokenizers.utils.regexps as regexps
-import copy
 
 # Common values so that there is not (too much) collision
-DOT = '語'
-COLON = '桁'
-BRACKET_L = '左'
-BRACKET_R = '右'
 APOSTROPHE = '風'
-DASH = "精"
 
 
 _DEFAULT_CHAR_REGISTRY = {
@@ -58,9 +52,11 @@ DEFAULT_CHAR_REGISTRY = CharRegistry()
 class ExcluderPrototype(ABC):
     """Excluders should be used to remove dots and the likes from string before sentence tokenization.
     Data can be reintroduce later with their .denormalize() method"""
+    @abstractmethod
     def before_sentence_tokenizer(self, value: str) -> str:
         raise NotImplementedError
 
+    @abstractmethod
     def after_sentence_tokenizer(self, value: str) -> str:
         raise NotImplementedError
 
@@ -138,9 +134,6 @@ class ReferenceExcluder(ExcluderPrototype):
         for char, repl in self.char_registry.items():
             value = value.replace(repl, char)
         return value
-
-    def ignore(self, string: str) -> bool:
-        return bool(self.re.match(string))
 
 
 class RegexpExcluder(ExcluderPrototype):

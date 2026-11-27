@@ -1,6 +1,6 @@
 from pie_extended.models.fro.imports import get_iterator_and_processor
 from pie_extended.testing_utils import FakeTagger
-from typing import List, Tuple
+from typing import List
 
 from unittest import TestCase
 from .test_lasla import make_fake_data

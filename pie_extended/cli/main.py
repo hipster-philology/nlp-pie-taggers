@@ -1,4 +1,5 @@
 import click
+import requests
 
 
 from pie_extended.cli import utils
@@ -34,11 +35,14 @@ def print_list(full):
 def download(model):
     """ Download a [model] for future availability. Check list for available models"""
     click.echo(click.style("Starting downloading...", bold=True))
-    for index, file in enumerate(utils.download(model)):
-        if index == 0:
-            click.echo("{} files to download".format(file))
-        else:
-            click.echo("- {} downloaded".format(file))
+    try:
+        for index, file in enumerate(utils.download(model)):
+            if index == 0:
+                click.echo("{} files to download".format(file))
+            else:
+                click.echo("- {} downloaded".format(file))
+    except requests.RequestException as e:
+        raise click.ClickException("Download failed ({}). Nothing was kept for the failed file.".format(e)) from e
     click.echo(click.style("Finished !", bold=True))
 
 
@@ -77,7 +81,7 @@ def download(model):
               help="Size of the embedding cache")
 @click.option("--num-threads", "num_threads", type=int, default=None,
               help="Number of torch threads")
-def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, device: str, debug: bool,
+def tag(model: str, filepath: str, allowed_failure: int, batch_size: int, device: str, debug: bool,
         model_path: str,
         reset_patterns: bool, add_pattern: Iterable[str],
         no_tokenizer: bool = False,
@@ -98,7 +102,7 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
             tasks=[t for t in tasks.split(",") if t.strip()] if tasks else None
         )
     except ValueError as e:
-        raise click.BadParameter(str(e), param_hint="--tasks")
+        raise click.BadParameter(str(e), param_hint="--tasks") from e
     except FileNotFoundError as e:
         click.echo("Model not found: please make sure you have downloaded the model files with "
                    "pie-extended download " + model)
@@ -143,8 +147,7 @@ def install(model):
               help="Provide this with your own model path if you want to test it")
 def details(model: str, model_path: str = None):
     """ Get details about known characters by the [model] """
-    from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
     tagger = utils.get_tagger(model, model_path=model_path, quantize=False, cache=False)
-    for model, tasks in tagger.models:
-        print(sorted(list(model.label_encoder.char.table.keys())))
+    for loaded_model, _ in tagger.models:
+        click.echo(sorted(loaded_model.label_encoder.char.table.keys()))

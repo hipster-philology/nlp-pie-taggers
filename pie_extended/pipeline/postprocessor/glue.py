@@ -1,10 +1,11 @@
-from pie_extended.pipeline.postprocessor.proto import ChainedProcessor, ProcessorPrototype, RenamedTaskProcessor
+from pie_extended.pipeline.postprocessor.proto import ChainedProcessor
 from typing import Generator, Dict, List
 
 
 class GlueProcessor(ChainedProcessor):
     """ Glues together specific tasks
 
+    >>> from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype, RenamedTaskProcessor
     >>> class SimpleGlue(GlueProcessor):
     ...     OUTPUT_KEYS = ["form", "lemma", "task3"]
     ...     GLUE = {"task3": ["1", "2"]} # Merges Task `1` output and task `2` output in `task3`

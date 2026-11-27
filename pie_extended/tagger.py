@@ -23,7 +23,8 @@ class ExtensibleTagger(Tagger):
     def __init__(self, device='cpu', batch_size=100, lower=False, disambiguation=None,
                  quantize=True, cache=True, cache_size=None, num_threads=None):
         if quantize and device != "cpu":
-            warnings.warn("Dynamic int8 quantization only works on CPU: disabling it for device " + str(device))
+            warnings.warn("Dynamic int8 quantization only works on CPU: disabling it for device " + str(device),
+                          stacklevel=2)
             quantize = False
         extra = {}
         if cache_size is not None:
@@ -42,13 +43,14 @@ class ExtensibleTagger(Tagger):
 
     def tag_file(self, fpath: str, iterator: DataIterator, processor: ProcessorPrototype, no_tokenizer: bool = False):
         # Read content of the file
-        with open(fpath) as f:
+        with open(fpath, encoding="utf-8") as f:
             data = f.read()
 
         _, ext = os.path.splitext(fpath)
 
         out_file = utils.ensure_ext(fpath, ext, 'pie')
-        with open(out_file, 'w+') as f:
+        # newline="": the formatter writes its own line endings, they must not be translated by the platform
+        with open(out_file, 'w', encoding="utf-8", newline="") as f:
             for line in self.iter_tag(data, iterator, processor=processor, no_tokenizer=no_tokenizer):
                 f.write(line)
 
@@ -95,7 +97,7 @@ class ExtensibleTagger(Tagger):
                 spacing, missed = iterator.spacing()
                 if missed:
                     warnings.warn("{} token(s) could not be aligned to the original text: "
-                                  "SpaceAfter is not reliable for them".format(missed))
+                                  "SpaceAfter is not reliable for them".format(missed), stacklevel=2)
                 processor.set_spacing(spacing)
                 spacing_set = True
 

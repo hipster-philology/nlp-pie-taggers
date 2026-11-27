@@ -5,7 +5,6 @@ import unicodedata
 from pie_extended.pipeline.tokenizers.utils.excluder import (
     ReferenceExcluder,
     DEFAULT_CHAR_REGISTRY,
-    ApostropheExcluder,
     chars
 )
 

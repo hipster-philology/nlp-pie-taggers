@@ -3,7 +3,6 @@ from typing import Dict, Pattern
 
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
 from pie_extended.pipeline.postprocessor.rulebased import RuleBasedProcessor
-from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 from pie_extended.utils import roman_number
 
 

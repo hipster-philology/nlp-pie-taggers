@@ -42,27 +42,12 @@ class MemoryzingProcessor(ChainedProcessor):
         super(MemoryzingProcessor, self).__init__(head_processor=head_processor, **kwargs)
         self.memory: "MemorizingTokenizer" = tokenizer_memory
         self._key: str = key or type(self).KEY
-        # Cursor in the memory: moving an index is O(1) where list.pop(0) is O(n) on each token
-        self._cursor: int = 0
-
-    def _next_memory(self):
-        """ Consumes the next entry of the tokenizer memory """
-        if self._cursor >= len(self.memory.tokens):
-            # Memory was refilled (new document) without a reset
-            self._cursor = 0
-        entry = self.memory.tokens[self._cursor]
-        self._cursor += 1
-        return entry
-
-    def reset(self):
-        self._cursor = 0
-        super(MemoryzingProcessor, self).reset()
 
     def get_dict(self, token: str, tags: List[str]) -> List[Dict[str, str]]:
         # First we get the dictionary
         list_token_dict = []
         for token_dict in self.head_processor.get_dict(token, tags):
-            index, input_token, out_token = self._next_memory()
+            _, input_token, out_token = self.memory.next_token()
             if token != out_token:
                 raise Exception("The output token does not match our inputs %s : %s" % (token, out_token))
 
@@ -87,7 +72,7 @@ class MemoryzingProcessor(ChainedProcessor):
         >>> x.reinsert("$")
         {'form': '$', 'task1': '_', 'task2': '_', 'treated': '--IGN.--'}
         """
-        self._next_memory()
+        self.memory.next_token()
         annotations = super(MemoryzingProcessor, self).reinsert(form)
         annotations['treated'] = '--IGN.--'
         return annotations

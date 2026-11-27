@@ -1,7 +1,7 @@
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype, ChainedProcessor
 from typing import Optional, Dict, List
 if "typing" == "nottyping":
-    from ..tokenizers.memorizing import MemorizingTokenizer
+    pass
 
 
 class RuleBasedProcessor(ChainedProcessor):

@@ -14,17 +14,6 @@ from ..pipeline.postprocessor.spacing import SpaceAfterProcessor
 from pie.utils import model_spec
 
 
-def check(model: str, force: bool = False) -> bool:
-    """ Check if files are available for a given model """
-    module = get_model(model)
-    return False not in [
-        os.path.exists(
-            get_path(model, file.name)
-        )
-        for file in module.DOWNLOADS
-    ] or force
-
-
 def get_model(model: str):
     """ Retrieve a module given a string
 
@@ -38,22 +27,39 @@ def get_imports(module):
     return import_module("{}.{}".format(module.__name__, "imports"))
 
 
-def _download(url, filename):
-    with open(filename, 'wb') as f:
-        response = requests.get(url, stream=True)
-        total = response.headers.get('content-length')
+# Seconds to wait for the server (connection, then between two chunks of data)
+DOWNLOAD_TIMEOUT = 60
 
-        if total is None:
-            f.write(response.content)
-        else:
-            downloaded = 0
-            total = int(total)
-            for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
-                downloaded += len(data)
-                f.write(data)
-                done = int(50*downloaded/total)
-                sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
-                sys.stdout.flush()
+
+def _download(url, filename):
+    """ Download `url` into `filename`.
+
+    The data is written in a temporary file that replaces `filename` only once complete, so that a failure
+    (HTTP error, network issue, interruption) never leaves a corrupted file that would be taken for a model.
+
+    :raises requests.HTTPError: If the server answers with an error status
+    """
+    temporary = filename + ".part"
+    try:
+        with requests.get(url, stream=True, timeout=DOWNLOAD_TIMEOUT) as response:
+            response.raise_for_status()
+            total = response.headers.get('content-length')
+            with open(temporary, 'wb') as f:
+                if total is None:
+                    f.write(response.content)
+                else:
+                    downloaded = 0
+                    total = int(total)
+                    for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
+                        downloaded += len(data)
+                        f.write(data)
+                        done = int(50*downloaded/total)
+                        sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
+                        sys.stdout.flush()
+        os.replace(temporary, filename)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
     sys.stdout.write('\n')
 
 
@@ -113,10 +119,9 @@ def resolve_tasks(model: str, requested: Iterable[str], spec: List[Tuple[str, Li
             ", ".join(unknown), model, ", ".join(outputs)))
 
     needed = set(probe.required_tasks(selected, available))
-    disambiguator = getattr(imports, "Disambiguator", None)
     # The disambiguation modifies the lemma: it is only worth its (costly) tasks if the lemma is wanted
-    if disambiguator is not None and "lemma" in [s.lower() for s in selected]:
-        needed.update(getattr(disambiguator, "required", ()))
+    if "lemma" in [s.lower() for s in selected]:
+        needed.update(getattr(imports, "DISAMBIGUATION_TASKS", ()))
 
     reduced = []
     for path, tasks in spec:

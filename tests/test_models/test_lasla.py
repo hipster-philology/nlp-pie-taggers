@@ -144,7 +144,6 @@ class TestLasla(TestCase):
             processor=processor,
             iterator=data_iterator
         )
-        flatten_seen = list([tok for sent in tagger.seen for tok in sent])
 
         self.assertEqual(result[0]["form"], "judicis", "'j' should be removed from tagging")
         self.assertEqual(result[0]["treated"], "iudicis", "And 'i' should replace it")

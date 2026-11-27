@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Type, Generator, Tuple
+from typing import List, Dict, Optional
 
 DEFAULT_EMPTY = "_"
 
@@ -32,9 +32,6 @@ class ProcessorPrototype:
         self.task_init = True
         self._tasks = tasks
         return tasks
-
-    def postprocess(self, line):
-        pass
 
     def set_spacing(self, spacing: List[bool]) -> None:
         """ Receives, for each token of the document, if it is followed by a space (only used by the

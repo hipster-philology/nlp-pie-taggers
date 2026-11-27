@@ -1,4 +1,4 @@
-from pie_extended.pipeline.iterators.proto import DataIterator, GenericExcludePatterns
+from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 from pie_extended.models.occ_cont.tokenizer import OccMemorizingTokenizer
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype

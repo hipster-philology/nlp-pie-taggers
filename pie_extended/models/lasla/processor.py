@@ -98,7 +98,7 @@ class LatinRulesProcessor(RuleBasedProcessor):
 class LatinGlueProcessor(GlueProcessor):
     OUTPUT_KEYS = ["form", "lemma", "pos", "morph", "Dis"]
     GLUE = {"morph": ["Case", "Numb", "Gend", "Deg", "Mood", "Tense", "Voice", "Person"]}
-    WHEN_EMPTY = {"morph": "MORPH=empty"}
+    GLUE_EMPTY = {"morph": "MORPH=empty"}
     EMPTY_TAG: Dict[str, str] = {"Case": "_", "Numb": "_", "Deg": "_", "Mood": "_", "Tense": "_", "Voice": "_",
                                  "Person": "_", "Gend": "_"}
 

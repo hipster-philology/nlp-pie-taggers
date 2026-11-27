@@ -19,7 +19,8 @@ def get_iterator_and_processor(max_tokens=256):
     warnings.warn(
         "The Old Castilian (osp) models are a proof of concept (dummy models): "
         "their output should not be relied upon.",
-        UserWarning
+        UserWarning,
+        stacklevel=2
     )
     tokenizer = OspMemorizingTokenizer()
     processor = MemoryzingProcessor(

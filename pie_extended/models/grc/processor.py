@@ -2,12 +2,12 @@ from typing import Dict, List
 
 
 from pie_extended.pipeline.postprocessor.glue import GlueProcessor
-from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 
 
 class GreekMorphProcessor(GlueProcessor):
     """
 
+    >>> from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
     >>> m = GreekMorphProcessor(head_processor=ProcessorPrototype())
     >>> m.set_tasks(["case", "degree", "gend", "lemma", "mood", "num", "pers", "pos", "tense", "voice"])
     ['lemma', 'pos', 'morph']

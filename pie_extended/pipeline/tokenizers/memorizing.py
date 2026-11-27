@@ -1,5 +1,5 @@
 from .simple_tokenizer import SimpleTokenizer, RE_BYPASS_SENTENCE, RE_BYPASS_WORD
-from typing import List, Tuple, Dict, Generator
+from typing import List, Tuple, Generator
 
 
 class MemorizingTokenizer(SimpleTokenizer):
@@ -14,7 +14,41 @@ class MemorizingTokenizer(SimpleTokenizer):
         return token
 
     def __init__(self):
-        self.tokens: List[Tuple[int, str, str]] = []
+        self.tokens = []
+
+    @property
+    def tokens(self) -> List[Tuple[int, str, str]]:
+        """ Memory of the tokenizer: (Index, Original input, Input seen by the tagger) for each token.
+
+        Replacing it (what `reset` does) also rewinds the cursor used by `next_token`.
+        """
+        return self._tokens
+
+    @tokens.setter
+    def tokens(self, value: List[Tuple[int, str, str]]) -> None:
+        self._tokens = value
+        self._cursor = 0
+
+    def next_token(self) -> Tuple[int, str, str]:
+        """ Gives the next entry of the memory, in the order of the text (O(1), unlike `list.pop(0)`)
+
+        >>> tokenizer = MemorizingTokenizer()
+        >>> tokenizer.tokens = [(0, "A", "a"), (1, "b", "b")]
+        >>> tokenizer.next_token(), tokenizer.next_token()
+        ((0, 'A', 'a'), (1, 'b', 'b'))
+        >>> tokenizer.next_token()
+        Traceback (most recent call last):
+        ...
+        IndexError: The memory of the tokenizer has no more tokens
+        >>> tokenizer.reset()
+        >>> tokenizer.tokens
+        []
+        """
+        if self._cursor >= len(self._tokens):
+            raise IndexError("The memory of the tokenizer has no more tokens")
+        entry = self._tokens[self._cursor]
+        self._cursor += 1
+        return entry
 
     def _real_word_tokenizer(self, data: str, lower: bool = False) -> List[str]:
         return super(MemorizingTokenizer, self).word_tokenizer(data, lower=lower)

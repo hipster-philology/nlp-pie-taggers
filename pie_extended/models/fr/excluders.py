@@ -1,7 +1,7 @@
 from typing import Tuple, Match, Optional
 import regex as re
 
-from pie_extended.pipeline.tokenizers.utils.excluder import ExcluderPrototype, DASH, APOSTROPHE, CharRegistry
+from pie_extended.pipeline.tokenizers.utils.excluder import ExcluderPrototype, CharRegistry
 from pie_extended.pipeline.tokenizers.utils import chars
 
 

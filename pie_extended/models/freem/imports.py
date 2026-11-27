@@ -1,6 +1,6 @@
 from ..fr.tokenizer import FrMemorizingTokenizer
 from pie_extended.pipeline.iterators.proto import DataIterator
-from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype, RenamedTaskProcessor
+from pie_extended.pipeline.postprocessor.proto import RenamedTaskProcessor
 from pie_extended.pipeline.postprocessor.memory import MemoryzingProcessor
 from ..fr.processor import FrGlueProcessor
 

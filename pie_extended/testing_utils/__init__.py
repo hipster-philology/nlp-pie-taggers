@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from pie_extended.pipeline.iterators.proto import DataIterator
 from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
 from pie_extended.tagger import ExtensibleTagger
@@ -33,13 +33,6 @@ class FakeAutoTag(ExtensibleTagger):
         self.start_end: bool = False
         for key in kwargs:
             setattr(self, key, kwargs[key])
-
-    def toggle_start_end(self, status: Optional[bool] = None) -> bool:
-        if status is None:
-            self.start_end = not self.start_end
-        else:
-            self.start_end = status
-        return self.start_end
 
     def tag(self, sents: List[List[str]], lengths: List[int], *args, **kwargs):
         """ Fake tagging tokens by enumerating informations

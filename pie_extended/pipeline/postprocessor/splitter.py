@@ -45,10 +45,21 @@ class SplitterPostProcessor(ChainedProcessor):
         self.keep: bool = keep
         self.prefix: str = prefix
 
+    def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
+        """ Splitting needs the column, even when it is not part of the output (hidden dependency)
+
+        >>> SplitterPostProcessor().required_tasks(["POS"], ["lemma", "POS"])
+        ['POS', 'lemma']
+        """
+        requested = list(requested)
+        if self.column not in requested:
+            requested.append(self.column)
+        return self.head_processor.required_tasks(requested, available)
+
     def get_dict(self, token: str, tags: List[str]) -> List[Dict[str, str]]:
         out = []
         for anno in super(SplitterPostProcessor, self).get_dict(token=token, tags=tags):
-            if self.split_char in anno[self.column]:
+            if self.column in anno and self.split_char in anno[self.column]:
                 for number, new_val in enumerate(anno[self.column].split(self.split_char)):
                     if number > 0:
                         new_val = self.prefix + new_val

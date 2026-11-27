@@ -54,10 +54,13 @@ def _get_disambiguator():
         get_path("lasla", "latin-needs.json"), lemma_key="lemma")
     tasks = DisambiguationAsTask(task_name="Dis", separator="", undisambiguated_marker="?",
                                  lemma_key="lemma", empty_value="_", impossible_disambiguator=impossible)
-    return Autocat(GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, tasks)))
+    return Autocat(GroupAutodisambiguation(lemma_key="lemma", categorizers=(straight, pos, tasks)),
+                   required=("lemma", "pos", "Dis"))
 
 
 Disambiguator: ObjectCreator = ObjectCreator(_get_disambiguator)
+# Known without loading the (downloaded) data: tasks that must be tagged for the disambiguation to run
+Disambiguator.required = ("lemma", "pos", "Dis")
 
 
 def addons():

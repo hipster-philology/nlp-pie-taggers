@@ -1,5 +1,6 @@
 import os
-from typing import Optional, Dict, Generator, Type
+import warnings
+from typing import Optional, Dict, Generator, Type, List
 
 from pie.utils import shutup
 
@@ -20,13 +21,22 @@ class ExtensibleTagger(Tagger):
     :param cache: Use cache
     """
     def __init__(self, device='cpu', batch_size=100, lower=False, disambiguation=None,
-                 quantize=True, cache=True):
+                 quantize=True, cache=True, cache_size=None, num_threads=None):
+        if quantize and device != "cpu":
+            warnings.warn("Dynamic int8 quantization only works on CPU: disabling it for device " + str(device))
+            quantize = False
+        extra = {}
+        if cache_size is not None:
+            extra["cache_size"] = cache_size
+        if num_threads is not None:
+            extra["num_threads"] = num_threads
         super(ExtensibleTagger, self).__init__(
             device=device,
             batch_size=batch_size,
             lower=lower,
             quantize=quantize,
-            cache=cache
+            cache=cache,
+            **extra
         )
         self.disambiguation: Optional[Disambiguator] = disambiguation
 
@@ -45,7 +55,7 @@ class ExtensibleTagger(Tagger):
         return out_file
 
     def tag_str(self, data: str, iterator: DataIterator, processor: ProcessorPrototype,
-                no_tokenizer: bool = False) -> str:
+                no_tokenizer: bool = False) -> List[Dict[str, str]]:
         return list(self.iter_tag_token(data, iterator, processor=processor, no_tokenizer=no_tokenizer))
 
     def iter_tag_token(self,
@@ -84,18 +94,20 @@ class ExtensibleTagger(Tagger):
             if not processor.task_init:
                 processor.set_tasks(tasks)
 
+            tagged_iter = iter(tagged)
+
             # We keep a real sentence index
             for sents_index, sent_is_empty in enumerate(is_empty):
                 if sent_is_empty:
                     sent = []
                 else:
-                    sent = tagged.pop(0)
+                    sent = next(tagged_iter)
 
                 # Gets things that needs to be reinserted
                 sent_reinsertion = needs_reinsertion[sents_index]
 
                 # If we have a disambiguator, we run the results into it
-                if self.disambiguation and sent:
+                if self.disambiguation and sent and getattr(self.disambiguation, "can_run", lambda _: True)(tasks):
                     sent = self.disambiguation(sent, tasks)
 
                 reinsertion_index = 0

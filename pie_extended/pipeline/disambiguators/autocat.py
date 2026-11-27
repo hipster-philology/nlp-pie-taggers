@@ -1,10 +1,12 @@
 from autocat.autocat import ProtoDisambiguator, NeedsDisambiguation
 from .proto import Disambiguator
-from typing import Optional, Set
+from typing import Optional, Set, Tuple
 
 
 class Autocat(Disambiguator):
-    def __init__(self, autocat_categorizer: ProtoDisambiguator, separator: str = "", **kwargs):
+    def __init__(self, autocat_categorizer: ProtoDisambiguator, separator: str = "",
+                 required: Tuple[str, ...] = (), **kwargs):
+        self.required = tuple(required)
         self.autocat_categorizer: ProtoDisambiguator = autocat_categorizer
         self.lemma_key = autocat_categorizer.lemma_key
         self.separator = separator
@@ -21,7 +23,8 @@ class Autocat(Disambiguator):
         for (tok, tags, dis) in zip(toks, sents_as_rows, self.autocat_categorizer.disambiguate_rows(sents_as_rows)):
             if dis:
                 tags[self.lemma_key] += dis
-            out.append((tok, list(tags.values())))
+            # Follow task order explicitly instead of relying on dict ordering
+            out.append((tok, [tags[task] for task in tasks]))
 
         return out
 

@@ -70,12 +70,14 @@ class GlueProcessor(ChainedProcessor):
         # For each key we should return
         for head in self._out:
             if head not in self._glue:
-                yield head, token_dict[head]
+                if head in token_dict:
+                    yield head, token_dict[head]
             else:
                 # Otherwise, we glue together things that should be glued together
                 joined = self._glue_char.join([
                     self._get_glued(glued_task, token_dict)
                     for glued_task in self._glue[head]
+                    if glued_task in token_dict
                     if self._keep_empty or token_dict[glued_task] != self._empty_tags.get(glued_task, None)
                 ])
                 if not joined:
@@ -84,6 +86,36 @@ class GlueProcessor(ChainedProcessor):
 
     def _get_glued(self, glued_task: str, token_dict: Dict[str, str]):
         return glued_task + "=" + token_dict[glued_task]
+
+    def set_tasks(self, tasks):
+        """ Only keeps the output keys that can be built from the tasks that were actually produced
+
+        >>> from pie_extended.pipeline.postprocessor.proto import ProcessorPrototype
+        >>> x = GlueProcessor(head_processor=ProcessorPrototype())
+        >>> x.set_tasks(["lemma", "POS"])
+        ['lemma', 'POS']
+        >>> x.get_dict("a", ["l", "p"]) == [{"form": "a", "lemma": "l", "POS": "p"}]
+        True
+        >>> x.set_tasks(["Case", "lemma"])
+        ['lemma', 'morph']
+        >>> x.get_dict("a", ["c", "l"]) == [{"form": "a", "lemma": "l", "morph": "Case=c"}]
+        True
+        """
+        self._tasks = self.head_processor.set_tasks(tasks)
+        produced = set(self._tasks)
+        self._out = [
+            key for key in self.OUTPUT_KEYS
+            if key == "form"
+            or (key in self._glue and any(sub in produced for sub in self._glue[key]))
+            or (key not in self._glue and key in produced)
+        ]
+        return self.tasks
+
+    def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
+        expanded = []
+        for task in requested:
+            expanded.extend(self._glue.get(task, [task]))
+        return self.head_processor.required_tasks(expanded, available)
 
     def reinsert(self, form: str) -> Dict[str, str]:
         return dict(form=form, **{key: self.empty_value for key in self._out if key != "form"})

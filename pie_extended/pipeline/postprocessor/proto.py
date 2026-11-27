@@ -36,6 +36,18 @@ class ProcessorPrototype:
     def postprocess(self, line):
         pass
 
+    def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
+        """ Translates output columns into the tasks that models must produce for them
+
+        :param requested: Output columns that are wanted
+        :param available: Tasks that models can produce
+        :return: Tasks (of the layer below) required to build the requested columns
+
+        >>> ProcessorPrototype().required_tasks(["a"], ["a", "b"])
+        ['a']
+        """
+        return list(requested)
+
     def reinsert(self, form: str) -> Dict[str, str]:
         """ Generates an automatic line for a token that was removed from lemmatization
 
@@ -93,6 +105,16 @@ class RenamedTaskProcessor(ProcessorPrototype):
     def set_tasks(self, tasks):
         self._tasks = [self._map.get(task, task) for task in tasks]
         return self.tasks
+
+    def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
+        """ Inverts the renaming
+
+        >>> RenamedTaskProcessor({"pos": "POS"}).required_tasks(["POS", "lemma"], ["pos", "lemma"])
+        ['pos', 'lemma']
+        """
+        inverse = {new: old for old, new in self._map.items()}
+        # A task is only inverted if the model really owns the original name
+        return [inverse[task] if task in inverse and inverse[task] in available else task for task in requested]
 
 
 class ChainedProcessor(ProcessorPrototype):
@@ -153,5 +175,35 @@ class ChainedProcessor(ProcessorPrototype):
     def get_dict(self, token: str, tags: List[str]) -> List[Dict[str, str]]:
         return self.head_processor.get_dict(token, tags)
 
+    def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
+        return self.head_processor.required_tasks(requested, available)
+
     def reset(self):
         self.head_processor.reset()
+
+
+class SelectTasksProcessor(ChainedProcessor):
+    """ Restricts the output columns to a subset of the tasks.
+
+    Useful when a processor needs hidden dependencies (e.g. a lemma to split clitics) that
+    were not asked for by the user.
+
+    >>> x = SelectTasksProcessor(ProcessorPrototype(), ["b"])
+    >>> x.set_tasks(["a", "b"])
+    ['b']
+    >>> x.get_dict("y", ["1", "2"])[0]["b"]
+    '2'
+    """
+    def __init__(self, head_processor: Optional[ProcessorPrototype], selected: List[str], **kwargs):
+        super(SelectTasksProcessor, self).__init__(head_processor, **kwargs)
+        self.selected: List[str] = list(selected)
+
+    def set_tasks(self, tasks):
+        self.head_processor.set_tasks(tasks)
+        self.task_init = True
+        self._tasks = [task for task in self.head_processor.tasks if task in self.selected]
+        return self._tasks
+
+    @property
+    def tasks(self) -> List[str]:
+        return self._tasks

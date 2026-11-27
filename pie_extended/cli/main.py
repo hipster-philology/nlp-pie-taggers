@@ -63,16 +63,35 @@ def download(model):
               help="Add new exclude patterns  for token (Regular expression)", multiple=True)
 @click.option("--max-tokens", "max_tokens",
               help="Maximum length of sentence", type=int, default=64)
+@click.option("--tasks", "tasks", type=str, default=None,
+              help="Comma separated list of columns to produce (e.g. lemma,POS). Models not needed "
+                   "for them are neither loaded nor run. Default: everything")
+@click.option("--no-quantize", "no_quantize", is_flag=True, default=False,
+              help="Disable int8 dynamic quantization (enabled by default on cpu)")
+@click.option("--no-cache", "no_cache", is_flag=True, default=False,
+              help="Disable the embedding cache")
+@click.option("--cache-size", "cache_size", type=int, default=None,
+              help="Size of the embedding cache")
+@click.option("--num-threads", "num_threads", type=int, default=None,
+              help="Number of torch threads")
 def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, device: str, debug: bool,
         model_path: str,
         reset_patterns: bool, add_pattern: Iterable[str],
         no_tokenizer: bool = False,
-        max_tokens: int = 64):
+        max_tokens: int = 64,
+        tasks: str = None, no_quantize: bool = False, no_cache: bool = False,
+        cache_size: int = None, num_threads: int = None):
     """ Tag as many [filepath] as you want with [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
     try:
-        tagger = utils.get_tagger(model, batch_size=batch_size, device=device, model_path=model_path)
+        tagger = utils.get_tagger(
+            model, batch_size=batch_size, device=device, model_path=model_path,
+            quantize=not no_quantize, cache=not no_cache, cache_size=cache_size, num_threads=num_threads,
+            tasks=[t for t in tasks.split(",") if t.strip()] if tasks else None
+        )
+    except ValueError as e:
+        raise click.BadParameter(str(e), param_hint="--tasks")
     except FileNotFoundError as e:
         click.echo("Model not found: please make sure you have downloaded the model files with "
                    "pie-extended download " + model)
@@ -80,12 +99,13 @@ def tag(model: str, filepath: str, allowed_failure: bool, batch_size: int, devic
             raise e
         return
     failures = []
+    # Built once for all files: the tagger resets tokenizer and processors before each document
+    pipeline = utils.get_pipeline(
+        model, tagger, reset_exclude_patterns=reset_patterns,
+        exclude_patterns=add_pattern, max_tokens=max_tokens)
     for file in tqdm(filepath):
         try:
-            utils.tag_file(
-                model, tagger, file, reset_exclude_patterns=reset_patterns,
-                exclude_patterns=add_pattern, no_tokenizer=no_tokenizer,
-                max_tokens=max_tokens)
+            utils.tag_file(model, tagger, file, no_tokenizer=no_tokenizer, pipeline=pipeline)
         except Exception as E:
             failures.append((file, E))
             click.echo("{} could not be lemmatized".format(file))
@@ -117,6 +137,6 @@ def details(model: str, model_path: str = None):
     """ Get details about known characters by the [model] """
     from tqdm import tqdm
     click.echo(click.style("Getting the tagger", bold=True))
-    tagger = utils.get_tagger(model, model_path=model_path)
+    tagger = utils.get_tagger(model, model_path=model_path, quantize=False, cache=False)
     for model, tasks in tagger.models:
         print(sorted(list(model.label_encoder.char.table.keys())))

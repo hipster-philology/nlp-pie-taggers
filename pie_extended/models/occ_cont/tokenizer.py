@@ -13,6 +13,31 @@ _Dots_except_apostrophe = r".?!\"“”\"«»…\[\]\(\)„“"
 _SpaceNormalizer = re.compile(r"(\s+)")
 _APO = chars.APOSTROPHE
 
+# Substitutions applied by `_real_word_tokenizer`, compiled once at import (order matters)
+_I = re.IGNORECASE
+_PRE_SUBS = [
+    (re.compile(rf"((?:qu)|[dl])[{_APO}]"), r"\1' "),
+    (re.compile(r'(\d)\s(\d)'), r'\1<PPLesp>\2'),
+]
+_WORD_SUBS = [
+    (re.compile(r"(-[nz]-)(\P{L}*)", _I), r"\t\1\t\2"),  # pas d'espace
+    (re.compile(r"(\P{L}|^)" + rf"([dlmnst][{_APO}])", _I), r"\1\t\2\t"),  # espace avant
+    (re.compile(r"(\P{L}|^)(\p{L}*[qnv][us]" + rf"[{_APO}])", _I), r"\1\t\2\t"),  # espace avant
+    (re.compile(r"(\P{L}|^)(\p{L}*" + rf"qu[{_APO}])", _I), r"\1\t\2\t"),  # espace avant  # TODO Duplicate of [qnv][us]' ?
+    (re.compile(r"(\P{L}|^)(\p{L}*" + rf"ent[{_APO}])", _I), r"\1\t\2\t"),  # espace avant
+    (re.compile(r"(\P{L}|^)(\p{L}*" + rf"[çcbzu][{_APO}])", _I), r"\1\t\2\t"),  # espace avant  # TODO Merge with [dlmnst] ?
+    (re.compile(r"([\p{L}\d]+(\.[\p{L}\d]+)+)"), r"\t\1\t"),  # espace avant et après
+    (re.compile(r"\.($|\P{L})"), r"\t.\1"),
+    (re.compile(r"(\D|^),"), r"\1\t,\t"),
+    (re.compile(r",($|\D)"), r"\t,\t\1"),
+    (re.compile(rf"-(vos|ne|[st][eu]?[{_APO}]?|l[aoi{_APO}]s?|me|d[{_APO}]|en|[nv]os|u)" + r"($|\P{L})", _I), r"\t-\1\t\2"),  # espace après  # TODO Try to simplify ?
+    (re.compile(rf"[{_APO}]" + r"([unv]\p{L}*)($|\P{L})", _I), r"\t'\1\t\2"),  # règle pour 'u 'us 'n 'v 'ns 'vs... # espace après
+    (re.compile(rf"[{_APO}]" r"([dlmnsti])($|\P{L})", _I), r"\t'\1\t\2"),  # règle pour 'm 't 'i 's 'ac ... # espace après
+    (re.compile(r"(\p{P})(\p{P})"), r"\t\1\t\2\t"),
+    (re.compile(r"<PPLesp>"), ' '),
+    (re.compile(r"([<>])"), r"\t\1\t"),
+]
+
 
 class OccMemorizingTokenizer(MemorizingTokenizer):
     """ Occitan Tokenizer with memorizing capacities (for normalization steps)
@@ -72,8 +97,8 @@ class OccMemorizingTokenizer(MemorizingTokenizer):
         # Normalize apostrophe of qu' d' l'
         # ToDo: Unclear if we should not simply use the regulizer for apostrophes...
         # ToDo: Unclear if it is not already taken care of by the rest of the regexp
-        text = re.sub(rf"((?:qu)|[dl])[{_APO}]", r"\1' ", text)
-        text = re.sub(r'(\d)\s(\d)', r'\1<PPLesp>\2', text)
+        text = _PRE_SUBS[0][0].sub(_PRE_SUBS[0][1], text)
+        text = _PRE_SUBS[1][0].sub(_PRE_SUBS[1][1], text)
         for m in self.re_split_step_one.split(text):
             if not m or not m.strip():
                 continue
@@ -82,22 +107,8 @@ class OccMemorizingTokenizer(MemorizingTokenizer):
             elif self.re_split_match.match(m):
                 res.append(m)
             else:
-                m = re.sub(r"(-[nz]-)(\P{L}*)", r"\t\1\t\2", m, flags=re.IGNORECASE)  # pas d'espace
-                m = re.sub(r"(\P{L}|^)"+rf"([dlmnst][{_APO}])", r"\1\t\2\t", m, flags=re.IGNORECASE)  # espace avant
-                m = re.sub(r"(\P{L}|^)(\p{L}*[qnv][us]"+rf"[{_APO}])", r"\1\t\2\t", m, flags=re.IGNORECASE)  # espace avant
-                m = re.sub(r"(\P{L}|^)(\p{L}*"+rf"qu[{_APO}])", r"\1\t\2\t", m, flags=re.IGNORECASE)  # espace avant  # TODO Duplicate of [qnv][us]' ?
-                m = re.sub(r"(\P{L}|^)(\p{L}*"+rf"ent[{_APO}])", r"\1\t\2\t", m, flags=re.IGNORECASE)  # espace avant
-                m = re.sub(r"(\P{L}|^)(\p{L}*"+rf"[çcbzu][{_APO}])", r"\1\t\2\t", m, flags=re.IGNORECASE)  # espace avant  # TODO Merge with [dlmnst] ?
-                m = re.sub(r"([\p{L}\d]+(\.[\p{L}\d]+)+)", r"\t\1\t", m)  # espace avant et après
-                m = re.sub(r"\.($|\P{L})", r"\t.\1", m)
-                m = re.sub(r"(\D|^),", r"\1\t,\t", m)
-                m = re.sub(r",($|\D)", r"\t,\t\1", m)
-                m = re.sub(rf"-(vos|ne|[st][eu]?[{_APO}]?|l[aoi{_APO}]s?|me|d[{_APO}]|en|[nv]os|u)"+r"($|\P{L})", r"\t-\1\t\2", m, flags=re.IGNORECASE)  # espace après  # TODO Try to simplify ?
-                m = re.sub(rf"[{_APO}]"+r"([unv]\p{L}*)($|\P{L})", rf"\t'\1\t\2", m, flags=re.IGNORECASE)  # règle pour 'u 'us 'n 'v 'ns 'vs... # espace après
-                m = re.sub(rf"[{_APO}]"r"([dlmnsti])($|\P{L})", r"\t'\1\t\2", m, flags=re.IGNORECASE)  # règle pour 'm 't 'i 's 'ac ... # espace après
-                m = re.sub(r"(\p{P})(\p{P})", r"\t\1\t\2\t", m)
-                m = re.sub(r"<PPLesp>", ' ', m)
-                m = re.sub(r"([<>])", r"\t\1\t", m)
+                for pattern, replacement in _WORD_SUBS:
+                    m = pattern.sub(replacement, m)
                 res.extend(m.split('\t'))
 
         # Remove empty tokens

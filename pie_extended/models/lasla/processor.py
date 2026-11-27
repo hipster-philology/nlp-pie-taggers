@@ -60,7 +60,7 @@ class LatinRulesProcessor(RuleBasedProcessor):
         # If Else condition
         token = annotation["form"]
 
-        if annotation["lemma"].startswith("界"):
+        if annotation.get("lemma", "").startswith("界"):
             lem = annotation["lemma"][1:]
             return {
                 "lemma": lem + self.CLITICS_DIS.get(lem, ""),
@@ -83,7 +83,7 @@ class LatinRulesProcessor(RuleBasedProcessor):
         elif token.startswith("[REF:"):
             return {"form": token, "lemma": "[METADATA]", "pos": "OUT", "morph": "MORPH=empty",
                     "treated": annotation['treated'], "Dis": "_"}
-        elif annotation["lemma"].isdigit() and annotation["treated"].isdigit() and not token.isnumeric():
+        elif annotation.get("lemma", "").isdigit() and annotation["treated"].isdigit() and not token.isnumeric():
             try:
                 annotation["lemma"] = str(roman_number(token))
             except KeyError:
@@ -114,13 +114,26 @@ class MoodTenseVoice(ChainedProcessor):
         self._out_tasks = []
         self.empty_value = empty_value
 
+    def required_tasks(self, requested: List[str], available: List[str]) -> List[str]:
+        """ Sub-tasks (Mood, Tense, Voice) are all produced by the composite model `Mood_Tense_Voice`
+
+        >>> MoodTenseVoice(ProcessorPrototype()).required_tasks(["Mood", "lemma"], ["Mood_Tense_Voice", "lemma"])
+        ['Mood_Tense_Voice', 'lemma']
+        """
+        out = []
+        for task in requested:
+            composites = [av for av in available if "_" in av and task in av.split("_")]
+            out.extend(composites or [task])
+        return self.head_processor.required_tasks(out, available)
+
     def set_tasks(self, tasks):
-        self._tasks = self.head_processor.set_tasks(tasks)
         self._out_tasks = [
             subtask
-            for task in self._tasks
+            for task in self.head_processor.set_tasks(tasks)
             for subtask in task.split("_")
         ]
+        # Downstream processors must see the split tasks (Mood, Tense, Voice) and not the composite one
+        self._tasks = self._out_tasks
         return self.tasks
 
     def reinsert(self, form: str) -> Dict[str, str]:

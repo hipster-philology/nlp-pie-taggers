@@ -80,6 +80,22 @@ In Python, `get_pipeline(model, tagger)` builds the iterator and processor (with
 `space_after=False`) once, so that you can reuse them over several texts. The processors given by
 `get_iterator_and_processor()` do not output it: wrap them with `SpaceAfterProcessor(processor)` to get it.
 
+## Using other tools (spaCy, GreCy)
+
+A model does not have to run through Pie. `pie_extended.spacy_tagger.SpacyTagger` runs a spaCy pipeline behind
+the same iterators, processors and options (`--tasks`, `SpaceAfter`...). `grc_grecy` is the first one:
+Ancient Greek with [GreCy](https://github.com/jmyerston/greCy).
+
+```bash
+pip install pie-extended[grecy]
+pie-extended install-addons grc_grecy   # installs the spaCy pipeline (grc_proiel_sm)
+pie-extended tag grc_grecy your_file.txt --tasks lemma,pos
+```
+
+Tasks are `lemma`, `pos` (universal POS), `tag` (language specific POS) and `morph` (UD features).
+To add another spaCy model, create a model package with `Backend = "spacy"` and a `Models` string whose "path" is
+the name of the spaCy pipeline (see `pie_extended/models/grc_grecy`).
+
 ## Python API
 
 You can run the lemmatizer in your own scripts and retrieve token annotations as dictionaries:

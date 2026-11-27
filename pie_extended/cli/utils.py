@@ -157,8 +157,12 @@ def get_tagger(model: str, batch_size: int = 16, device="cpu", model_path=None,
     disambiguator = getattr(get_imports(module), "Disambiguator", None)
     if isinstance(disambiguator, ObjectCreator):
         disambiguator = disambiguator.create()
-    tagger = ExtensibleTagger(disambiguation=disambiguator, batch_size=batch_size, device=device,
-                              quantize=quantize, cache=cache, cache_size=cache_size, num_threads=num_threads)
+    tagger_class = ExtensibleTagger
+    if getattr(module, "Backend", "pie") == "spacy":
+        from ..spacy_tagger import SpacyTagger  # spaCy is an optional dependency
+        tagger_class = SpacyTagger
+    tagger = tagger_class(disambiguation=disambiguator, batch_size=batch_size, device=device,
+                          quantize=quantize, cache=cache, cache_size=cache_size, num_threads=num_threads)
     for path, model_tasks in spec:
         tagger.add_model(path, *model_tasks)
     # Output columns to keep when writing (hidden dependencies such as lemma for clitic splitting are dropped)

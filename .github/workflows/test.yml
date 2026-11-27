@@ -1,6 +1,10 @@
 name: Test library
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_call:   # called by the release: nothing is published if the tests fail
 
 jobs:
   build:

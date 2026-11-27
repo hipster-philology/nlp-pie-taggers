@@ -71,3 +71,14 @@ pytest --doctest-modules tests pie_extended
 
 Build this documentation with `make docs`: the result is in `docs/_build/html`
 (`make docs-serve` serves it on <http://localhost:8000>).
+
+## Release a new version
+
+Releases are published on [PyPI](https://pypi.org/project/pie-extended/) by a workflow, when a tag is pushed:
+
+1. change `version` in `pyproject.toml` and commit it;
+2. `git tag vX.Y.Z` (the tag must be `v` followed by that version) and `git push origin vX.Y.Z`.
+
+The workflow runs the tests on every supported Python, builds the package, checks that the tag is the version, and
+publishes it. Nothing is published if one of these fails. No password is stored: PyPI trusts the workflow
+(*trusted publishing*, set up once in the settings of the project on PyPI).

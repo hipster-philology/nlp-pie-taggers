@@ -1,0 +1,70 @@
+name: Release
+
+# Publishes the package on PyPI when a tag `vX.Y.Z` is pushed (like PaPie), after the tests passed:
+#
+#   1. change `version` in pyproject.toml, commit it
+#   2. git tag vX.Y.Z && git push origin vX.Y.Z
+#
+# No password or token is stored: PyPI trusts this workflow ("trusted publishing"). To set up, once:
+#   - on PyPI, project pie-extended > Settings > Publishing > add a GitHub publisher:
+#       owner hipster-philology, repository nlp-pie-taggers, workflow release.yml, environment pypi
+#   - on GitHub, Settings > Environments > New environment "pypi" (you can require a reviewer there)
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: The tag is the version of the package
+      run: |
+        python - <<'PY'
+        import os, tomllib
+        tag = os.environ["GITHUB_REF_NAME"]
+        with open("pyproject.toml", "rb") as f:
+            version = tomllib.load(f)["project"]["version"]
+        if tag != "v" + version:
+            raise SystemExit("::error::The tag is {} but pyproject.toml says version {}".format(tag, version))
+        print("Releasing", version)
+        PY
+    - name: Build the distributions
+      run: |
+        python -m pip install build twine
+        python -m build
+        twine check --strict dist/*
+    - name: Keep the distributions
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-dists
+        path: dist/
+
+  publish:
+    name: Upload release to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pie-extended
+    permissions:
+      id-token: write   # what PyPI checks to trust this workflow
+    steps:
+    - name: Get the distributions
+      uses: actions/download-artifact@v4
+      with:
+        name: release-dists
+        path: dist/
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1

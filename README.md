@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/hipster-philology/nlp-pie-taggers/badge.svg?branch=master)](https://coveralls.io/github/hipster-philology/nlp-pie-taggers?branch=master)
 ![PyPI](https://img.shields.io/pypi/v/pie-extended?style=flat-square)
 
-**Warning**: This software is only compatible with up to Python 3.7 for the moment.
+**Requirements**: Python 3.12 or later (tested on 3.12; later versions are tested but allowed to fail until PyTorch supports them).
 
 Extension for [`pie`](https://github.com/emanjavacas/pie) to include taggers with their models and pre/postprocessors.
 
@@ -154,7 +154,7 @@ in `pie_extended.models.lasla.imports`
 Clone the repository, create an environment, and then
 
 ```bash
-python setup.py develop
+pip install -e .
 ```
 
 ## Warning

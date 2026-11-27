@@ -49,6 +49,26 @@ The current system provide an easier access to adding **customized**:
 
 If you trained models and want some help sharing them with Pie Extended, open an issue :)
 
+### Armenian
+
+`hy_hye` (Eastern, `hye`), `hy_hyw` (Western, `hyw`) and `hy_xcl` (Classical, `xcl`) are the Pie models of
+[Vidal-Gorène et al. (2024)](https://aclanthology.org/2024.nlp4dh-1.42/): one Pie model per task, so
+`--tasks lemma,pos` loads 2 models instead of 25 or 30. They share one tokenizer (`ArmenianTokenizer`) that follows
+the tokenization of their Universal Dependencies treebanks:
+
+- punctuation (`։ ՝ « » ( ) , ...`) and hyphens are tokens of their own;
+- the marks written on a vowel (`Մի՞թե`, `թե՛`) become a token after their word (`Միթե`, `՞`). `SpaceAfter` is `No`
+  for the word, since the mark was written inside it;
+- numbers (`1.000`) and ellipsis stay in one piece, the Western apostrophe stays on its clitic (`կ՚`, `ուզեմ`);
+- sentences end with `։ : ! ? …`, not with a dot (initials, abbreviations and numbers).
+
+On the dev sets of the Eastern and Western treebanks, the tokenizer gives the gold words of 99.5% and 99.4% of the
+sentences. For Classical Armenian, punctuation matches the treebank as well (100%) but its clitics (`զ`, `ց`, `յ`,
+the article `ն`) are words of their own there: this requires a lexicon and is not done.
+`tests/data/armenian_ud_sample.json` contains a few sentences of the Eastern and Western treebanks
+([UD_Armenian-ArmTDP](https://github.com/UniversalDependencies/UD_Armenian-ArmTDP) and
+[UD_Western_Armenian-ArmTDP](https://github.com/UniversalDependencies/UD_Western_Armenian-ArmTDP), CC BY-SA 4.0).
+
 ## Install
 
 To install, simply do `pip install pie-extended`. Then, look at all available models.

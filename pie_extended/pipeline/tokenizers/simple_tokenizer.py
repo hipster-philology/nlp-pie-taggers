@@ -1,4 +1,4 @@
-from typing import Generator, List
+from typing import Generator, List, Optional
 import regex as re
 import string
 from pie.tagger import regexsplitter, SECTION, FULLSTOP
@@ -34,6 +34,15 @@ class SimpleTokenizer(object):
     def reset(self):
         """Can be used between documents for example """
         pass
+
+    def surface_tokens(self) -> Optional[List[str]]:
+        """ How each token of the last text read is written in this text, if it differs from the token itself.
+
+        None (the default) means that tokens are written as they are (or, for memorizing tokenizers, that
+        their memory knows it). A tokenizer that moves things around (see the Armenian one) overrides it to give,
+        for each token, the part of the text it comes from, or an empty string for a token that is written nowhere.
+        """
+        return None
 
     def bypass_tokenizer(self, data: str, lower: bool = False) -> Generator[List[str], None, None]:
         """ Function to enable pretokenized input while using replaces or the likes

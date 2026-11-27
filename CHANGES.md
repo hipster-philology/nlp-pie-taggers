@@ -1,5 +1,38 @@
 # Releases
 
+### 1.0.0 (unreleased)
+
+**Breaking changes**
+
+- Python 3.12 or later is needed (tested on 3.12, 3.13 and 3.14), with PaPie 0.6.1 or later
+- The command line and `get_pipeline` add a last column, `SpaceAfter` (`No` when the next token is written right after
+  the token, `_` otherwise). Use `--no-space-after` (or `space_after=False`) to remove it. `--no-tokenizer` requires
+  `--no-space-after`, as the spaces of pre-tokenized text are lost. `get_iterator_and_processor()` is unchanged
+- The library `autodisambiguator` (`autocat`) is not a dependency anymore: its code is part of Pie Extended
+  (`pie_extended.pipeline.disambiguators.lexicons`), and the command `autodisambiguator` is now
+  `pie-extended build-lexicons`
+
+**New**
+
+- `--tasks lemma,pos` (and `get_tagger(tasks=...)`): only the columns asked for are given, and the models that are
+  not needed are not loaded
+- `--no-quantize`, `--no-cache`, `--cache-size`, `--num-threads`; quantization is turned off on a GPU
+- `get_pipeline` and `tag_file(pipeline=...)` build the iterator and the processor once for several files
+- (models/hy_hye, hy_hyw, hy_xcl) Eastern, Western and Classical Armenian, with a tokenizer that follows the Universal
+  Dependencies treebanks. The clitics of Classical Armenian are split with a segmenter learned from the treebank
+  (`pie-extended install-addons hy_xcl`)
+- (models/grc_grecy) Ancient Greek with the spaCy pipelines of GreCy, through `SpacyTagger`:
+  models do not have to run through Pie anymore
+- Documentation site on GitHub Pages, and a workflow that publishes the releases on PyPI
+
+**Fixes**
+
+- A failed download does not leave a corrupted file that would be taken for a model
+- Files are read and written as UTF-8, whatever the platform
+- No more quadratic shifts of lists in the memory of the tokenizers (long documents)
+- The tests were installed in the `site-packages` with the package
+- Invalid escape sequences, that a future version of Python would refuse
+
 ### 0.0.39 (2021/05/20)
 
 - (models/fro) Updated the model

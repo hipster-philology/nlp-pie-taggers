@@ -3,12 +3,14 @@ import os
 import re
 import warnings
 from unittest import TestCase
+from unittest.mock import patch
 
 from pie.utils import model_spec
 
 from pie_extended.cli.utils import get_imports, get_model, resolve_tasks
 from pie_extended.models import modules
 from pie_extended.models.hy_hye.tokenizer import ArmenianTokenizer, MARKS
+from pie_extended.models.hy_xcl import segmenter as clitics
 from pie_extended.pipeline.postprocessor.spacing import SpaceAfterProcessor
 from pie_extended.testing_utils import FakeAutoTag
 
@@ -22,10 +24,17 @@ def tokenize(text: str):
 
 
 def tag(lang: str, text: str):
-    """ Fake tagging through the whole pipeline: tokenization, SpaceAfter, formatting-ready dictionaries """
+    """ Fake tagging through the whole pipeline: tokenization, SpaceAfter, formatting-ready dictionaries
+
+    Classical Armenian is tested *without* its clitic segmenter (see test_armenian_clitics): whether it was learned
+    on the machine must not change the result of these tests.
+    """
     module = get_model(lang)
     tagger = FakeAutoTag.from_model_string(module.Models, batch_size=8)
-    iterator, processor = get_imports(module).get_iterator_and_processor()
+    with patch.object(clitics, "default_path", lambda: os.path.join(os.sep, "nonexistent", "clitics.json")), \
+            warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        iterator, processor = get_imports(module).get_iterator_and_processor()
     annotations = tagger.tag_str(text, iterator=iterator, processor=SpaceAfterProcessor(processor))
     return annotations, iterator
 

@@ -63,8 +63,19 @@ the tokenization of their Universal Dependencies treebanks:
 - sentences end with `։ : ! ? …`, not with a dot (initials, abbreviations and numbers).
 
 On the dev sets of the Eastern and Western treebanks, the tokenizer gives the gold words of 99.5% and 99.4% of the
-sentences. For Classical Armenian, punctuation matches the treebank as well (100%) but its clitics (`զ`, `ց`, `յ`,
-the article `ն`) are words of their own there: this requires a lexicon and is not done.
+sentences.
+
+**Classical Armenian** needs one more step. Its treebank (and so the model, which asks for pre-tokenized input) makes
+the clitics words of their own: `զմեղս` -> `զ`, `մեղս`; `յանապատին` -> `յ`, `անապատի`, `ն`. No rule can do it (many
+words begin with `զ` or end with `ն`), so a small model learns where the treebank cuts:
+
+```bash
+pie-extended install-addons hy_xcl   # downloads the treebank, learns in a few seconds, keeps 160 KB
+```
+
+On the test set of the treebank, this finds the cuts with an F1 of 97.3%, and the words of 90% of the sentences are
+exactly the ones of the treebank (13% without it). The treebank is CC BY-NC-SA 4.0: what is learned stays on your
+machine, it is not distributed with Pie Extended. Without this step the clitics are not split, and a warning says so.
 `tests/data/armenian_ud_sample.json` contains a few sentences of the Eastern and Western treebanks
 ([UD_Armenian-ArmTDP](https://github.com/UniversalDependencies/UD_Armenian-ArmTDP) and
 [UD_Western_Armenian-ArmTDP](https://github.com/UniversalDependencies/UD_Western_Armenian-ArmTDP), CC BY-SA 4.0).
